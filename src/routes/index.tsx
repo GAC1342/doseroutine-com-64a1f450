@@ -26,6 +26,9 @@ import {
   ChevronDown,
   Pill,
   Smartphone,
+  Camera,
+  ScanLine,
+  Flame,
 } from "lucide-react";
 import { useT } from "@/lib/i18n-provider";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -428,6 +431,10 @@ function LandingPage() {
               </li>
               <li className="flex items-start gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                Snap a photo of your meal for calories, protein and carbs
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 Log workouts and body measurements next to your protocol
               </li>
             </ul>
@@ -465,7 +472,7 @@ function LandingPage() {
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-foreground">Get the DoseRoutine app</p>
                   <p className="text-xs text-muted-foreground">
-                    iPhone and Android apps are coming soon.
+                    Install it on your phone in seconds — iPhone, Android and web.
                   </p>
                 </div>
               </div>
@@ -544,6 +551,89 @@ function LandingPage() {
           </div>
 
           <ProductPreview />
+        </div>
+      </section>
+
+      {/* AI meal scanner — headline feature */}
+      <section className="mx-auto max-w-5xl px-6 pb-8">
+        <div className="rounded-3xl border border-[color:var(--cta)]/30 bg-[color:var(--cta)]/5 p-6 sm:p-8">
+          <div className="inline-flex items-center gap-2 rounded-full bg-cta px-3 py-1 text-xs font-semibold text-cta-foreground">
+            <Camera className="h-3.5 w-3.5" />
+            New: AI meal scanner
+          </div>
+          <h2 className="mt-3 max-w-2xl font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            Photograph your plate. Get calories, protein and carbs in seconds.
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+            No searching a food database, no weighing every ingredient. Take a photo or scan a
+            barcode and DoseRoutine estimates calories, protein, carbs and fat for you. Every number
+            is editable before you save — and your meals land on the same day timeline as your
+            workouts and doses, so you can finally see food, training and your protocol together.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                icon: <Camera className="h-5 w-5" />,
+                title: "1. Snap or scan",
+                body: "Photo of the plate, or scan the barcode on the package.",
+              },
+              {
+                icon: <Flame className="h-5 w-5" />,
+                title: "2. Instant macros",
+                body: "Calories, protein, carbs and fat per item, with a confidence note.",
+              },
+              {
+                icon: <Check className="h-5 w-5" />,
+                title: "3. Edit and save",
+                body: "Adjust servings or any value, then save to today in one tap.",
+              },
+            ].map((item) => (
+              <Card key={item.title} className="rounded-2xl border-border p-4">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-cta/15 text-[color:var(--cta)]">
+                  {item.icon}
+                </div>
+                <div className="mt-3 text-sm font-semibold text-foreground">{item.title}</div>
+                <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {item.body}
+                </div>
+              </Card>
+            ))}
+          </div>
+          <ul className="mt-5 grid gap-2 text-sm text-foreground sm:grid-cols-2">
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--cta)]" />
+              Daily calorie and macro goals with live progress
+            </li>
+            <li className="flex items-start gap-2">
+              <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--cta)]" />
+              Barcode lookup backed by a public food database
+            </li>
+            <li className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--cta)]" />
+              Meals, workouts and doses on one timeline
+            </li>
+            <li className="flex items-start gap-2">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--cta)]" />
+              Meal photos are private and auto-delete on your schedule
+            </li>
+          </ul>
+          <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <Link
+              to="/auth"
+              onClick={() => handleCta("meal_scanner_primary")}
+              className="tap-target inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cta px-6 py-3 text-base font-semibold text-cta-foreground shadow-sm transition-colors hover:bg-cta-hover sm:w-auto"
+            >
+              Scan your first meal free
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/vs/cronometer"
+              onClick={() => handleCta("meal_scanner_compare")}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              See how it compares to calorie-only apps →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -882,6 +972,9 @@ function LandingPage() {
         </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
+            ["AI meal scanner", "Photo of your plate → calories, protein, carbs and fat."],
+            ["Barcode food logging", "Scan a package and log the macros in seconds."],
+            ["Calorie & macro goals", "Daily targets with live progress on Today."],
             ["Interaction checker", "Cross-checks 475+ compounds before you dose."],
             ["Reconstitution calculator", "BAC water, syringe units, saved per vial."],
             ["Vial inventory & refills", "Predicts when you'll run out — before you do."],
@@ -1011,24 +1104,29 @@ function LandingPage() {
             What shipped this week
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Small things that make daily tracking stick — and safety answers you can check.
+            The newest additions to daily tracking — food, timeline and help built in.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {[
               {
-                icon: <ShieldCheck className="h-5 w-5" />,
-                title: "Session context: RPE, sleep, stress and tags",
-                body: 'Rate sleep and stress, tag a session "deload" or "PR", and see the averages roll up on your calendar and weekly summary.',
+                icon: <Camera className="h-5 w-5" />,
+                title: "AI meal scanner: photo or barcode",
+                body: "Take a photo of your meal or scan a barcode and get calories, protein, carbs and fat back in seconds — every value editable before you save.",
               },
               {
-                icon: <Bell className="h-5 w-5" />,
-                title: "Workout reminders and a notification center",
-                body: "Planned-session and missed-session nudges by push and email in your timezone, all collected in one in-app feed.",
+                icon: <Flame className="h-5 w-5" />,
+                title: "Calorie and macro goals on Today",
+                body: "Set daily calorie, protein and carb targets and watch them fill in as you log meals through the day.",
+              },
+              {
+                icon: <Layers className="h-5 w-5" />,
+                title: "One timeline for food, workouts and doses",
+                body: "Meals now sit next to your training and protocol on the same day view, with quick inline edits to any macro.",
               },
               {
                 icon: <Search className="h-5 w-5" />,
-                title: "Deeper safety checks",
-                body: "Filter interactions by severity, expand any note for the full explanation, and follow the citation to the source study.",
+                title: "Instruction manual with saved bookmarks",
+                body: "A searchable, 11-chapter manual for every feature — bookmark the steps you use and they sync across your devices.",
               },
             ].map((item) => (
               <Card key={item.title} className="rounded-2xl border-border p-4">
@@ -1109,6 +1207,7 @@ function LandingPage() {
             { q: _t("faqQ5"), a: _t("faqA5") },
             { q: _t("faqQ6"), a: _t("faqA6") },
             { q: _t("faqQ7"), a: _t("faqA7") },
+            { q: _t("faqQ8"), a: _t("faqA8") },
           ].map((faq, i) => (
             <details
               key={i}
@@ -1374,7 +1473,7 @@ function LandingPage() {
             <div className="flex-1">
               <p className="text-sm font-semibold text-foreground">Get DoseRoutine on your phone</p>
               <p className="text-xs text-muted-foreground">
-                Add to home screen now · App Store & Google Play coming soon
+                Add to home screen in seconds · Works on iPhone, Android and web
               </p>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />

@@ -22,6 +22,7 @@ export const HOME_FAQ_KEYS = [
   ["faqQ5", "faqA5"],
   ["faqQ6", "faqA6"],
   ["faqQ7", "faqA7"],
+  ["faqQ8", "faqA8"],
 ] as const;
 
 export function homeAppSchema() {

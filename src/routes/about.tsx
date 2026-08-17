@@ -88,7 +88,10 @@ function AboutPage() {
         <Section title="What DoseRoutine does">
           DoseRoutine is one place for everything you take — supplements, peptides, hormones, and
           anything else already in your routine. Build your stack, get a daily schedule timed to
-          your timezone, and see educational combination notes across everything you add.
+          your timezone, and see educational combination notes across everything you add. It also
+          tracks the rest of your day: photograph a meal or scan a barcode for calories, protein
+          and carbs, log workouts and body measurements, and see food, training and doses together
+          on one timeline.
         </Section>
 
         <Section title="Who it's for">

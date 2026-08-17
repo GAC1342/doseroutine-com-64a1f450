@@ -75,7 +75,7 @@ export const Route = createFileRoute("/vs/cronometer")({
 const FAQ = [
   {
     q: "Is DoseRoutine a Cronometer alternative for supplements?",
-    a: "Yes — for the tracking side. Cronometer is a nutrition and micronutrient food logger; DoseRoutine is a routine-and-protocol tracker for supplements, peptides, hormones and everything else you take. If you care about scheduling every capsule, injection and hormone dose (not calories), DoseRoutine is the better fit.",
+    a: "Yes — for the tracking side. Cronometer is a nutrition and micronutrient food logger; DoseRoutine is a routine-and-protocol tracker for supplements, peptides, hormones and everything else you take. DoseRoutine now also tracks food: photograph a meal or scan a barcode and it estimates calories, protein, carbs and fat. If you want doses, workouts and macros in one app, DoseRoutine is the better fit; if you want exhaustive micronutrient data, Cronometer still wins.",
   },
   {
     q: "Does Cronometer track peptides or hormones?",
@@ -83,7 +83,7 @@ const FAQ = [
   },
   {
     q: "Can I use both Cronometer and DoseRoutine together?",
-    a: "Absolutely. Many users log food and micronutrients in Cronometer and run their supplement / peptide / hormone protocol in DoseRoutine. The two apps don't overlap much — they solve different problems.",
+    a: "Yes. Some people keep detailed micronutrient logging in Cronometer and run their protocol plus everyday calorie and macro tracking in DoseRoutine. Most people find DoseRoutine's photo and barcode meal scanner is enough on its own.",
   },
   {
     q: "Does DoseRoutine send dose reminders like Cronometer's supplement log?",
@@ -91,7 +91,7 @@ const FAQ = [
   },
   {
     q: "How much does DoseRoutine cost vs Cronometer Gold?",
-    a: "DoseRoutine Pro is $9.99/month or $59.99/year (50% off) with a 7-day free trial. Comparable to Cronometer Gold, but focused on dose accuracy, interactions, and injection protocols instead of food logging.",
+    a: "DoseRoutine Pro is $9.99/month or $59.99/year (50% off) with a 7-day free trial. Comparable to Cronometer Gold, and it covers dose accuracy, interactions, injection protocols, workouts and AI meal scanning in one subscription.",
   },
 ];
 
@@ -108,8 +108,11 @@ const COMPARISON = [
   { feature: "AI-assisted stack planning", us: true, them: false },
   { feature: "Shareable PDF summaries", us: true, them: "Nutrition reports" },
   { feature: "Calendar (.ics) alarms for every dose", us: true, them: false },
-  { feature: "Food & macronutrient tracking", us: false, them: true },
-  { feature: "Barcode food scanner", us: false, them: true },
+  { feature: "Calorie, protein & carb tracking", us: true, them: true },
+  { feature: "AI photo meal scanner", us: true, them: false },
+  { feature: "Barcode food scanner", us: true, them: true },
+  { feature: "Full micronutrient database (vitamins, minerals)", us: false, them: true },
+  { feature: "Food, workouts and doses on one timeline", us: true, them: false },
   { feature: "Free trial", us: "7 days", them: "Free tier + Gold trial" },
   { feature: "Pro pricing", us: "$9.99/mo · $59.99/yr", them: "~$8.99/mo · $49.99/yr" },
 ];
@@ -133,9 +136,10 @@ function CronometerAlternative() {
             The Cronometer alternative for supplements, peptides & hormones
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Cronometer is excellent for food and micronutrients. But it wasn't designed for dose
-            scheduling, peptide reconstitution, TRT/HRT cycles, or interaction checks across your
-            whole routine. DoseRoutine handles the dose layer Cronometer skips.
+            Cronometer is excellent for deep micronutrient data. DoseRoutine covers everyday nutrition —
+            photograph a meal or scan a barcode for calories, protein and carbs — and adds the dose
+            layer Cronometer skips: scheduling, peptide reconstitution, TRT/HRT cycles and
+            interaction checks across your whole routine.
           </p>
           <div className="flex flex-wrap gap-3 justify-center pt-2">
             <Button size="lg" asChild>
@@ -231,9 +235,10 @@ function CronometerAlternative() {
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6">When Cronometer is still the right choice</h2>
           <p className="text-muted-foreground">
-            If your primary goal is logging food, calories, and micronutrients, keep using
-            Cronometer — it's the best in that category. DoseRoutine is the companion app for the
-            supplement, peptide, and hormone side of your protocol.
+            If you need exhaustive micronutrient data — every vitamin, mineral and amino acid, weighed
+            to the gram — Cronometer is still the best in that category. DoseRoutine covers
+            calories, protein, carbs and fat through its photo and barcode scanner, plus the
+            supplement, peptide and hormone side of your protocol.
           </p>
         </section>
 

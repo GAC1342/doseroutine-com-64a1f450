@@ -73,7 +73,8 @@ export function AboutDoseRoutineBlock() {
       <p>
         This page is part of DoseRoutine's free reference library. DoseRoutine is a paid
         health-and-fitness tool that surfaces educational combination notes across 475+ supplements,
-        hormones, peptides and everything else you take — and tracks your full routine in one place.{" "}
+        hormones, peptides and everything else you take — and tracks your full routine in one place:
+        doses, workouts, and meals scanned from a photo or barcode for calories, protein and carbs.{" "}
         <Link
           to="/auth"
           className="font-semibold text-primary underline underline-offset-2 hover:opacity-90"
