@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.doseroutine.app",
+      "sha256_cert_fingerprints": [
+        "A0:7F:0E:98:31:54:C4:F3:7E:7A:39:6A:59:6F:46:7C:7A:0F:6E:E9:63:0E:7C:4E:5A:CB:AB:4B:3C:37:B4:9B"
+      ]
+    }
+  }
+]

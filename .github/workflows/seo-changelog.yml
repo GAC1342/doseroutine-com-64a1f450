@@ -1,0 +1,4 @@
+name: SEO Changelog
+
+on:
+  workflow_dispatch:

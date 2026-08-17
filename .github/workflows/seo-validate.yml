@@ -1,0 +1,28 @@
+name: SEO route validation
+
+# Boots the app on localhost and asserts every public route in
+# sitemap.xml (plus /compare and other must-cover routes) ships a valid
+# title, description, og:*, twitter:card, and at least one parseable
+# JSON-LD block. Fails the build when any route is missing metadata.
+
+on:
+  workflow_dispatch:
+
+# Intentionally manual: the owner disabled automatic Actions to control cost.
+# Run this before publishing SEO or route changes.
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Start preview server
+        run: |
+          bun run dev --host 127.0.0.1 > /tmp/doseroutine-vite.log 2>&1 &
+          for i in {1..60}; do curl -fsS http://127.0.0.1:8080/ >/dev/null && break; sleep 1; done
+      - name: Validate every sitemap route and private-route exclusions
+        run: python3 scripts/validate-seo-routes.py http://127.0.0.1:8080

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":prHourlyLimit4",
+    ":prConcurrentLimit10",
+    "group:monorepos",
+    "group:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies", "renovate"],
+  "assignees": [],
+  "rangeStrategy": "bump",
+  "postUpdateOptions": ["bunInstall"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "schedule": ["at any time"],
+    "prPriority": 10
+  },
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "Auto-merge safe patch + minor devDependency updates after CI passes",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Auto-merge patch updates for production deps",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Group all React ecosystem updates together",
+      "matchPackagePatterns": ["^react", "^@types/react"],
+      "groupName": "react"
+    },
+    {
+      "description": "Group TanStack updates",
+      "matchPackagePatterns": ["^@tanstack/"],
+      "groupName": "tanstack"
+    },
+    {
+      "description": "Group Supabase updates",
+      "matchPackagePatterns": ["^@supabase/"],
+      "groupName": "supabase"
+    },
+    {
+      "description": "Group Capacitor updates (native shell — review together)",
+      "matchPackagePatterns": ["^@capacitor/"],
+      "groupName": "capacitor",
+      "automerge": false
+    },
+    {
+      "description": "Never auto-bump major versions",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "needs-review"]
+    }
+  ],
+  "github-actions": {
+    "enabled": true,
+    "pinDigests": true
+  },
+  "ignorePaths": ["**/node_modules/**", "**/dist/**", "**/ios/**", "**/android/**"]
+}

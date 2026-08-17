@@ -1,0 +1,26 @@
+{
+  "//": "Key routes audited by the Lighthouse CI job. Paths are appended to the base URL (PERF_BASE_URL, default https://doseroutine.com). Only public routes — authenticated screens need a session Lighthouse doesn't have. One representative URL per public page TEMPLATE so a regression in any shared layout is caught.",
+  "routes": [
+    "/",
+    "/library?q=&cat=all&goal=&sort=relevance",
+    "/library/bpc-157",
+    "/library/guides/hexarelin-protocol",
+    "/library/compare/semaglutide-vs-tirzepatide",
+    "/library/womens-health",
+    "/library/womens-health/myo-inositol",
+    "/library/peptide-stacks-for-muscle-growth",
+    "/interactions",
+    "/interaction-checker",
+    "/calculators",
+    "/calculators/semaglutide-reconstitution-calculator",
+    "/help",
+    "/faq",
+    "/about",
+    "/vs",
+    "/vs/medisafe",
+    "/goals/muscle",
+    "/closed-testing",
+    "/install",
+    "/privacy"
+  ]
+}

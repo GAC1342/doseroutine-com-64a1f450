@@ -1,0 +1,4 @@
+name: attribution-hardening
+
+on:
+  workflow_dispatch:

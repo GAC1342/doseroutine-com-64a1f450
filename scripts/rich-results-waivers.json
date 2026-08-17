@@ -1,0 +1,4 @@
+{
+  "$comment": "Warnings whose message contains a `match` string are downgraded to notes and do not fail CI. Keep this list empty unless a warning is genuinely not actionable, and always record why. Errors can never be waived.",
+  "waivers": []
+}

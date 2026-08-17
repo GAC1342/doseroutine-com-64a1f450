@@ -1,0 +1,31 @@
+{
+  "//": "Per-route JS bundle budget. `tolerancePct`/`slackBytes` control how much a route may grow over its recorded baseline before CI fails; `maxGzipBytes` is the absolute ceiling regardless of baseline.",
+  "defaults": {
+    "tolerancePct": 5,
+    "slackBytes": 10240,
+    "maxGzipBytes": 700000
+  },
+  "routes": {
+    "/": { "label": "Home (/)", "maxGzipBytes": 480000 },
+    "/library": { "label": "Library shell" },
+    "/library/": { "label": "Library index" },
+    "/calculators": { "label": "Calculators" },
+    "/peptide-dosage-calculator": { "label": "Peptide dosage calc" },
+    "/trt-dosage-calculator": { "label": "TRT dosage calc" },
+    "/peptide-reconstitution-calculator": { "label": "Reconstitution calc" },
+    "/interaction-checker": { "label": "Interaction checker" },
+    "/compare": { "label": "Compare compounds" },
+    "/auth": { "label": "Auth" },
+    "/closed-testing": { "label": "Closed testing" },
+    "/about": { "label": "About" },
+    "/install": { "label": "Install" },
+    "/_authenticated/today": { "label": "Today" },
+    "/_authenticated/timeline": { "label": "Timeline" },
+    "/_authenticated/side-effects": { "label": "Side effects" },
+    "/_authenticated/plan": { "label": "Plan" },
+    "/_authenticated/fitness": { "label": "Fitness" },
+    "/_authenticated/stack": { "label": "Stack" },
+    "/_authenticated/adherence": { "label": "Adherence" },
+    "/_authenticated/chat": { "label": "AI coach" }
+  }
+}

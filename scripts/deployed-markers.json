@@ -1,0 +1,86 @@
+{
+  "$comment": "Single source of truth for the deployed-page UI marker contract. Consumed by src/lib/deployed-markers.ts (vitest) and scripts/check-deployed-markers.mjs (production smoke). The live page set is discovered from /sitemap.xml at run time (see scripts/lib/sitemap-paths.mjs); `paths` is only the offline fallback sample. Patterns are POSIX-ERE compatible so grep -E can use them too.",
+  "paths": [
+    "/library/zinc-bisglycinate",
+    "/library/retatrutide",
+    "/library/creatine"
+  ],
+  "required": [
+    {
+      "label": "direct-answer excerpt attribute",
+      "pattern": "data-dr-direct-answer-text",
+      "flags": ""
+    },
+    {
+      "label": "speakable intro paragraph",
+      "pattern": "dr-speakable-intro",
+      "flags": ""
+    },
+    {
+      "label": "editorial compilation wording",
+      "pattern": "Original editorial compilation",
+      "flags": "i"
+    },
+    {
+      "label": "\"Verify at\" sources split",
+      "pattern": "Verify at",
+      "flags": "i"
+    },
+    {
+      "label": "MedicalWebPage JSON-LD",
+      "pattern": "\"@type\"[ ]*:[ ]*\"MedicalWebPage\"",
+      "flags": ""
+    },
+    {
+      "label": "FAQPage JSON-LD",
+      "pattern": "\"@type\"[ ]*:[ ]*\"FAQPage\"",
+      "flags": ""
+    },
+    {
+      "label": "canonical link",
+      "pattern": "<link[^>]+rel=\"canonical\"",
+      "flags": "i"
+    }
+  ],
+  "forbidden": [
+    {
+      "label": "TDM reservation meta",
+      "pattern": "tdm-reservation",
+      "flags": "i"
+    },
+    {
+      "label": "TDM policy meta",
+      "pattern": "tdm-policy",
+      "flags": "i"
+    },
+    {
+      "label": "\"Original research\" wording",
+      "pattern": "Original research[^a-zA-Z]",
+      "flags": "i"
+    },
+    {
+      "label": "AI training attribution footer line",
+      "pattern": "AI training use requires attribution",
+      "flags": "i"
+    },
+    {
+      "label": "noindex robots directive",
+      "pattern": "<meta[^>]+name=\"robots\"[^>]+noindex",
+      "flags": "i"
+    }
+  ],
+  "discovery": {
+    "$comment": "Single-segment /library/<slug> URLs that are hand-written pages, not compound pages rendered by library.$slug.tsx. They are excluded from sitemap discovery.",
+    "excludeSlugs": [
+      "mens-health",
+      "prostate-health",
+      "testosterone-support",
+      "peptide-stacks",
+      "peptide-stacks-for-muscle-growth",
+      "retatrutide-dosage",
+      "cjc-1295-ipamorelin",
+      "womens-health"
+    ],
+    "concurrency": 8
+  }
+}

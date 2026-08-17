@@ -1,0 +1,17 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 2,
+      "settings": {
+        "onlyCategories": ["performance"],
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless=new --disable-gpu",
+        "skipAudits": ["uses-http2", "canonical"]
+      },
+      "//": "URLs are supplied by scripts/lighthouse-collect.mjs from perf-routes.json."
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

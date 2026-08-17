@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.compound_content_status() FROM anon, authenticated;

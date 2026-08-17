@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.adjust_vial_on_dose_change() FROM PUBLIC, anon, authenticated;

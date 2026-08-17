@@ -1,0 +1,46 @@
+name: public-seo-access
+
+# Verifies that the pages we want in search are reachable by an anonymous
+# visitor: no sign-up gate, no robots.txt Disallow, no noindex.
+# Offline guard runs on every push; the live sweep is manual (Actions minutes).
+on:
+  push:
+    paths:
+      - "src/routes/**"
+      - "src/lib/public-seo-access.ts"
+      - "src/lib/non-indexable.ts"
+      - "public/robots.txt"
+      - ".github/workflows/public-seo-access.yml"
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base URL for the live sweep
+        default: https://doseroutine.com
+        required: false
+      limit:
+        description: How many sitemap URLs to probe
+        default: "40"
+        required: false
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Sitemap pages are ungated, robots-allowed and indexable
+        run: bunx vitest run src/lib/__tests__/public-seo-access.test.ts
+
+  live:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Probe live URLs anonymously
+        run: |
+          bun run scripts/check-public-seo-access.mjs \
+            --base "${{ inputs.base || 'https://doseroutine.com' }}" \
+            --limit "${{ inputs.limit || '40' }}"

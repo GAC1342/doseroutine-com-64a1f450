@@ -1,0 +1,9 @@
+name: Citation SSRF guard
+
+# Locks in the citation-preview allowlist behavior. If anything regresses
+# to substring matching (the original vulnerability) or starts accepting
+# non-allowlisted hosts, cloud metadata endpoints, private ranges, or
+# non-http(s) protocols, this job fails and blocks the merge / deploy.
+
+on:
+  workflow_dispatch:

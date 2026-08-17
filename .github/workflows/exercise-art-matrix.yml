@@ -1,0 +1,538 @@
+name: exercise-art visual matrix (E2E)
+
+# Runs the workout-illustration visual + density regression suites across every
+# configured mobile and desktop width, one job per viewport x browser, on every
+# PR. The viewport list is generated from e2e/exercise-art-viewports.ts, so
+# adding a device there adds a CI job automatically.
+#
+# Jobs:
+#   matrix          - generates the viewport/browser fan-out
+#   visual          - pixel snapshots, density and browser-zoom checks per viewport/browser
+#   webkit-stability - modal overflow / containment / thumbnail alignment on
+#                      iOS-style rendering (WebKit + iPhone UA, touch and DPR)
+#   gate            - merges every ledger and fails on cross-browser or cross-density drift
+on:
+  pull_request:
+    paths:
+      - "src/components/exercise-art-lightbox.tsx"
+      - "src/components/exercise-search-grid.tsx"
+      - "src/components/workout-log-sheet.tsx"
+      - "src/components/muscle-group-picker.tsx"
+      - "src/lib/exercise-art.ts"
+      - "src/styles.css"
+      - "e2e/exercise-art-*.ts"
+      - "scripts/check-exercise-art-*.mjs"
+      - "scripts/merge-exercise-art-geometry.mjs"
+      - "scripts/exercise-art-matrix.ts"
+      - ".github/workflows/exercise-art-matrix.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/components/exercise-art-lightbox.tsx"
+      - "src/lib/exercise-art.ts"
+      - "e2e/exercise-art-*.ts"
+      - ".github/workflows/exercise-art-matrix.yml"
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base URL to test (blank = build & serve locally)
+        default: ""
+        required: false
+
+concurrency:
+  group: exercise-art-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      stability: ${{ steps.gen.outputs.stability }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - id: gen
+        run: |
+          bun scripts/exercise-art-matrix.ts >> "$GITHUB_OUTPUT"
+          bun scripts/exercise-art-matrix.ts --stability >> "$GITHUB_OUTPUT"
+      - name: Show matrix
+        run: |
+          bun scripts/exercise-art-matrix.ts --pretty
+          bun scripts/exercise-art-matrix.ts --stability --pretty
+
+  visual:
+    needs: matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+    name: ${{ matrix.viewport }} (${{ matrix.width }}px, ${{ matrix.browser }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Install Playwright browser
+        run: bunx playwright install --with-deps ${{ matrix.browser }}
+
+      # Turns "engine cannot start on this runner" into a one-line failure
+      # instead of a suite-long cascade of unrelated timeouts.
+      - name: Verify ${{ matrix.browser }} launches
+        run: node scripts/check-playwright-browsers.mjs --require=${{ matrix.browser }}
+
+      - name: Visual regression at ${{ matrix.width }}px
+        env:
+          # Firefox baselines are produced by .github/workflows/visual-baselines.yml.
+          # Until they are committed, a missing Firefox baseline annotates
+          # instead of failing; chromium/webkit stay strict.
+          REQUIRE_VISUAL_BASELINES: ${{ matrix.browser == 'firefox' && '0' || '1' }}
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+        run: >-
+          bunx playwright test e2e/exercise-art-visual.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      - name: Density regression at ${{ matrix.width }}px (dpr ${{ matrix.dprs }})
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+          ART_DPRS: ${{ matrix.dprs }}
+        run: >-
+          bunx playwright test e2e/exercise-art-dpr.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      - name: Browser zoom regression at ${{ matrix.width }}px (90/100/125%)
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+          ART_ZOOMS: "0.9,1,1.25"
+        run: >-
+          bunx playwright test e2e/exercise-art-zoom.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      # Runs at every width: phones/tablets are rotated, desktop widths run at
+      # their native landscape size so the same full-size modal cutoff
+      # assertions cover laptops too.
+      # continue-on-error keeps the run going long enough to collect the diff
+      # artifacts; the job is failed explicitly after the upload steps.
+      - name: Landscape regression at ${{ matrix.width }}px
+        id: landscape
+        continue-on-error: true
+
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+        run: >-
+          bunx playwright test e2e/exercise-art-landscape.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      # iOS Safari proper: WebKit engine with the iPhone UA/touch profile.
+      - name: Landscape regression on iOS Safari at ${{ matrix.width }}px
+        id: landscape_ios
+        if: matrix.class == 'mobile' && matrix.browser == 'webkit'
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+        run: >-
+          bunx playwright test e2e/exercise-art-landscape.spec.ts
+          --project=mobile-safari --reporter=list
+
+      - name: Collect landscape diff artifacts
+        if: always()
+        run: >-
+          node scripts/collect-landscape-diffs.mjs
+          --out landscape-diffs
+          --label "${{ matrix.viewport }} ${{ matrix.width }}px ${{ matrix.browser }}"
+
+      - name: Upload landscape diffs (expected/actual/diff + HTML gallery)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landscape-diffs-${{ matrix.name }}-${{ github.run_attempt }}
+          path: landscape-diffs/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail if the landscape suite failed
+        if: >-
+          steps.landscape.outcome == 'failure' || steps.landscape_ios.outcome == 'failure'
+        run: |
+          echo "Landscape regression failed — see the landscape-diffs-${{ matrix.name }} artifact (open index.html)."
+          exit 1
+
+
+
+      - name: Rotation containment and focus (iOS Safari)
+        if: matrix.browser == 'webkit' && matrix.class == 'mobile'
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: >-
+          bunx playwright test e2e/exercise-art-rotation.spec.ts
+          --project=mobile-safari --reporter=list
+
+      - name: Keyboard navigation at ${{ matrix.width }}px
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: >-
+          bunx playwright test e2e/exercise-art-keyboard.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      - name: Screen-reader semantics at ${{ matrix.width }}px
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: >-
+          bunx playwright test e2e/exercise-art-screenreader.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      - name: Image loading and CLS at ${{ matrix.width }}px
+        if: matrix.browser != 'firefox'
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: >-
+          bunx playwright test e2e/exercise-art-loading.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      - name: Slow-network (3G) modal budget at ${{ matrix.width }}px
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+        run: >-
+          bunx playwright test e2e/exercise-art-slow-network.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+
+
+      - name: Scroll/resize stability at ${{ matrix.width }}px
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ART_VIEWPORTS: ${{ matrix.viewport }}
+        run: >-
+          bunx playwright test e2e/exercise-art-scroll-resize.spec.ts
+          --project=${{ matrix.browser }} --reporter=list
+
+      # Runs pass or fail: baselines + any expected/actual/diff this job wrote,
+      # plus the HTML report, wrapped in a browsable index.html.
+      - name: Collect visual artifacts (baselines + diffs + HTML report)
+        if: always()
+        run: >-
+          node scripts/collect-visual-artifacts.mjs
+          --out visual-artifacts
+          --projects ${{ matrix.browser }},mobile-safari
+          --label "${{ matrix.viewport }} ${{ matrix.width }}px ${{ matrix.browser }}"
+
+      - name: Upload visual artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-artifacts-${{ matrix.name }}-${{ github.run_attempt }}
+          path: visual-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload geometry ledgers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exercise-art-ledgers-${{ matrix.name }}
+          path: |
+            test-results/exercise-art-geometry/
+            test-results/exercise-art-dpr/
+            test-results/exercise-art-landscape/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload failure artifacts (screenshots + video + traces)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exercise-art-failures-${{ matrix.name }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # iOS-style rendering pass. WebKit with the iPhone profile is the engine that
+  # actually reproduces modal overflow in the field: Safari's collapsing
+  # toolbars shrink visualViewport under the layout viewport, and WebKit rounds
+  # sub-pixel geometry differently from Blink, which is what shifts thumbnail
+  # alignment. Every mobile width runs the containment, scroll/resize, zoom,
+  # rotation and touch-target suites here.
+  webkit-stability:
+    needs: matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.stability) }}
+    name: stability ${{ matrix.viewport }} (${{ matrix.width }}px, iOS Safari)
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      ART_VIEWPORTS: ${{ matrix.viewport }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Install Playwright browser
+        run: bunx playwright install --with-deps ${{ matrix.engine }}
+
+      - name: Verify ${{ matrix.engine }} launches
+        run: node scripts/check-playwright-browsers.mjs --require=${{ matrix.engine }}
+
+      # Every stability spec is non-fatal on its own so a failure in the first
+      # one doesn't skip the rest (and their screenshots/videos). The job is
+      # failed explicitly after the media is collected and uploaded.
+      - name: Scroll/resize stability at ${{ matrix.width }}px
+        id: scroll_resize
+        continue-on-error: true
+        run: >-
+          bunx playwright test e2e/exercise-art-scroll-resize.spec.ts
+          --project=${{ matrix.project }} --reporter=list
+
+      - name: Browser zoom containment at ${{ matrix.width }}px (90/100/125%)
+        id: zoom
+        continue-on-error: true
+        env:
+          ART_ZOOMS: "0.9,1,1.25"
+        run: >-
+          bunx playwright test e2e/exercise-art-zoom.spec.ts
+          --project=${{ matrix.project }} --reporter=list
+
+      - name: Touch targets at ${{ matrix.width }}px (dpr ${{ matrix.dprs }})
+        id: touch_targets
+        continue-on-error: true
+        env:
+          ART_DPRS: ${{ matrix.dprs }}
+        run: >-
+          bunx playwright test e2e/exercise-art-touch-targets.spec.ts
+          --project=${{ matrix.project }} --reporter=list
+
+      - name: Rotation containment and focus at ${{ matrix.width }}px
+        id: rotation
+        continue-on-error: true
+        run: >-
+          bunx playwright test e2e/exercise-art-rotation.spec.ts
+          --project=${{ matrix.project }} --reporter=list
+
+      # Real iPhone/iPad device presets (visualViewport + Retina density). The
+      # spec drives its own device list, so it runs once per matrix job only at
+      # the reference width to avoid duplicating the same device sweep 12 times.
+      - name: iOS Safari device sweep
+        id: ios_sweep
+        continue-on-error: true
+        if: matrix.viewport == 'phone-390'
+        run: >-
+          bunx playwright test e2e/exercise-art-ios-safari.spec.ts
+          --project=${{ matrix.project }} --reporter=list
+
+
+      # Landscape containment on iOS-style rendering. Kept non-fatal until the
+      # diffs are collected, then failed explicitly below.
+      - name: Landscape containment at ${{ matrix.width }}px
+        id: landscape
+        continue-on-error: true
+        run: >-
+          bunx playwright test e2e/exercise-art-landscape.spec.ts
+          --project=${{ matrix.project }} --reporter=list
+
+      - name: Collect landscape diff artifacts
+        if: always()
+        run: >-
+          node scripts/collect-landscape-diffs.mjs
+          --out landscape-diffs
+          --label "stability ${{ matrix.viewport }} ${{ matrix.width }}px ${{ matrix.project }}"
+
+      - name: Upload landscape diffs (expected/actual/diff + HTML gallery)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landscape-diffs-stability-${{ matrix.name }}-${{ github.run_attempt }}
+          path: landscape-diffs/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Screenshots + short videos for every failing stability test, wrapped in
+      # a browsable index.html so overflow and alignment can be inspected
+      # straight from the artifact without downloading a trace.
+      # Media is content-hashed and a cached ledger suppresses re-uploading
+      # identical failures across reruns.
+      - name: Restore failure-media hash ledger
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: .cache/failure-media-seen.json
+          key: failure-media-ledger-${{ matrix.name }}-${{ github.run_id }}
+          restore-keys: |
+            failure-media-ledger-${{ matrix.name }}-
+
+      - name: Collect failure screenshots and videos
+        id: failure_media
+        if: always()
+        run: >-
+          node scripts/collect-failure-media.mjs
+          --out failure-media
+          --seen .cache/failure-media-seen.json
+          --label "stability ${{ matrix.viewport }} ${{ matrix.width }}px ${{ matrix.project }}"
+
+      - name: Upload failure media (screenshots + videos + gallery)
+        if: always() && steps.failure_media.outputs.has_new_media == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-media-stability-${{ matrix.name }}-${{ github.run_attempt }}
+          path: failure-media/
+          if-no-files-found: ignore
+          retention-days: 14
+
+
+      - name: Fail if any stability suite failed
+        if: >-
+          steps.scroll_resize.outcome == 'failure' ||
+          steps.zoom.outcome == 'failure' ||
+          steps.touch_targets.outcome == 'failure' ||
+          steps.rotation.outcome == 'failure' ||
+          steps.ios_sweep.outcome == 'failure' ||
+          steps.landscape.outcome == 'failure'
+        run: |
+          echo "webkit-stability failed:"
+          echo "  scroll/resize : ${{ steps.scroll_resize.outcome }}"
+          echo "  zoom          : ${{ steps.zoom.outcome }}"
+          echo "  touch targets : ${{ steps.touch_targets.outcome }}"
+          echo "  rotation      : ${{ steps.rotation.outcome }}"
+          echo "  iOS sweep     : ${{ steps.ios_sweep.outcome }}"
+          echo "  landscape     : ${{ steps.landscape.outcome }}"
+          echo "Open failure-media-stability-${{ matrix.name }} (index.html) for screenshots + videos."
+          exit 1
+
+
+
+
+      - name: Collect visual artifacts (baselines + diffs + HTML report)
+        if: always()
+        run: >-
+          node scripts/collect-visual-artifacts.mjs
+          --out visual-artifacts
+          --projects ${{ matrix.project }},${{ matrix.engine }}
+          --label "stability ${{ matrix.viewport }} ${{ matrix.width }}px ${{ matrix.project }}"
+
+      - name: Upload visual artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-artifacts-stability-${{ matrix.name }}-${{ github.run_attempt }}
+          path: visual-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload geometry ledgers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exercise-art-ledgers-${{ matrix.name }}
+          path: |
+            test-results/exercise-art-geometry/
+            test-results/exercise-art-dpr/
+            test-results/exercise-art-landscape/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload failure artifacts (screenshots + video + traces)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exercise-art-failures-${{ matrix.name }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+  gate:
+    needs: [visual, webkit-stability]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Download every viewport's ledgers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: exercise-art-ledgers-*
+          path: ledgers
+          merge-multiple: false
+
+      - name: Merge ledgers across viewports
+        run: |
+          set -e
+          mkdir -p merged/geometry merged/dpr merged/landscape
+          find ledgers -path '*exercise-art-geometry*' -name '*.json' -exec cp {} merged/geometry/ \;
+          find ledgers -path '*exercise-art-dpr*' -name '*.json' -exec cp {} merged/dpr/ \;
+          find ledgers -path '*exercise-art-landscape*' -name '*.json' -exec cp {} merged/landscape/ \;
+          node scripts/merge-exercise-art-geometry.mjs merged/geometry merged/geometry-final
+          node scripts/merge-exercise-art-geometry.mjs merged/dpr merged/dpr-final
+          node scripts/merge-exercise-art-geometry.mjs merged/landscape merged/landscape-final
+
+      - name: Cross-browser geometry gate
+        run: node scripts/check-exercise-art-geometry.mjs merged/geometry-final
+
+      - name: Cross-density geometry gate
+        run: node scripts/check-exercise-art-dpr.mjs merged/dpr-final
+
+      # Landscape y-overflow / aspect-ratio regression gate. mobile-safari is
+      # required because it is the engine that reproduces field cutoff.
+      - name: Landscape geometry gate (incl. mobile-safari)
+        run: >-
+          node scripts/check-exercise-art-landscape.mjs merged/landscape-final
+          --require mobile-safari
+
+      - name: Upload merged landscape geometry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exercise-art-landscape-geometry-${{ github.run_attempt }}
+          path: merged/landscape-final/
+          if-no-files-found: warn
+          retention-days: 14
+
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Illustration viewport matrix"
+            echo
+            echo "| ledger | viewports |"
+            echo "| --- | --- |"
+            for f in merged/geometry-final/*.json merged/dpr-final/*.json; do
+              [ -e "$f" ] || continue
+              echo "| $(basename "$f") | $(node -e "console.log(Object.keys(require('./'+process.argv[1]).viewports).join(', '))" "$f") |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

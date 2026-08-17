@@ -1,0 +1,9 @@
+name: a11y-axe
+
+# Boots the app on localhost and runs axe-core against every public
+# page (curated must-cover list + sitemap-discovered routes). Posts a
+# summary comment on pull requests and fails the check when any
+# critical or serious violation is found.
+
+on:
+  workflow_dispatch:

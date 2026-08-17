@@ -1,0 +1,69 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "com.doseroutine.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.doseroutine.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+        // No ndk.abiFilters here on purpose. Capacitor/AGP ships every ABI that
+        // the dependency native libs provide (arm64-v8a, armeabi-v7a, x86, x86_64)
+        // and the App Bundle splits them per device. Adding explicit filters can
+        // only ever shrink device coverage, never grow it.
+    }
+    buildTypes {
+        release {
+            // Enable R8 code shrinking + obfuscation + optimization.
+            minifyEnabled true
+            // Enable resource shrinking. With AGP 8.13 this uses the legacy
+            // pipeline unless android.r8.optimizedResourceShrinking=true is set
+            // in gradle.properties, which we set below.
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Ship native debug symbols in the AAB so Play can symbolicate
+            // crashes/ANRs from Capacitor + Firebase native libraries.
+            // Clears the "you've not uploaded debug symbols" warning.
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

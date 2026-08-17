@@ -1,0 +1,56 @@
+name: lighthouse-perf
+
+# Automated Lighthouse performance checks for the key public routes
+# (perf-routes.json), run against the live site on BOTH device profiles:
+#   - desktop: fast desktop emulation (lighthouserc.perf.json)
+#   - mobile : Moto-G-class screen + slow 4G + 4x CPU (lighthouserc.perf.mobile.json)
+#
+# Fails when a route's performance score drops more than 0.03 below its
+# recorded baseline (perf-baselines.json / perf-baselines.mobile.json), when a
+# tracked metric grows >20% past baseline, or when an absolute budget in
+# perf-budgets.json (profiles.mobile overrides for the mobile run) is exceeded.
+#
+# Baselines change deliberately: run `npm run perf:baseline:update` and
+# `npm run perf:baseline:update:mobile` locally and commit the diff.
+on:
+  schedule:
+    - cron: "20 6 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Base URL to audit"
+        required: false
+        default: "https://doseroutine.com"
+
+concurrency:
+  group: lighthouse-perf
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [desktop, mobile]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Collect Lighthouse runs (${{ matrix.profile }})
+        env:
+          PERF_BASE_URL: ${{ github.event.inputs.base_url || 'https://doseroutine.com' }}
+          PERF_PROFILE: ${{ matrix.profile }}
+          PERF_RUNS: "3"
+        run: node scripts/lighthouse-collect.mjs
+      - name: Assert budgets and per-route baselines (${{ matrix.profile }})
+        run: node scripts/check-perf-budget.mjs --profile ${{ matrix.profile }}
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-perf-reports-${{ matrix.profile }}
+          path: .lighthouseci-${{ matrix.profile }}/
+          if-no-files-found: ignore

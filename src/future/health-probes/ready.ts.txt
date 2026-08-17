@@ -1,0 +1,55 @@
+// Staged, NOT active. See ./README.md for activation instructions.
+// Final location: src/routes/api/public/health/ready.ts
+import { createFileRoute } from "@tanstack/react-router";
+
+async function ping(url: string, init?: RequestInit, timeoutMs = 2000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  const started = Date.now();
+  try {
+    const res = await fetch(url, { ...init, signal: ctrl.signal });
+    return { ok: res.ok || res.status === 401, ms: Date.now() - started, status: res.status };
+  } catch (err) {
+    return {
+      ok: false,
+      ms: Date.now() - started,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+export const Route = createFileRoute("/api/public/health/ready")({
+  server: {
+    handlers: {
+      GET: async () => {
+        const url = process.env.SUPABASE_URL;
+        const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!url || !key) {
+          return new Response(
+            JSON.stringify({ probe: "ready", ok: false, reason: "missing env" }),
+            { status: 503, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        const [db, auth] = await Promise.all([
+          ping(`${url}/rest/v1/compounds?select=id&limit=1`, {
+            headers: { apikey: key, Accept: "application/json" },
+          }),
+          ping(`${url}/auth/v1/health`),
+        ]);
+        const ok = db.ok && auth.ok;
+        return new Response(
+          JSON.stringify({ probe: "ready", ok, checks: { db, auth } }),
+          {
+            status: ok ? 200 : 503,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-store, must-revalidate",
+            },
+          },
+        );
+      },
+    },
+  },
+});

@@ -1,0 +1,1 @@
+INSERT INTO public.acknowledgments (user_id, subject) VALUES ('800ee00f-050d-4e28-8bc4-461ebcebc36f', 'medical-disclaimer:v1-2026-07') ON CONFLICT DO NOTHING;

@@ -1,0 +1,39 @@
+name: lockfile-integrity
+
+# Fail fast when package-lock.json has drifted out of sync with package.json.
+# This prevents later workflows (and deployments) from dying on `npm ci`.
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: lockfile-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lockfile-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Verify package-lock.json is in sync with package.json
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          if ! git diff --exit-code package-lock.json; then
+            echo ""
+            echo "❌ package-lock.json is out of sync with package.json."
+            echo "   Run 'npm install' locally and commit the updated lockfile."
+            exit 1
+          fi
+          echo "✅ package-lock.json is in sync with package.json."

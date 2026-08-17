@@ -1,0 +1,19 @@
+name: Brand entity check
+
+# Verifies /dose-routine stays indexable with a self-referential canonical,
+# names both spellings, and that every sameAs profile URL still resolves.
+# A dead sameAs URL weakens the "Dose Routine == DoseRoutine" entity signal.
+
+on:
+  workflow_dispatch:
+
+# Intentionally manual: the owner disabled automatic Actions to control cost.
+
+jobs:
+  brand-entity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate brand entity against the live site
+        run: python3 scripts/validate-brand-entity.py https://doseroutine.com

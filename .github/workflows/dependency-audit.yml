@@ -1,0 +1,53 @@
+name: dependency-audit
+
+# Fails CI when high or critical severity vulnerabilities are present in the
+# dependency tree (including transitive deps like the tar regression we hit).
+# Runs on every PR/push to main and on a daily schedule so newly disclosed
+# CVEs surface even without a code change.
+#
+# On failure the job summary lists each vulnerable package, severity,
+# affected range, direct/transitive, the advisory link, and the exact fix.
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Minimum severity that fails the build"
+        required: false
+        default: "high"
+        type: choice
+        options: [low, moderate, high, critical]
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 7 * * *"
+
+concurrency:
+  group: dependency-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run npm audit
+        run: npm audit --json > audit.json || true
+
+      - name: Summarize vulnerabilities
+        run: node scripts/audit-summary.mjs audit.json --level "${{ inputs.level || 'high' }}"
+
+      - name: Upload raw audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit.json
+          if-no-files-found: ignore

@@ -1,0 +1,1 @@
+ALTER TABLE public.comp_codes ALTER COLUMN months SET DEFAULT 3;

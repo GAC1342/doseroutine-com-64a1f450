@@ -1,0 +1,10 @@
+name: Timezone Calendar Midnight
+
+# Runs the Timeline "History calendar" local-midnight invariant spec on every
+# PR — in BOTH Chromium and WebKit. The main e2e workflow only runs WebKit
+# nightly, but this regression is timezone/Intl-sensitive and iOS Safari
+# (WebKit) has historically diverged from V8 on DST + IANA zone parsing.
+# Catching a drift at merge time is much cheaper than after ship.
+
+on:
+  workflow_dispatch:

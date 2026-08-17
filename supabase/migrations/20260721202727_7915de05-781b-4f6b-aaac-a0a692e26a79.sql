@@ -1,0 +1,1 @@
+INSERT INTO public.admins (email) VALUES ('nikk.delibasic@gmail.com') ON CONFLICT DO NOTHING;

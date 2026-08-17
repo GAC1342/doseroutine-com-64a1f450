@@ -1,0 +1,4 @@
+name: canonical-urls
+
+on:
+  workflow_dispatch:

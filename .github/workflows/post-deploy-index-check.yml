@@ -1,0 +1,59 @@
+name: post-deploy-index-check
+
+# Automated post-deploy indexing check:
+#   1. Re-downloads sitemap.xml (cache-busted) from the live site
+#   2. Validates JSON-LD structured data across sitemap URLs
+#   3. Validates indexability (200, no noindex, valid canonical)
+#
+# Runs on push to main (after a deploy lands), daily, or manually.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to check"
+        required: false
+        default: "https://doseroutine.com"
+      index_limit:
+        description: "Max URLs for the indexability pass (0 = all)"
+        required: false
+        default: "250"
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * *"
+
+concurrency:
+  group: post-deploy-index-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Wait for deploy to propagate
+        if: github.event_name == 'push'
+        run: sleep 120
+
+      - name: Post-deploy indexing check
+        env:
+          BASE_URL: ${{ inputs.base_url || 'https://doseroutine.com' }}
+          INDEX_LIMIT: ${{ inputs.index_limit || '250' }}
+          OUT_DIR: ${{ github.workspace }}/post-deploy-index-check
+        run: |
+          chmod +x scripts/post-deploy-index-check.sh
+          scripts/post-deploy-index-check.sh "$BASE_URL"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-index-check
+          path: post-deploy-index-check/
+          if-no-files-found: ignore

@@ -1,0 +1,123 @@
+name: blog-seo-score
+
+# Scores every /blog post on title, meta description, H1/H2 structure and
+# target-keyword presence in the first 100 words. Fails the build when a post
+# drops below the configured threshold. Thresholds, rule weights, enabled rules
+# and blocking checks live in seo-score.config.json — edit that file to tighten
+# or loosen CI without code changes. Set the SEO_SCORE_PASSING_SCORE repository
+# variable to override the threshold for a run, or SEO_SCORE_CONFIG to point at
+# a different config file.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/lib/blog-posts.ts"
+      - "src/lib/blog-posts-longtail.ts"
+      - "src/lib/blog-seo-score.ts"
+      - "src/lib/blog-seo.ts"
+      - "src/lib/blog-jsonld-validate.ts"
+      - "src/lib/__tests__/blog-jsonld.test.ts"
+      - "src/lib/blog-social-meta-validate.ts"
+      - "src/lib/__tests__/blog-social-meta.test.ts"
+      - "src/lib/aeo.ts"
+      - "src/lib/aeo-page-faqs.ts"
+      - "src/lib/faqpage-rich-results.ts"
+      - "src/lib/__tests__/faqpage-rich-results.test.ts"
+      - "src/lib/seo-score-config.ts"
+      - "src/lib/seo-score-config.load.ts"
+      - "seo-score.config.json"
+      - "src/lib/__tests__/blog-seo-score.test.ts"
+      - ".github/workflows/blog-seo-score.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/lib/blog-posts.ts"
+      - "src/lib/blog-posts-longtail.ts"
+      - "src/lib/blog-seo-score.ts"
+      - "src/lib/blog-seo.ts"
+      - "src/lib/blog-jsonld-validate.ts"
+      - "src/lib/__tests__/blog-jsonld.test.ts"
+      - "src/lib/blog-social-meta-validate.ts"
+      - "src/lib/__tests__/blog-social-meta.test.ts"
+      - "src/lib/aeo.ts"
+      - "src/lib/aeo-page-faqs.ts"
+      - "src/lib/faqpage-rich-results.ts"
+      - "src/lib/__tests__/faqpage-rich-results.test.ts"
+      - "src/lib/seo-score-config.ts"
+      - "src/lib/seo-score-config.load.ts"
+      - "seo-score.config.json"
+      - "src/lib/__tests__/blog-seo-score.test.ts"
+      - ".github/workflows/blog-seo-score.yml"
+
+concurrency:
+  group: blog-seo-score-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Optional overrides — set as repository/environment variables.
+      SEO_SCORE_PASSING_SCORE: ${{ vars.SEO_SCORE_PASSING_SCORE }}
+      SEO_SCORE_CONFIG: ${{ vars.SEO_SCORE_CONFIG }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Restore live-crawl page cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/doseroutine-crawl
+          key: crawl-cache-blog-seo-${{ github.run_id }}
+          restore-keys: |
+            crawl-cache-blog-seo-
+      - name: Score blog posts
+        run: npm run test:blog-seo
+      - name: Validate blog JSON-LD (Article, headline, dates, author)
+        run: npm run test:blog-jsonld
+      - name: Validate blog OpenGraph + Twitter card meta
+        run: npm run test:blog-social-meta
+      - name: Validate FAQPage JSON-LD (Rich Results eligibility)
+        run: npm run test:faq-rich-results
+      # One step, one process: the FAQ parity crawl and the anchor-text lint
+      # visit the same sitemap pages and share the crawl cache between them.
+      - name: FAQ anchor parity + internal anchor text (live site)
+        env:
+          FAQ_PARITY_BASE_URL: https://doseroutine.com
+          FAQ_PARITY_REQUIRE_SERVER: "1"
+          FAQ_PARITY_MAX_PAGES: "120"
+          ANCHOR_LINT_BASE_URL: https://doseroutine.com
+          ANCHOR_LINT_REQUIRE_SERVER: "1"
+          ANCHOR_LINT_MAX_PAGES: "120"
+          # 0 = always revalidate cached bodies with the origin (cheap 304s), so
+          # a fresh deploy is never masked by a stale cache entry.
+          CRAWL_CACHE_TTL_MS: "0"
+        run: npm run test:live-crawl
+
+      # Reporting only (never blocks): produces the per-page anchor-text
+      # violation artifact with offending link text + destination URL.
+      - name: Anchor-text lint report
+        if: always()
+        continue-on-error: true
+        env:
+          CRAWL_CACHE_TTL_MS: "0"
+        run: node scripts/anchor-lint-report.mjs --base https://doseroutine.com --max 120 --out-dir artifacts/anchor-lint
+
+      - name: Upload anchor-text lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anchor-lint-report
+          path: artifacts/anchor-lint/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Write score table to job summary
+        if: always()
+        run: node scripts/blog-seo-score-report.mjs >> "$GITHUB_STEP_SUMMARY"

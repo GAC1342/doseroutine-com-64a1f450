@@ -1,0 +1,4 @@
+name: E2E (Playwright)
+
+on:
+  workflow_dispatch:

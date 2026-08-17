@@ -1,0 +1,39 @@
+// Staged, NOT active. See ./README.md for activation instructions.
+// Final location: src/routes/api/public/health/startup.ts
+import { createFileRoute } from "@tanstack/react-router";
+
+declare const __BUILD_ID__: string;
+const BUILD_ID =
+  typeof __BUILD_ID__ === "string" && __BUILD_ID__ ? __BUILD_ID__ : "dev";
+const BOOTED_AT = Date.now();
+
+export const Route = createFileRoute("/api/public/health/startup")({
+  server: {
+    handlers: {
+      GET: async () => {
+        // "Startup complete" = required env is present and the module
+        // graph has fully evaluated (this handler running proves it).
+        const envReady = Boolean(
+          process.env.SUPABASE_URL && process.env.SUPABASE_PUBLISHABLE_KEY,
+        );
+        const ok = envReady;
+        return new Response(
+          JSON.stringify({
+            probe: "startup",
+            ok,
+            build_id: BUILD_ID,
+            booted_at: new Date(BOOTED_AT).toISOString(),
+            env_ready: envReady,
+          }),
+          {
+            status: ok ? 200 : 503,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-store, must-revalidate",
+            },
+          },
+        );
+      },
+    },
+  },
+});

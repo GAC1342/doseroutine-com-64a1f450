@@ -1,0 +1,47 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "http://localhost:8080/",
+        "http://localhost:8080/auth",
+        "http://localhost:8080/pricing",
+        "http://localhost:8080/library",
+        "http://localhost:8080/library/compare/bpc-157-vs-tb-500",
+        "http://localhost:8080/help",
+        "http://localhost:8080/privacy",
+        "http://localhost:8080/terms",
+        "http://localhost:8080/ai-policy"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "onlyCategories": ["accessibility"],
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless=new --disable-gpu",
+        "skipAudits": ["uses-http2", "canonical"]
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": [
+          "error",
+          { "minScore": 0.95, "aggregationMethod": "pessimistic" }
+        ],
+        "color-contrast": ["error", { "minScore": 1 }],
+        "image-alt": ["error", { "minScore": 1 }],
+        "button-name": ["error", { "minScore": 1 }],
+        "link-name": ["error", { "minScore": 1 }],
+        "label": ["error", { "minScore": 1 }],
+        "html-has-lang": ["error", { "minScore": 1 }],
+        "meta-viewport": ["error", { "minScore": 1 }],
+        "aria-required-attr": ["error", { "minScore": 1 }],
+        "aria-valid-attr-value": ["error", { "minScore": 1 }],
+        "duplicate-id-aria": ["error", { "minScore": 1 }],
+        "heading-order": ["warn", { "minScore": 1 }],
+        "tap-targets": ["warn", { "minScore": 1 }]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

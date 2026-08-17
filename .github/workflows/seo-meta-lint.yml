@@ -1,0 +1,34 @@
+name: SEO meta lint
+
+# Pre-deploy SEO guard. Runs offline (no server) and fails the build when a
+# route ships a broken meta description (truncated fragment, too short, too
+# long), a duplicate og:url / canonical, or a missing canonical tag.
+#
+# Mark this workflow as a REQUIRED status check on `main` (Settings →
+# Branches → Branch protection) so a failing lint blocks the merge that
+# would otherwise trigger publish.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/routes/**"
+      - "src/lib/i18n.ts"
+      - "src/lib/page2-rescue.ts"
+      - "src/lib/page2-rescue.test.ts"
+      - "scripts/suffix-descriptions.mjs"
+      - ".github/workflows/seo-meta-lint.yml"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint route metadata (descriptions, og:url, canonical)
+        run: bun run lint:seo
+      - name: Lint page-2 rescue snippets (title/description length, FAQ shape)
+        run: bun run lint:snippets

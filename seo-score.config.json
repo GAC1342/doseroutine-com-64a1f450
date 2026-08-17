@@ -1,0 +1,26 @@
+{
+  "$comment": "Pass/fail thresholds for the blog SEO score CI gate (src/lib/blog-seo-score.ts). Edit this file to tighten or loosen checks — no code changes needed. Override the file path with SEO_SCORE_CONFIG=<path> and the threshold with SEO_SCORE_PASSING_SCORE=<0-100>.",
+  "passingScore": 85,
+  "blockingChecks": [
+    "title_length",
+    "title_keyword",
+    "description_length",
+    "h1_present",
+    "h2_count",
+    "intro_keyword"
+  ],
+  "rules": {
+    "title_length": { "enabled": true, "weight": 12, "min": 30, "max": 65 },
+    "title_brand": { "enabled": true, "weight": 6, "suffixPattern": "\\|\\s*DoseRoutine\\s*$" },
+    "title_keyword": { "enabled": true, "weight": 12, "minCoverage": 0.01 },
+    "description_length": { "enabled": true, "weight": 12, "min": 70, "max": 160 },
+    "description_sentence": { "enabled": true, "weight": 6 },
+    "h1_present": { "enabled": true, "weight": 8, "min": 20 },
+    "h1_distinct": { "enabled": true, "weight": 6 },
+    "h2_count": { "enabled": true, "weight": 10, "min": 3 },
+    "h2_unique": { "enabled": true, "weight": 6 },
+    "h2_length": { "enabled": true, "weight": 4, "max": 80 },
+    "intro_keyword": { "enabled": true, "weight": 14, "minCoverage": 0.4, "windowWords": 100 },
+    "intro_length": { "enabled": true, "weight": 4, "min": 40, "max": 120 }
+  }
+}

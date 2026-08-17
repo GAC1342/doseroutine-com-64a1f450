@@ -1,0 +1,17 @@
+name: publish-gate-suffix-audit
+
+# Blocks publish when any non-exempt sitemap URL is missing the
+# canonical DoseRoutine description suffix in either
+# <meta name="description"> or <meta property="og:description">.
+#
+# Default target is the Lovable staging (preview) URL so regressions
+# fail BEFORE the change is promoted to https://doseroutine.com.
+# Override the target with the `base_url` input on workflow_dispatch,
+# or point it at production for a post-promotion re-verify.
+#
+# Mark this workflow as a REQUIRED status check on `main` (Settings →
+# Branches → Branch protection) so a failing suffix audit blocks the
+# merge that would otherwise trigger publish.
+
+on:
+  workflow_dispatch:

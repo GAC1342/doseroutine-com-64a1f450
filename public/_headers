@@ -1,0 +1,66 @@
+# Cloudflare-style headers file. Applied by the hosting layer to matching
+# public asset paths. Rules are top-down; the first match wins per header.
+#
+# Strategy:
+#   • Versioned assets are referenced via `?v=<BUILD_ID>` (see
+#     src/lib/asset-url.ts). Browsers key HTTP cache entries on the full URL
+#     including the query string, so a new BUILD_ID = new cache key = fresh
+#     fetch. That makes it safe to send `immutable` for icons and splash art.
+#   • The manifest and push service worker are small, revalidate cheaply,
+#     and are the tip of the update chain — keep them revalidating so a
+#     fresh browser session immediately picks up new branding / SW code.
+#   • HTML documents must never be long-cached; a stale HTML pins users to
+#     an old BUILD_ID and defeats every ?v= URL below it.
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw-push.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/icon-*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/icon-maskable*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/doseroutine-logo.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/splash/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+# /sitemap.xml is a dynamic server route (src/routes/sitemap[.]xml.ts).
+# It sets its own Cache-Control + ETag/304 policy so the in-memory cache
+# and crawler conditional requests work correctly; do not override here.
+
+# Catch-all long cache for static images/fonts served from /public.
+# Safe because BUILD_ID query strings (?v=...) key the browser cache,
+# and hashed built assets already carry unique filenames.
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+/*.avif
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+/*.ico
+  Cache-Control: public, max-age=604800
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

@@ -1,0 +1,174 @@
+import { jsPDF } from "jspdf";
+import type { SharePair } from "@/components/share-with-clinician";
+
+const SEV_LABEL: Record<SharePair["severity"], string> = {
+  avoid: "AVOID",
+  caution: "CAUTION",
+  note: "Note",
+  synergy: "Synergy",
+};
+
+const SEV_COLOR: Record<SharePair["severity"], [number, number, number]> = {
+  avoid: [185, 28, 28], // red-700
+  caution: [180, 83, 9], // amber-700
+  note: [55, 65, 81], // gray-700
+  synergy: [21, 128, 61], // green-700
+};
+
+export type ClinicianPdfOptions = {
+  patientLabel?: string;
+  stackNames: string[];
+  pairs: SharePair[];
+};
+
+/** Generate a printable interaction summary and trigger a browser download. */
+export function downloadInteractionPdf(opts: ClinicianPdfOptions) {
+  const { patientLabel, stackNames, pairs } = opts;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 48;
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  const ensureRoom = (needed: number) => {
+    if (y + needed > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  };
+
+  const writeWrapped = (
+    text: string,
+    opts2: {
+      size?: number;
+      style?: "normal" | "bold";
+      color?: [number, number, number];
+      indent?: number;
+    } = {},
+  ) => {
+    const size = opts2.size ?? 10;
+    const style = opts2.style ?? "normal";
+    const color = opts2.color ?? [17, 24, 39]; // gray-900
+    const indent = opts2.indent ?? 0;
+    doc.setFont("helvetica", style);
+    doc.setFontSize(size);
+    doc.setTextColor(color[0], color[1], color[2]);
+    const lines = doc.splitTextToSize(text, contentWidth - indent);
+    for (const line of lines) {
+      ensureRoom(size + 4);
+      doc.text(line, margin + indent, y);
+      y += size + 4;
+    }
+  };
+
+  // Header
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.rect(0, 0, pageWidth, 72, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text("DoseRoutine", margin, 42);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text("Interaction summary for your pharmacist or doctor", margin, 60);
+  y = 96;
+
+  // Meta
+  const date = new Date().toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+  writeWrapped(`Date: ${date}`, { size: 10, color: [75, 85, 99] });
+  if (patientLabel) writeWrapped(`Name: ${patientLabel}`, { size: 10, color: [75, 85, 99] });
+  y += 6;
+
+  // Current stack
+  writeWrapped("Current stack", { size: 12, style: "bold" });
+  if (stackNames.length === 0) {
+    writeWrapped("— (none listed)", { size: 10, color: [107, 114, 128] });
+  } else {
+    for (const name of stackNames) writeWrapped(`• ${name}`, { size: 10, indent: 8 });
+  }
+  y += 10;
+
+  // Flagged interactions
+  const majorCount = pairs.filter((p) => p.severity === "avoid" || p.severity === "caution").length;
+  writeWrapped(
+    `Flagged interactions (${pairs.length}${majorCount > 0 ? `, ${majorCount} major` : ""})`,
+    { size: 12, style: "bold" },
+  );
+  y += 2;
+
+  if (pairs.length === 0) {
+    writeWrapped(
+      "No interactions were flagged by DoseRoutine's rule set. This does not rule out other interactions — please review with a clinician.",
+      { size: 10, color: [75, 85, 99] },
+    );
+  } else {
+    pairs.forEach((p, i) => {
+      ensureRoom(80);
+      // Card frame
+      const startY = y;
+      const [r, g, b] = SEV_COLOR[p.severity];
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setLineWidth(0.5);
+      // Severity chip
+      doc.setFillColor(r, g, b);
+      const chipLabel = SEV_LABEL[p.severity];
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      const chipW = doc.getTextWidth(chipLabel) + 12;
+      doc.roundedRect(margin, startY - 10, chipW, 16, 3, 3, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.text(chipLabel, margin + 6, startY + 1);
+
+      // Pair title
+      doc.setTextColor(17, 24, 39);
+      doc.setFontSize(11);
+      doc.text(`${i + 1}. ${p.a}  ×  ${p.b}`, margin + chipW + 8, startY + 1);
+      y = startY + 14;
+
+      writeWrapped(`Recommendation: ${p.recommendation}`, { size: 10, indent: 8 });
+      writeWrapped(`Mechanism: ${p.mechanism}`, { size: 10, color: [55, 65, 81], indent: 8 });
+
+      if (p.sources.length > 0) {
+        const sourceText = p.sources
+          .map((s) => {
+            const [label, url] = s.split("|");
+            return url ? `${label} — ${url}` : label;
+          })
+          .join("  •  ");
+        writeWrapped(`Sources: ${sourceText}`, { size: 9, color: [75, 85, 99], indent: 8 });
+      }
+      y += 8;
+    });
+  }
+
+  // Footer disclaimer on the last page
+  ensureRoom(60);
+  y = Math.max(y, pageHeight - margin - 44);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 12;
+  writeWrapped(
+    "Generated by DoseRoutine (https://doseroutine.com). Educational summary based on published interaction data, not medical advice. Please review before starting or changing any medication or supplement.",
+    { size: 8, color: [107, 114, 128] },
+  );
+
+  // Page numbers
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${p} of ${pageCount}`, pageWidth - margin, pageHeight - 20, { align: "right" });
+  }
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  doc.save(`doseroutine-interactions-${stamp}.pdf`);
+}

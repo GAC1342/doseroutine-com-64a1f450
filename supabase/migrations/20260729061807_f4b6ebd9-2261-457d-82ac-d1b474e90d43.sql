@@ -1,0 +1,1 @@
+UPDATE public.profiles SET is_adult = true, consented_at = COALESCE(consented_at, now()), grandfathered = true, dob = COALESCE(dob, '1990-01-01'::date), timezone = COALESCE(timezone, 'UTC') WHERE id = '800ee00f-050d-4e28-8bc4-461ebcebc36f';

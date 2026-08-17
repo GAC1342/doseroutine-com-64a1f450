@@ -1,0 +1,28 @@
+name: Verify iOS Icons
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify-icons:
+    name: Verify iOS App Icons
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Verify Assets.xcassets pbxproj membership (per-target report)
+        run: npm run verify:assets
+
+      - name: Regenerate and verify iOS icon catalog
+        run: npm run verify:icons

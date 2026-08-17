@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-08-14T04:45:55.870Z",
+  "base": "http://localhost:8080",
+  "reachable": true,
+  "totals": {
+    "pagesCrawled": 8,
+    "pagesWithViolations": 0,
+    "linksChecked": 933,
+    "violations": 0,
+    "byCode": {}
+  },
+  "pages": []
+}

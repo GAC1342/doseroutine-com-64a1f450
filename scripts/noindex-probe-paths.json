@@ -1,0 +1,178 @@
+{
+  "nonIndexable": [
+    {
+      "rule": "/auth",
+      "path": "/auth"
+    },
+    {
+      "rule": "/onboarding",
+      "path": "/onboarding"
+    },
+    {
+      "rule": "/reset-password",
+      "path": "/reset-password"
+    },
+    {
+      "rule": "/today",
+      "path": "/today"
+    },
+    {
+      "rule": "/adherence",
+      "path": "/adherence"
+    },
+    {
+      "rule": "/stack",
+      "path": "/stack"
+    },
+    {
+      "rule": "/timeline",
+      "path": "/timeline"
+    },
+    {
+      "rule": "/safety",
+      "path": "/safety"
+    },
+    {
+      "rule": "/plan",
+      "path": "/plan"
+    },
+    {
+      "rule": "/reminders",
+      "path": "/reminders"
+    },
+    {
+      "rule": "/more",
+      "path": "/more"
+    },
+    {
+      "rule": "/upgrade",
+      "path": "/upgrade"
+    },
+    {
+      "rule": "/trial",
+      "path": "/trial"
+    },
+    {
+      "rule": "/chat",
+      "path": "/chat"
+    },
+    {
+      "rule": "/checkins",
+      "path": "/checkins"
+    },
+    {
+      "rule": "/costs",
+      "path": "/costs"
+    },
+    {
+      "rule": "/cycles",
+      "path": "/cycles"
+    },
+    {
+      "rule": "/doctor-report",
+      "path": "/doctor-report"
+    },
+    {
+      "rule": "/export",
+      "path": "/export"
+    },
+    {
+      "rule": "/health-sync",
+      "path": "/health-sync"
+    },
+    {
+      "rule": "/injection-sites",
+      "path": "/injection-sites"
+    },
+    {
+      "rule": "/labs",
+      "path": "/labs"
+    },
+    {
+      "rule": "/body-metrics",
+      "path": "/body-metrics"
+    },
+    {
+      "rule": "/fitness",
+      "path": "/fitness"
+    },
+    {
+      "rule": "/notifications",
+      "path": "/notifications"
+    },
+    {
+      "rule": "/progress-photos",
+      "path": "/progress-photos"
+    },
+    {
+      "rule": "/side-effects",
+      "path": "/side-effects"
+    },
+    {
+      "rule": "/templates",
+      "path": "/templates"
+    },
+    {
+      "rule": "/scan",
+      "path": "/scan"
+    },
+    {
+      "rule": "/redeem",
+      "path": "/redeem"
+    },
+    {
+      "rule": "/not-found",
+      "path": "/not-found"
+    },
+    {
+      "rule": "/auth_",
+      "path": "/auth_"
+    },
+    {
+      "rule": "/p/",
+      "path": "/p/smoke-test"
+    },
+    {
+      "rule": "/admin",
+      "path": "/admin"
+    },
+    {
+      "rule": "/debug/",
+      "path": "/debug/smoke-test"
+    },
+    {
+      "rule": "/lovable/",
+      "path": "/lovable/smoke-test"
+    },
+    {
+      "rule": "/api/",
+      "path": "/api/smoke-test"
+    },
+    {
+      "rule": "/settings",
+      "path": "/settings"
+    }
+  ],
+  "notFound": [
+    {
+      "rule": "explicit /not-found route",
+      "path": "/not-found",
+      "requiresRobotsRule": true
+    },
+    {
+      "rule": "unmatched top-level path",
+      "path": "/__audit-404-probe",
+      "requiresRobotsRule": false
+    },
+    {
+      "rule": "unmatched path under an indexable prefix",
+      "path": "/library/__audit-404-probe",
+      "requiresRobotsRule": false
+    },
+    {
+      "rule": "unmatched path under a private prefix",
+      "path": "/today/__audit-404-probe",
+      "requiresRobotsRule": true
+    }
+  ]
+}

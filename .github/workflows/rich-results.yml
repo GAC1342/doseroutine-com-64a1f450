@@ -1,0 +1,89 @@
+name: Rich Results validation
+
+# Runs the structured-data / Rich Results validator against the JSON-LD a
+# deployed page actually serves and FAILS the build on any warning, not just
+# on hard errors. Recommended-field warnings are what silently downgrade or
+# drop an eligible rich result, so they are treated as blocking here.
+#
+# Scope: the critical routes (home, library, blog, sources) plus an evenly
+# spread sample of sitemap URLs.
+#
+# Genuinely unactionable warnings go in scripts/rich-results-waivers.json
+# with a reason — errors can never be waived.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to validate"
+        required: false
+        default: "https://project--b76a384e-67c0-4f04-b53e-b70d374f6ac7-dev.lovable.app"
+      limit:
+        description: "How many sitemap URLs to sample"
+        required: false
+        default: "60"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/lib/article-schema.ts"
+      - "src/lib/software-app-schema.ts"
+      - "src/lib/breadcrumb-schema.ts"
+      - "src/lib/blog-seo.ts"
+      - "src/lib/home-jsonld.ts"
+      - "src/lib/authority-sources.ts"
+      - "src/components/womens-hub-page.tsx"
+      - "src/components/womens-compound-article.tsx"
+      - "src/routes/**"
+      - "scripts/validate-rich-results.py"
+      - "scripts/rich-results-waivers.json"
+      - ".github/workflows/rich-results.yml"
+  schedule:
+    # Weekly drift check against production.
+    - cron: "17 6 * * 1"
+
+concurrency:
+  group: rich-results-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rich-results:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || (github.event_name == 'schedule' && 'https://doseroutine.com' || 'https://project--b76a384e-67c0-4f04-b53e-b70d374f6ac7-dev.lovable.app') }}
+      LIMIT: ${{ github.event.inputs.limit || '60' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate structured data (errors AND warnings are fatal)
+        run: |
+          python3 scripts/validate-rich-results.py "$BASE_URL" \
+            --limit "$LIMIT" \
+            --max-warnings 0 \
+            --json rich-results-report.json | tee rich-results.txt
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rich-results-report
+          path: |
+            rich-results-report.json
+            rich-results.txt
+          retention-days: 14
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## Rich Results validation"
+            echo ""
+            echo "Target: \`$BASE_URL\`"
+            echo ""
+            echo '```'
+            tail -n 40 rich-results.txt 2>/dev/null || echo "no output captured"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

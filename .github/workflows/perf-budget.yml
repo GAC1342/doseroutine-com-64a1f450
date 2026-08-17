@@ -1,0 +1,35 @@
+name: perf-budget
+
+# Lighthouse performance + font budget. Fails when First Contentful Paint,
+# LCP, Speed Index, TBT, CLS, the performance score, or any font metric
+# (transfer bytes, request count, font-display: swap, render-blocking fonts)
+# regresses past perf-budgets.json.
+# Manual trigger to keep Actions minutes down — the always-on static guard for
+# font drift is `npm run validate:fonts` / src/lib/__tests__/font-loading.test.ts.
+on:
+  workflow_dispatch:
+
+jobs:
+  budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Static font contract check
+        run: npm run validate:fonts
+      - name: Collect Lighthouse runs
+        env:
+          PERF_BASE_URL: https://doseroutine.com
+        run: node scripts/lighthouse-collect.mjs
+      - name: Assert performance + font budgets
+        run: node scripts/check-perf-budget.mjs
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-perf-reports
+          path: .lighthouseci/
+          if-no-files-found: ignore

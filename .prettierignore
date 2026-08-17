@@ -1,0 +1,18 @@
+node_modules
+dist
+.output
+.vinxi
+pnpm-lock.yaml
+package-lock.json
+bun.lock
+routeTree.gen.ts
+
+# Generated reports
+crawl-audit-report.json
+
+# Agent-managed plan documents
+.lovable
+
+# Native platform projects (managed by Capacitor/Xcode/Gradle tooling)
+ios
+android

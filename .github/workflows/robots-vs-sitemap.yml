@@ -1,0 +1,31 @@
+name: robots-vs-sitemap
+
+on:
+  workflow_dispatch:
+
+# Intentionally manual to avoid paid Actions usage. This contract specifically
+# prevents private account routes from leaking into the public sitemap.
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify private routes stay blocked and out of the sitemap source
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          private = {"/chat", "/checkins", "/costs", "/export", "/injection-sites"}
+          robots = Path("public/robots.txt").read_text()
+          sitemap = Path("src/routes/sitemap[.]xml.ts").read_text()
+          failures = []
+          for route in sorted(private):
+              if f"Disallow: {route}" not in robots:
+                  failures.append(f"robots.txt does not block {route}")
+              if f'path: "{route}"' in sitemap:
+                  failures.append(f"private route leaked into sitemap: {route}")
+          if failures:
+              raise SystemExit("\n".join(failures))
+          print("Private-route robots/sitemap contract passes.")
+          PY

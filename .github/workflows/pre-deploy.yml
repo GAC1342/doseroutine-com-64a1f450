@@ -1,0 +1,155 @@
+name: pre-deploy
+
+# REQUIRED pre-deploy gate — this workflow must pass before any code reaches
+# the `main` branch that Lovable publishes from.
+#
+# It proves, in order:
+#   1. package-lock.json installs cleanly with `npm ci` (the failure that has
+#      broken every other workflow in the past)
+#   2. the production build compiles
+#   3. the marker contract itself is well-formed (offline unit checks)
+#   4. the staging/preview deployment already serves every required marker on
+#      every compound URL in its sitemap
+#
+# Only when all four pass is it safe to update production. The job summary ends
+# with an explicit go / no-go line.
+#
+# Triggers:
+#   * workflow_dispatch — the normal "am I safe to publish?" run
+#   * pull_request to main — catches breakage before it can be merged+deployed
+#
+# To enforce this gate, set it as a required status check in GitHub for the
+# `main` branch (see docs/required-status-checks.md).
+#
+# The default target is the stable preview URL, which always serves the latest
+# preview build. Override it with the `base_url` input (e.g. to re-verify prod).
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Staging/preview base URL to verify before deploying
+        required: false
+        default: https://project--b76a384e-67c0-4f04-b53e-b70d374f6ac7-dev.lovable.app
+      skip_markers:
+        description: Skip the live marker verification (build + lockfile only)
+        required: false
+        default: "false"
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: pre-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://project--b76a384e-67c0-4f04-b53e-b70d374f6ac7-dev.lovable.app' }}
+      SKIP_MARKERS: ${{ github.event.inputs.skip_markers || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # 1. Lockfile must be installable exactly as committed.
+      #    --prefer-offline uses the Actions npm cache when available, but npm ci
+      #    still validates package-lock.json against package.json and fails on
+      #    any drift, so caching does not weaken the integrity check.
+      - name: Install dependencies (npm ci)
+        run: npm ci --prefer-offline
+
+      # 2. Production build must compile before anything is published.
+      - name: Production build
+        run: npm run build
+
+      # 3. Offline guard: never blame the deploy for a broken contract.
+      - name: Marker contract unit checks
+        env:
+          DEPLOY_BASE_URL: about:blank
+        run: npx vitest run src/lib/__tests__/deployed-markers.integration.test.ts -t "auditMarkers"
+
+      # 4. Staging must already serve the markers. Retries while the preview
+      #    build propagates instead of failing on the first miss.
+      - name: Wait for the staging build to propagate
+        if: env.SKIP_MARKERS != 'true'
+        env:
+          MARKER_MAX_PAGES: "5"
+        run: |
+          for attempt in $(seq 1 10); do
+            echo "── propagation probe $attempt/10 ──"
+            if node scripts/check-deployed-markers.mjs --base "$BASE_URL"; then
+              echo "markers visible on attempt $attempt"
+              exit 0
+            fi
+            [ "$attempt" -lt 10 ] && sleep 30
+          done
+          echo "markers still missing after 10 probes — running the full report"
+
+      - name: Verify markers on staging (all sitemap compound URLs)
+        if: env.SKIP_MARKERS != 'true'
+        env:
+          DEPLOY_BASE_URL: ${{ env.BASE_URL }}
+          DEPLOY_REQUIRE_SERVER: "1"
+        run: npx vitest run src/lib/__tests__/deployed-markers.integration.test.ts --reporter=verbose
+
+      # 5. Structured data must be free of Rich Results errors AND warnings.
+      - name: Rich Results validation (warnings are fatal)
+        if: env.SKIP_MARKERS != 'true'
+        run: |
+          python3 scripts/validate-rich-results.py "$BASE_URL" \
+            --limit 60 --max-warnings 0 --json rich-results-report.json
+
+      - name: Upload Rich Results report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-deploy-rich-results
+          path: rich-results-report.json
+          retention-days: 7
+
+      - name: Capture staging HTML on failure
+        if: failure()
+        run: |
+          mkdir -p marker-debug
+          node --input-type=module -e '
+            import { discoverCompoundPaths } from "./scripts/lib/sitemap-paths.mjs";
+            const base = process.env.BASE_URL.replace(/\/+$/, "");
+            (async () => {
+              const { paths } = await discoverCompoundPaths(base);
+              for (const p of paths.slice(0, 25)) {
+                const res = await fetch(base + p, { redirect: "follow" });
+                (await import("node:fs")).writeFileSync(
+                  "marker-debug/" + p.replace(/\//g, "_") + ".html",
+                  await res.text(),
+                );
+              }
+            })();
+          '
+      - name: Upload debug artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-deploy-markers-html
+          path: marker-debug/
+          retention-days: 7
+
+      - name: Go / no-go summary
+        if: always()
+        run: |
+          {
+            echo "## Pre-deploy gate"
+            echo ""
+            echo "Target: \`$BASE_URL\`"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ **Safe to publish** — npm ci, build and deployed-markers all passed."
+            else
+              echo "❌ **Do not publish** — a pre-deploy check failed. Fix it before updating production."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

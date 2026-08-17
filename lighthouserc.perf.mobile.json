@@ -1,0 +1,35 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 2,
+      "settings": {
+        "onlyCategories": ["performance"],
+        "formFactor": "mobile",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        },
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36",
+        "throttlingMethod": "simulate",
+        "throttling": {
+          "//": "Lighthouse mobile default: slow 4G, 4x CPU slowdown.",
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "requestLatencyMs": 562.5,
+          "downloadThroughputKbps": 1474.56,
+          "uploadThroughputKbps": 675,
+          "cpuSlowdownMultiplier": 4
+        },
+        "chromeFlags": "--no-sandbox --headless=new --disable-gpu",
+        "skipAudits": ["uses-http2", "canonical"]
+      },
+      "//": "URLs are supplied by scripts/lighthouse-collect.mjs from perf-routes.json."
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

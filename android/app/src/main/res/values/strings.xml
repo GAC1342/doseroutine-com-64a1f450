@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DoseRoutine</string>
+    <string name="title_activity_main">DoseRoutine</string>
+    <string name="package_name">com.doseroutine.app</string>
+    <string name="custom_url_scheme">com.doseroutine.app</string>
+</resources>

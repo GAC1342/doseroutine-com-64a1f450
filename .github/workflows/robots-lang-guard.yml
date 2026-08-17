@@ -1,0 +1,54 @@
+name: robots-lang-guard
+
+# Fetches robots.txt from both the www and non-www hosts and fails (alerting
+# via the workflow run) if any rule blocks ?lang= / &lang= URLs. Those URLs
+# must stay crawlable so Googlebot can follow their 301 redirects to the clean
+# canonical paths.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *" # every 6 hours
+  push:
+    branches: [main]
+    paths:
+      - "public/robots.txt"
+      - "scripts/robots-lang-guard.mjs"
+      - ".github/workflows/robots-lang-guard.yml"
+  pull_request:
+    paths:
+      - "public/robots.txt"
+      - "scripts/robots-lang-guard.mjs"
+  workflow_dispatch:
+    inputs:
+      hosts:
+        description: "Comma-separated hosts to check"
+        required: false
+        default: ""
+
+jobs:
+  rules:
+    name: Rule detector (unit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+      - run: npx vitest run src/lib/__tests__/robots-lang-guard.test.ts
+
+  live:
+    name: Live robots.txt (www + non-www)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: rules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check both hosts
+        env:
+          ROBOTS_HOSTS: ${{ github.event.inputs.hosts }}
+        run: node scripts/robots-lang-guard.mjs

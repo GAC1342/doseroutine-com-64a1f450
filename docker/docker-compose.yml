@@ -1,0 +1,39 @@
+# Playwright runner: same Chromium/Firefox/WebKit builds CI uses.
+#
+#   docker compose -f docker/docker-compose.yml run --rm e2e
+#   docker compose -f docker/docker-compose.yml run --rm e2e npx playwright test e2e/exercise-art-keyboard.spec.ts --project=firefox
+#
+# Prefer `npm run e2e:docker -- <args>`, which wraps these commands.
+services:
+  e2e:
+    build:
+      context: ..
+      dockerfile: docker/playwright.Dockerfile
+    image: doseroutine/playwright:1.61.1
+    init: true
+    # WebKit and Chromium need a large /dev/shm or they crash mid-run.
+    shm_size: "2gb"
+    ipc: host
+    working_dir: /work
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
+    environment:
+      # Set PLAYWRIGHT_BASE_URL to test an already-running server instead of
+      # letting playwright.config.ts start `bun run dev` inside the container.
+      PLAYWRIGHT_BASE_URL: "${PLAYWRIGHT_BASE_URL:-}"
+      TEST_USER_EMAIL: "${TEST_USER_EMAIL:-}"
+      TEST_USER_PASSWORD: "${TEST_USER_PASSWORD:-}"
+      PW_FULL_ARTIFACTS: "${PW_FULL_ARTIFACTS:-}"
+      CI: "${CI:-}"
+      HOME: /tmp
+    volumes:
+      - ..:/work
+      # Container-owned node_modules: host installs carry Nix/macOS binaries
+      # and the local Firefox wrapper, neither of which works in this image.
+      - e2e-node-modules:/work/node_modules
+    # Lets the container reach a dev server running on the host via
+    # PLAYWRIGHT_BASE_URL=http://host.docker.internal:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  e2e-node-modules:

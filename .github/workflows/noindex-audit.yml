@@ -1,0 +1,27 @@
+name: noindex-audit
+
+# Probes every non-indexable path and representative 404 responses on a live
+# deployment, asserting robots.txt, X-Robots-Tag and <meta name="robots"> all
+# agree. Fails the run on any divergence.
+# Manual trigger to keep Actions minutes down — the always-on guard is the
+# vitest suite (src/lib/__tests__/not-found-indexing.test.ts).
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base URL to audit
+        default: https://doseroutine.com
+        required: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Audit noindex consistency (incl. 404s)
+        run: |
+          python scripts/validate-noindex-audit.py \
+            --base "${{ inputs.base || 'https://doseroutine.com' }}"

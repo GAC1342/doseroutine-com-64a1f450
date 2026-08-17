@@ -1,0 +1,151 @@
+name: deployed-markers
+
+# Verifies the live doseroutine.com compound pages still serve the required UI
+# markers on EVERY compound URL discovered in the live sitemap
+# (direct-answer excerpt, speakable intro, "Original editorial
+# compilation", "Verify at", MedicalWebPage/FAQPage JSON-LD, canonical) and none
+# of the retired ones (TDM meta, "Original research", AI-attribution footer,
+# noindex).
+#
+# Runs automatically after every deployment:
+#   * push to main            — the commit that ships the deploy
+#   * deployment_status        — when a GitHub-tracked deployment reports success
+#   * schedule                 — a daily safety net that catches CDN/content drift
+#   * workflow_dispatch        — manual run, with an overridable base URL
+#
+# The site is deployed outside GitHub, so a push run waits and retries while the
+# CDN propagates instead of failing on the first miss.
+
+on:
+  push:
+    branches: [main]
+  deployment_status:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Base URL to verify
+        required: false
+        default: https://doseroutine.com
+
+concurrency:
+  group: deployed-markers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deployed-markers:
+    # On deployment_status, only react to a successful deployment.
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://doseroutine.com' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # Offline guard: the marker contract itself must be well-formed before we
+      # blame the deploy for a failure.
+      - name: Marker contract unit checks
+        env:
+          DEPLOY_BASE_URL: about:blank
+        run: npx vitest run src/lib/__tests__/deployed-markers.integration.test.ts -t "auditMarkers"
+
+      # Give the CDN time to serve the new build before declaring a failure.
+      # Fast propagation probe on a small slice before the full sitemap sweep.
+      - name: Wait for the deployment to propagate
+        env:
+          MARKER_MAX_PAGES: "5"
+        run: |
+          for attempt in $(seq 1 10); do
+            echo "── propagation probe $attempt/10 ──"
+            if node scripts/check-deployed-markers.mjs --base "$BASE_URL"; then
+              echo "markers visible on attempt $attempt"
+              exit 0
+            fi
+            [ "$attempt" -lt 10 ] && sleep 30
+          done
+          echo "markers still missing after 10 probes — running the test for a full report"
+
+      # Full sweep: every compound URL listed in the deployed sitemap.
+      - name: Deployed-markers integration test (all sitemap compound URLs)
+        env:
+          DEPLOY_BASE_URL: ${{ env.BASE_URL }}
+          DEPLOY_REQUIRE_SERVER: "1"
+        run: npx vitest run src/lib/__tests__/deployed-markers.integration.test.ts --reporter=verbose
+
+      # --- Run-over-run diff -------------------------------------------------
+      # Produce a machine-readable marker report, pull the previous run's
+      # report, and publish a diff so regressions/fixes are visible at a glance.
+      - name: Generate marker report
+        if: always()
+        run: |
+          mkdir -p marker-report
+          node scripts/check-deployed-markers.mjs --base "$BASE_URL" \
+            --json marker-report/deployed-markers-report.json || true
+
+      - name: Download previous run's report
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p marker-report-prev
+          PREV_RUN=$(gh run list --workflow deployed-markers.yml \
+            --branch "${{ github.ref_name }}" --limit 20 --json databaseId,status \
+            --jq "[.[] | select(.status==\"completed\") | .databaseId] | map(select(. != ${{ github.run_id }})) | .[0]" || echo "")
+          if [ -n "$PREV_RUN" ] && [ "$PREV_RUN" != "null" ]; then
+            echo "previous run: $PREV_RUN"
+            gh run download "$PREV_RUN" -n deployed-markers-report -D marker-report-prev || \
+              echo "no report artifact on run $PREV_RUN"
+          else
+            echo "no previous completed run found"
+          fi
+
+      - name: Diff against previous run
+        if: always()
+        run: |
+          node scripts/diff-deployed-markers.mjs \
+            marker-report-prev/deployed-markers-report.json \
+            marker-report/deployed-markers-report.json \
+            --out marker-report/deployed-markers-diff.md
+
+      - name: Upload marker report + diff
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-markers-report
+          path: marker-report/
+          retention-days: 30
+          if-no-files-found: warn
+
+
+      - name: Capture live HTML on failure
+        if: failure()
+        run: |
+          mkdir -p marker-debug
+          node --input-type=module -e '
+            import { discoverCompoundPaths } from "./scripts/lib/sitemap-paths.mjs";
+            const base = process.env.BASE_URL.replace(/\/+$/, "");
+            (async () => {
+              const { paths } = await discoverCompoundPaths(base);
+              for (const p of paths.slice(0, 25)) {
+                const res = await fetch(base + p, { redirect: "follow" });
+                (await import("node:fs")).writeFileSync(
+                  "marker-debug/" + p.replace(/\//g, "_") + ".html",
+                  await res.text(),
+                );
+              }
+            })();
+          '
+      - name: Upload debug artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-markers-html
+          path: marker-debug/
+          retention-days: 7

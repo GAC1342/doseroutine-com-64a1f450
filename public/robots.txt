@@ -1,0 +1,126 @@
+# DoseRoutine crawl policy
+# AI answer engines and training/search crawlers are explicitly allowed on all
+# public content. There is no site-wide Disallow and no AI opt-out. Private, authenticated app surfaces stay disallowed for every
+# agent (see the wildcard block at the bottom, mirrored per-agent below).
+
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-Web
+User-agent: anthropic-ai
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: CCBot
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+User-agent: Bytespider
+User-agent: Amazonbot
+User-agent: Bingbot
+User-agent: Googlebot
+User-agent: Google-CloudVertexBot
+User-agent: cohere-ai
+User-agent: YouBot
+User-agent: DuckAssistBot
+Allow: /
+Disallow: /auth
+Disallow: /onboarding
+Disallow: /reset-password
+Disallow: /p/
+Disallow: /today
+Disallow: /adherence
+Disallow: /redeem
+Disallow: /not-found
+Disallow: /stack
+Disallow: /timeline
+Disallow: /safety
+Disallow: /plan
+Disallow: /reminders
+Disallow: /more
+Disallow: /upgrade
+Disallow: /trial
+Disallow: /chat
+Disallow: /checkins
+Disallow: /costs
+Disallow: /cycles
+Disallow: /doctor-report
+Disallow: /export
+Disallow: /health-sync
+Disallow: /injection-sites
+Disallow: /labs
+Disallow: /body-metrics
+Disallow: /fitness
+Disallow: /food
+Disallow: /notifications
+Disallow: /progress-photos
+Disallow: /side-effects
+Disallow: /templates
+Disallow: /scan
+Disallow: /settings
+Disallow: /admin
+Disallow: /debug/
+Disallow: /lovable/
+Disallow: /api/
+# Legacy ?lang= URLs redirect to their clean canonical URL. Crawlers must be
+# allowed to fetch those redirects so duplicate URLs can consolidate.
+
+User-agent: *
+Allow: /
+
+
+# Private / authenticated app surfaces (also enforced via robots: noindex in-app)
+Disallow: /auth
+Disallow: /onboarding
+Disallow: /reset-password
+Disallow: /p/
+Disallow: /today
+Disallow: /adherence
+
+Disallow: /redeem
+Disallow: /not-found
+Disallow: /stack
+Disallow: /timeline
+Disallow: /safety
+Disallow: /plan
+Disallow: /reminders
+Disallow: /more
+Disallow: /upgrade
+Disallow: /trial
+Disallow: /chat
+Disallow: /checkins
+Disallow: /costs
+Disallow: /cycles
+Disallow: /doctor-report
+Disallow: /export
+Disallow: /health-sync
+Disallow: /injection-sites
+Disallow: /labs
+Disallow: /body-metrics
+Disallow: /fitness
+Disallow: /food
+Disallow: /notifications
+Disallow: /progress-photos
+Disallow: /side-effects
+Disallow: /templates
+Disallow: /scan
+Disallow: /settings
+Disallow: /admin
+Disallow: /debug/
+Disallow: /lovable/
+Disallow: /api/
+# Legacy ?lang= URLs redirect to their clean canonical URL. Crawlers must be
+# allowed to fetch those redirects so duplicate URLs can consolidate.
+
+Sitemap: https://doseroutine.com/sitemap.xml
+# RSS feed submitted as a secondary sitemap: Google and Bing accept RSS/Atom
+# for fast discovery of newly published posts (it lists the newest URLs only).
+Sitemap: https://doseroutine.com/feed.xml
+
+# AI assistants: short index and full corpus
+# https://doseroutine.com/llms.txt
+# https://doseroutine.com/llms-full.txt
+
+# AI / crawler citation policy: https://doseroutine.com/llms.txt

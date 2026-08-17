@@ -1,0 +1,36 @@
+name: library-index-badge (E2E)
+
+# Visits every /library URL in sitemap.xml and asserts the in-app index-status
+# badge agrees with the robots headers the environment serves. Set
+# require_indexable to also fail when any library page is served noindex, i.e.
+# assert the badge reads "Indexable" everywhere. Manual trigger only.
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base URL to test (prod host is supported via ?indexcheck=1)
+        default: https://doseroutine.com
+        required: false
+      limit:
+        description: Max library URLs to check (0 = all)
+        default: "25"
+        required: false
+      require_indexable:
+        description: Fail if any library page serves a noindex header
+        type: boolean
+        default: false
+
+jobs:
+  badge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+      - name: Run index badge E2E
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base || 'https://doseroutine.com' }}
+          LIBRARY_BADGE_LIMIT: ${{ inputs.limit || '25' }}
+          REQUIRE_INDEXABLE: ${{ inputs.require_indexable == true && '1' || '0' }}
+        run: bunx playwright test e2e/library-index-badge.spec.ts --project=chromium --reporter=list

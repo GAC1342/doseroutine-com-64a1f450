@@ -1,0 +1,2643 @@
+# Codemagic CI/CD — DoseRoutine
+# Builds:
+#   ios-testflight  → .ipa → TestFlight
+#   android-play    → .aab → Google Play internal track
+#
+# ONE-TIME SETUP (personal account = app-specific variables, not global):
+#   See docs/where-to-put-secrets.md for a simple "click here, paste this" guide.
+#
+# Quick map:
+#   iOS secrets   → App settings → Environment variables → group "doseroutine_env"
+#                   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_ID,
+#                   APP_STORE_CONNECT_PRIVATE_KEY (full .p8 contents)
+#   iOS .p12 fix  → If using an exported .p12, save it as base64 in
+#                   IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64 plus its password,
+#                   and save the App Store .mobileprovision as
+#                   IOS_APP_STORE_PROVISIONING_PROFILE_BASE64
+#   Android JSON  → App settings → Environment variables → group "google_play"
+#                   GCLOUD_SERVICE_ACCOUNT_CREDENTIALS, PACKAGE_NAME
+#   Android keystore → App settings → Code signing identities → Android keystores
+#                   reference name: "doseroutine_keystore"
+#
+# App identifiers:
+#   iOS bundle id            : com.doseroutine.app
+#   Android package          : com.doseroutine.app
+#   Google Play developer id : 7705492751128043194
+#   App Store Connect app id : 6793807589
+
+definitions:
+  env_versions: &env_versions
+    node: 22.20.0
+    npm: 10
+    xcode: latest
+    cocoapods: default
+    java: 21
+
+  cache_paths: &cache_paths # JS / package manager caches
+    - $CM_BUILD_DIR/node_modules
+    - $HOME/.npm
+    - $HOME/.bun/install/cache
+    # iOS caches
+    - $HOME/Library/Caches/CocoaPods
+    - $CM_BUILD_DIR/ios/App/Pods
+    - $CM_BUILD_DIR/.codemagic-code-signing
+    # Android / Gradle caches
+    - $HOME/.gradle/caches
+    - $HOME/.gradle/wrapper
+    - $CM_BUILD_DIR/android/.gradle
+    - $CM_BUILD_DIR/android/build
+    - $CM_BUILD_DIR/android/app/build
+
+  install_and_sync_1: &install_deps
+    name: Install JS deps (cache-aware, lockfile-verified)
+    script: |
+      set -e
+      # ── Lockfile preflight ────────────────────────────────────────────────
+      # npm ci refuses to run without package-lock.json and hard-fails when it
+      # drifts from package.json. Detect both up-front with an actionable message
+      # instead of a cryptic ci error deep in the log.
+      if [ ! -f package.json ]; then
+        echo "FAIL: package.json not found in $CM_BUILD_DIR."
+        echo "FIX:  ensure the repo root contains package.json before building."
+        exit 1
+      fi
+      if [ ! -f package-lock.json ]; then
+        echo "FAIL: package-lock.json is missing."
+        echo "FIX:  run 'npm install' locally, commit package-lock.json, and push."
+        echo "      Codemagic uses 'npm ci', which requires a committed lockfile."
+        exit 1
+      fi
+      echo "OK   package.json + package-lock.json present."
+      # Verify the lockfile is in sync with package.json. `npm ci --dry-run`
+      # exits non-zero with 'EUSAGE ... can only install packages when your
+      # package.json and package-lock.json are in sync' when they drift.
+      echo "=== Verifying package-lock.json matches package.json ==="
+      if ! npm ci --dry-run --ignore-scripts --no-audit --no-fund --legacy-peer-deps > /tmp/lockcheck.log 2>&1; then
+        if grep -qiE "EUSAGE|out of sync|can only install packages when" /tmp/lockcheck.log; then
+          echo "FAIL: package-lock.json is out of sync with package.json."
+          echo "----- npm output -----"
+          sed -n '1,80p' /tmp/lockcheck.log
+          echo "----------------------"
+          echo "FIX:  run 'npm install --legacy-peer-deps' locally to regenerate package-lock.json,"
+          echo "      commit the updated lockfile, and push a new tag."
+          exit 1
+        fi
+        echo "WARN: 'npm ci --dry-run' failed for a non-lockfile reason; continuing."
+        sed -n '1,40p' /tmp/lockcheck.log
+      else
+        echo "OK   package-lock.json is in sync with package.json."
+      fi
+      # ── Install ───────────────────────────────────────────────────────────
+      # Use cached ~/.npm and node_modules when present; fall back to a clean install.
+      # --legacy-peer-deps: @sentry/capacitor pins @sentry/react to an exact
+      # patch version; we allow the newer compatible @sentry/react we install.
+      if [ -d node_modules ] && [ -f node_modules/.package-lock.json ]; then
+        echo "node_modules cache hit — running 'npm install --prefer-offline' to reconcile."
+        npm install --prefer-offline --no-audit --no-fund --legacy-peer-deps
+      else
+        echo "node_modules cache miss — running full 'npm ci'."
+        npm ci --prefer-offline --no-audit --no-fund --legacy-peer-deps
+      fi
+
+  build_info: &build_info
+    name: Record build environment (versions)
+    script: |
+      set +e
+      mkdir -p "$CM_BUILD_DIR/build-logs"
+      OUT="$CM_BUILD_DIR/build-logs/build-info.txt"
+      {
+        echo "=== Build environment ==="
+        echo "Timestamp:      $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        echo "Workflow:       ${CM_WORKFLOW_ID:-unknown}"
+        echo "Build ID:       ${CM_BUILD_ID:-unknown}"
+        echo "Commit:         ${CM_COMMIT:-unknown}"
+        echo "Tag:            ${CM_TAG:-<none>}"
+        echo "Branch:         ${CM_BRANCH:-<none>}"
+        echo "Runner OS:      $(uname -a)"
+        echo ""
+        echo "--- JS toolchain ---"
+        echo "Node:           $(node --version 2>/dev/null || echo 'not installed')"
+        echo "npm:            $(npm --version 2>/dev/null || echo 'not installed')"
+        echo "Bun:            $(bun --version 2>/dev/null || echo 'not installed')"
+        echo "Yarn:           $(yarn --version 2>/dev/null || echo 'not installed')"
+        echo ""
+        echo "--- Capacitor ---"
+        CAP_CLI=$(npx --no-install cap --version 2>/dev/null || echo 'not installed')
+        echo "Capacitor CLI:  $CAP_CLI"
+        if [ -f package.json ]; then
+          echo "Cap deps (from package.json):"
+          node -e "const p=require('./package.json');const d={...p.dependencies,...p.devDependencies};Object.keys(d).filter(k=>k.startsWith('@capacitor')).sort().forEach(k=>console.log('  '+k+': '+d[k]));" 2>/dev/null || true
+        fi
+        echo ""
+        echo "--- iOS toolchain ---"
+        echo "Xcode:          $(xcodebuild -version 2>/dev/null | head -1 || echo 'not installed')"
+        echo "Xcode build:    $(xcodebuild -version 2>/dev/null | sed -n '2p' || echo '-')"
+        echo "CocoaPods:      $(pod --version 2>/dev/null || echo 'not installed')"
+        echo "Ruby:           $(ruby --version 2>/dev/null || echo 'not installed')"
+        echo ""
+        echo "--- Android / JVM toolchain ---"
+        echo "Java:           $(java -version 2>&1 | head -1 || echo 'not installed')"
+        echo "JAVA_HOME:      ${JAVA_HOME:-<unset>}"
+        if [ -f android/gradlew ]; then
+          echo "Gradle wrapper: $(cd android && ./gradlew --version 2>/dev/null | grep -E '^Gradle ' | head -1 || echo 'unavailable')"
+        else
+          echo "Gradle (system):$(gradle --version 2>/dev/null | grep -E '^Gradle ' | head -1 || echo 'not installed')"
+        fi
+        echo "ANDROID_HOME:   ${ANDROID_HOME:-<unset>}"
+        echo "ANDROID_SDK:    ${ANDROID_SDK_ROOT:-<unset>}"
+        if command -v sdkmanager >/dev/null 2>&1; then
+          echo "Installed Android SDK packages:"
+          sdkmanager --list_installed 2>/dev/null | sed -n '/Installed packages/,/Available/p' | sed 's/^/  /' || true
+        elif [ -n "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME/platforms" ]; then
+          echo "Android platforms: $(ls "$ANDROID_HOME/platforms" 2>/dev/null | tr '\n' ' ')"
+          echo "Build-tools:       $(ls "$ANDROID_HOME/build-tools" 2>/dev/null | tr '\n' ' ')"
+        fi
+        echo ""
+        echo "=== End build environment ==="
+      } | tee "$OUT"
+      set -e
+
+  tooling_preflight: &tooling_preflight
+    name: Tooling preflight — verify required CLIs are installed
+    script: |
+      set -e
+      mkdir -p "$CM_BUILD_DIR/build-logs"
+      LOG="$CM_BUILD_DIR/build-logs/tooling-preflight.log"
+      exec > >(tee -a "$LOG") 2>&1
+
+      echo "=== Tooling preflight ==="
+      PY_USER_BIN="$(python3 -m site --user-base 2>/dev/null)/bin"
+      export PATH="$PY_USER_BIN:$HOME/.local/bin:$PATH"
+      if [ -n "${CM_ENV:-}" ]; then
+        echo 'PY_USER_BIN="$(python3 -m site --user-base 2>/dev/null)/bin"' >> "$CM_ENV"
+        echo 'export PATH="$PY_USER_BIN:$HOME/.local/bin:$PATH"' >> "$CM_ENV"
+      fi
+
+      # Detect the target platform from the current workflow.
+      # Codemagic exposes the workflow id as $CM_WORKFLOW_ID.
+      # Prefer an explicit workflow var because Codemagic's validation runner can
+      # execute before CM_WORKFLOW_ID is populated, which made this step demand
+      # both iOS and Android secrets for a single-platform build.
+      case "${TARGET_PLATFORM:-${CM_WORKFLOW_ID:-}}" in
+        ios|ios-*) TARGET="ios" ;;
+        android|android-*) TARGET="android" ;;
+        *) TARGET="both" ;;
+      esac
+      echo "Detected target platform: $TARGET"
+
+      MISSING=0
+      # Parallel arrays: for each FAIL we record the friendly name and its fix hint.
+      MISSING_NAMES=()
+      MISSING_FIXES=()
+      check() {
+        # $1 = friendly name, $2 = command, $3 = version-args, $4 = fix hint
+        local name="$1" cmd="$2" verargs="$3" fix="$4"
+        if command -v "$cmd" >/dev/null 2>&1; then
+          local ver
+          ver=$("$cmd" $verargs 2>&1 | head -1 || echo "unknown")
+          printf 'OK   %-22s %s\n' "$name" "$ver"
+        else
+          printf 'FAIL %-22s not found on PATH\n' "$name"
+          echo "     fix: $fix"
+          MISSING=1
+          MISSING_NAMES+=("$name")
+          MISSING_FIXES+=("$fix")
+        fi
+      }
+
+      # Shared requirements
+      check "node"              "node"       "--version" \
+        "Codemagic image is missing Node.js — pin an image with Node in codemagic.yaml (instance_type/image)."
+      check "npm"               "npm"        "--version" \
+        "Reinstall Node.js on the build image; npm ships with it."
+      check "npx (Capacitor)"   "npx"        "--version" \
+        "npx ships with npm; reinstall Node.js on the build image."
+
+      # Verify @capacitor/cli is resolvable (installed as a project dep or globally).
+      if npx --no-install cap --version >/dev/null 2>&1; then
+        CAP_VER=$(npx --no-install cap --version 2>&1 | head -1)
+        printf 'OK   %-22s %s\n' "@capacitor/cli" "$CAP_VER"
+      else
+        printf 'FAIL %-22s not resolvable via npx\n' "@capacitor/cli"
+        FIX="add it to package.json:  npm i -D @capacitor/cli"
+        echo "     fix: $FIX"
+        MISSING=1
+        MISSING_NAMES+=("@capacitor/cli")
+        MISSING_FIXES+=("$FIX")
+      fi
+
+      if [ "$TARGET" = "ios" ] || [ "$TARGET" = "both" ]; then
+        if ! command -v xcode-project >/dev/null 2>&1 || ! command -v app-store-connect >/dev/null 2>&1 || ! command -v keychain >/dev/null 2>&1; then
+          echo "Installing Codemagic CLI Tools needed for iOS signing/build steps..."
+          python3 -m pip install --user --upgrade --disable-pip-version-check codemagic-cli-tools
+          export PATH="$HOME/.local/bin:$PATH"
+        fi
+
+        check "xcodebuild"      "xcodebuild"      "-version" \
+          "Use a macOS instance (instance_type: mac_mini_m2) and pin an xcode: version in the workflow."
+        check "xcode-project"   "xcode-project"   "--version" \
+          "Install Codemagic CLI Tools:  pip3 install codemagic-cli-tools"
+        check "app-store-connect" "app-store-connect" "--version" \
+          "Install Codemagic CLI Tools:  pip3 install codemagic-cli-tools"
+        check "keychain"        "keychain"        "--version" \
+          "Install Codemagic CLI Tools:  pip3 install codemagic-cli-tools"
+        if command -v pod >/dev/null 2>&1; then
+          printf 'OK   %-22s %s\n' "pod (optional)" "$(pod --version 2>/dev/null || echo available)"
+        else
+          printf 'INFO %-22s not installed — OK for Capacitor 8 Swift Package builds\n' "pod (optional)"
+        fi
+      fi
+
+      if [ "$TARGET" = "android" ] || [ "$TARGET" = "both" ]; then
+        check "java"            "java"            "-version" \
+          "Set a JDK image in codemagic.yaml (e.g. java: 21) or install openjdk on the build image."
+        # gradle: prefer wrapper (checked later in cap_preflight), but system gradle is a nice fallback.
+        if command -v gradle >/dev/null 2>&1; then
+          printf 'OK   %-22s %s\n' "gradle (system)" "$(gradle --version 2>/dev/null | grep -E '^Gradle ' | head -1)"
+        else
+          printf 'INFO %-22s not on PATH (project uses ./gradlew, which is fine)\n' "gradle (system)"
+        fi
+      fi
+
+      # ── Unified preflight summary ──────────────────────────────────────
+      REPORT="$CM_BUILD_DIR/build-logs/tooling-preflight-summary.txt"
+      {
+        echo "════════════════════════════════════════════════════════════"
+        echo " Tooling preflight summary   (target: $TARGET)"
+        echo "════════════════════════════════════════════════════════════"
+        if [ "$MISSING" -eq 0 ]; then
+          echo "STATUS: PASS — all required CLIs are installed and on PATH."
+          exit 0 >/dev/null 2>&1 || true
+        else
+          echo "STATUS: FAIL — ${#MISSING_NAMES[@]} required tool(s) missing."
+          echo ""
+          echo "Missing tools:"
+          i=0
+          while [ "$i" -lt "${#MISSING_NAMES[@]}" ]; do
+            printf '  %d) %s\n' "$((i+1))" "${MISSING_NAMES[$i]}"
+            i=$((i+1))
+          done
+          echo ""
+          echo "Remediation (run in order — later steps assume earlier tools exist):"
+          i=0
+          while [ "$i" -lt "${#MISSING_NAMES[@]}" ]; do
+            printf '  %d) %-22s → %s\n' "$((i+1))" "${MISSING_NAMES[$i]}" "${MISSING_FIXES[$i]}"
+            i=$((i+1))
+          done
+          echo ""
+          # De-duplicated quick-fix commands the user can literally copy/paste.
+          echo "Quick copy/paste fixes:"
+          {
+            i=0
+            while [ "$i" -lt "${#MISSING_FIXES[@]}" ]; do
+              case "${MISSING_FIXES[$i]}" in
+                *"codemagic-cli-tools"*) echo "pip3 install codemagic-cli-tools" ;;
+                *"gem install cocoapods"*) echo "sudo gem install cocoapods" ;;
+                *"i -D @capacitor/cli"*) echo "npm i -D @capacitor/cli" ;;
+                *"openjdk"*|*"java: 21"*) echo "# In codemagic.yaml environment: set 'java: 21'" ;;
+                *"instance_type: mac_mini_m2"*) echo "# In codemagic.yaml workflow: set 'instance_type: mac_mini_m2' and pin 'xcode:'" ;;
+                *"pin an image with Node"*|*"Reinstall Node.js"*) echo "# Use a Codemagic image that includes Node.js (e.g. flutter/mac_mini_m2 default)" ;;
+              esac
+              i=$((i+1))
+            done
+          } | awk '!seen[$0]++' | sed 's/^/  $ /'
+          echo ""
+          echo "Docs: docs/preflight-checklist.md"
+        fi
+        echo "════════════════════════════════════════════════════════════"
+      } | tee "$REPORT"
+
+      if [ "$MISSING" -ne 0 ]; then
+        exit 1
+      fi
+      echo "=== End tooling preflight ==="
+
+  env_preflight_step: &env_preflight
+    name: Environment preflight — verify required env vars are set
+    script: |
+      set -e
+      mkdir -p "$CM_BUILD_DIR/build-logs"
+      LOG="$CM_BUILD_DIR/build-logs/env-preflight.log"
+      exec > >(tee -a "$LOG") 2>&1
+
+      echo "=== Environment variable preflight ==="
+      # Prefer the workflow-level TARGET_PLATFORM var; fall back to CM_WORKFLOW_ID.
+      # Codemagic's env-vars validator can run this step before CM_WORKFLOW_ID is
+      # populated, which previously demanded Android secrets on iOS-only builds.
+      case "${TARGET_PLATFORM:-${CM_WORKFLOW_ID:-}}" in
+        ios|ios-*) TARGET="ios" ;;
+        android|android-*) TARGET="android" ;;
+        *) TARGET="both" ;;
+      esac
+      echo "Detected target platform: $TARGET"
+      echo ""
+
+      MISSING=0
+      # Fails when a var is unset OR set to an empty string. Never prints the value.
+      require() {
+        local name="$1" fix="$2"
+        # `${!name-}` — indirect expansion; `-` distinguishes unset from empty.
+        local val="${!name-__UNSET__}"
+        if [ "$val" = "__UNSET__" ]; then
+          printf 'FAIL %-38s not set\n' "$name"
+          echo "     fix: $fix"
+          MISSING=$((MISSING + 1))
+        elif [ -z "$val" ]; then
+          printf 'FAIL %-38s set but empty\n' "$name"
+          echo "     fix: $fix"
+          MISSING=$((MISSING + 1))
+        else
+          printf 'OK   %-38s set (%d chars)\n' "$name" "${#val}"
+        fi
+      }
+
+      echo "--- Shared / Capacitor ---"
+      # These are the workflow-level `vars:` entries — a typo in the workflow
+      # would leave them unset here.
+      require CM_BUILD_DIR   "Codemagic sets this automatically; if missing, the runner image is misconfigured — contact Codemagic support."
+
+      if [ "$TARGET" = "ios" ] || [ "$TARGET" = "both" ]; then
+        echo ""
+        echo "--- iOS build config ---"
+        require BUNDLE_ID       "Set 'BUNDLE_ID: \"com.doseroutine.app\"' under vars: in the ios-testflight workflow."
+        require XCODE_WORKSPACE "Set 'XCODE_WORKSPACE: \"ios/App/App.xcodeproj\"' under vars: in the ios-testflight workflow."
+        require XCODE_SCHEME    "Set 'XCODE_SCHEME: \"App\"' under vars: in the ios-testflight workflow."
+
+        echo ""
+        echo "--- App Store Connect API key (Apple signing) ---"
+        require APP_STORE_CONNECT_ISSUER_ID  "Codemagic → App settings → Environment variables → doseroutine_env. Copy the Issuer ID from App Store Connect → Users and Access → Integrations."
+        require APP_STORE_CONNECT_KEY_ID     "Codemagic → App settings → Environment variables → doseroutine_env. Copy the Key ID from App Store Connect → Users and Access → Keys."
+        require APP_STORE_CONNECT_PRIVATE_KEY "Codemagic → App settings → Environment variables → doseroutine_env. Paste the FULL contents of the AuthKey_*.p8 file (including BEGIN/END lines)."
+      fi
+
+      if [ "$TARGET" = "android" ] || [ "$TARGET" = "both" ]; then
+        echo ""
+        echo "--- Android build config ---"
+        require PACKAGE_NAME "Set 'PACKAGE_NAME: \"com.doseroutine.app\"' under vars: in the android-play workflow."
+
+        echo ""
+        echo "--- Android keystore (auto-injected from android_signing reference) ---"
+        require CM_KEYSTORE_PATH      "Codemagic auto-sets this from the 'doseroutine_keystore' android_signing reference. Empty = the reference name in this workflow does not match an uploaded keystore in Codemagic → App settings → Code signing identities."
+        require CM_KEYSTORE_PASSWORD  "Re-upload the keystore in Codemagic → App settings → Code signing identities → Android keystores and set the store password."
+        require CM_KEY_ALIAS          "Set the key alias on the uploaded keystore entry in Codemagic."
+        require CM_KEY_PASSWORD       "Set the key password on the uploaded keystore entry in Codemagic."
+
+        echo ""
+        echo "--- Google Play publishing ---"
+        require GCLOUD_SERVICE_ACCOUNT_CREDENTIALS "Codemagic → App settings → Environment variables → google_play. Paste the full JSON of your Play Console service account."
+      fi
+
+      echo ""
+      echo "--- Environment preflight summary ---"
+      if [ "$MISSING" -ne 0 ]; then
+        echo "ERROR: $MISSING required environment variable(s) missing or empty."
+        echo "See lines marked FAIL above for the exact remediation for each."
+        echo "The build cannot continue until every FAIL is resolved."
+        exit 1
+      fi
+      echo "OK: all required environment variables are present."
+      echo "=== End environment preflight ==="
+
+  install_and_sync_2: &build_web
+    name: Build web bundle
+    script: |
+      set -e
+      npm run build
+      # TanStack Start's Cloudflare target is SSR-only and does NOT emit a
+      # static dist/client/index.html. For the Capacitor native shell we
+      # generate one that boots the client entry as an SPA.
+      if [ ! -f dist/client/index.html ]; then
+        echo "No dist/client/index.html from Vite (expected for SSR build). Generating Capacitor SPA shell..."
+        node scripts/generate-capacitor-shell.mjs
+      fi
+      if [ ! -f dist/client/index.html ]; then
+        echo "ERROR: failed to produce dist/client/index.html for Capacitor."
+        ls -la dist/client 2>/dev/null || true
+        exit 1
+      fi
+      echo "OK: web bundle exists at dist/client/index.html"
+
+  install_and_sync_3: &cap_preflight
+    name: Capacitor preflight — verify bundle id & native platforms
+    script: |
+      set -e
+      echo "=== Capacitor preflight ==="
+      echo "Working directory: $(pwd)"
+      echo "Repo root listing:"
+      ls -la
+
+      # Verify capacitor.config.ts appId matches the required bundle id.
+      EXPECTED_APP_ID="com.doseroutine.app"
+      if [ ! -f capacitor.config.ts ]; then
+        echo "ERROR: capacitor.config.ts not found at repo root."
+        exit 1
+      fi
+      CONFIG_APP_ID=$(grep -Eo "appId:[[:space:]]*['\"][^'\"]+['\"]" capacitor.config.ts \
+        | head -1 | sed -E "s/.*['\"]([^'\"]+)['\"].*/\1/")
+      if [ -z "$CONFIG_APP_ID" ]; then
+        echo "ERROR: Could not read 'appId' from capacitor.config.ts."
+        echo "FIX: ensure the file contains a line like:  appId: 'com.doseroutine.app',"
+        exit 1
+      fi
+      if [ "$CONFIG_APP_ID" != "$EXPECTED_APP_ID" ]; then
+        echo "ERROR: capacitor.config.ts appId is '$CONFIG_APP_ID' but must be '$EXPECTED_APP_ID'."
+        echo "This would produce a native app with the wrong bundle id and fail App Store signing."
+        echo "FIX: open capacitor.config.ts and set:  appId: '$EXPECTED_APP_ID',"
+        echo "     Then delete the ios/ and android/ folders so they get re-generated with the correct id."
+        exit 1
+      fi
+      echo "OK: capacitor.config.ts appId = $CONFIG_APP_ID"
+
+      case "${TARGET_PLATFORM:-both}" in
+        ios) PLATFORMS="ios" ;;
+        android) PLATFORMS="android" ;;
+        *) PLATFORMS="ios android" ;;
+      esac
+      echo "Native platforms to verify: $PLATFORMS"
+
+      for platform in $PLATFORMS; do
+        # Detect a REAL native project, not a stray directory left behind by
+        # cache restore. Capacitor 8 uses Swift Package Manager for plugins,
+        # so iOS no longer needs a Podfile/Pods folder. Check for native
+        # project marker files, not CocoaPods files.
+        case "$platform" in
+          ios)
+            marker="ios/App/App.xcodeproj/project.pbxproj"
+            required_markers="ios/App/App.xcodeproj/project.pbxproj ios/App/App"
+            ;;
+          android)
+            marker="android/app/build.gradle"
+            required_markers="android/app/build.gradle android/app/src/main"
+            ;;
+        esac
+
+        missing_markers=""
+        for required_marker in $required_markers; do
+          if [ ! -e "$required_marker" ]; then
+            missing_markers="$missing_markers $required_marker"
+          fi
+        done
+
+        if [ -z "$missing_markers" ]; then
+          echo "OK: $platform/ project detected ($required_markers)."
+        else
+          if [ "$platform" = "ios" ]; then
+            echo "ERROR: committed ios/ project is incomplete or missing:$missing_markers"
+            echo "Refusing to run 'npx cap add ios' in CI because it regenerates the Capacitor template AppIcon and can upload Apple's blue placeholder."
+            echo "FIX: commit ios/App/App.xcodeproj/project.pbxproj, ios/App/App, and ios/App/App/Assets.xcassets/AppIcon.appiconset before triggering TestFlight."
+            exit 1
+          fi
+          if [ -d "$platform" ]; then
+            echo "STALE: $platform/ exists but required project files are missing:$missing_markers"
+            echo "Likely cause: a cache-restored shell or partial Capacitor project. Removing and regenerating."
+            rm -rf "$platform"
+          fi
+          echo "MISSING: $platform/ not found — running 'npx cap add $platform'."
+          created_temp_webdir="0"
+          if [ ! -f dist/client/index.html ]; then
+            echo "NOTE: dist/client/index.html is missing before cap add. Creating a temporary placeholder only so Capacitor can generate the native project."
+            mkdir -p dist/client
+            printf '<!doctype html><html><head><title>DoseRoutine</title></head><body></body></html>\n' > dist/client/index.html
+            created_temp_webdir="1"
+          fi
+          npx cap add "$platform"
+          if [ "$created_temp_webdir" = "1" ]; then
+            rm -rf dist/client
+            rmdir dist 2>/dev/null || true
+            echo "Removed temporary Capacitor placeholder web bundle. The real Build web bundle step must recreate dist/client before sync."
+          fi
+          if [ ! -f "$marker" ]; then
+            echo "ERROR: 'npx cap add $platform' did not create $marker."
+            exit 1
+          fi
+          missing_after_add=""
+          for required_marker in $required_markers; do
+            if [ ! -e "$required_marker" ]; then
+              missing_after_add="$missing_after_add $required_marker"
+            fi
+          done
+          if [ -n "$missing_after_add" ]; then
+            echo "ERROR: 'npx cap add $platform' left required files missing:$missing_after_add"
+            exit 1
+          fi
+          echo "Added $platform/ successfully."
+        fi
+      done
+
+      echo "--- ios/ contents ---"
+      ls -la ios 2>/dev/null || true
+      echo "--- ios/App contents ---"
+      ls -la ios/App 2>/dev/null || true
+      echo "--- android/ contents ---"
+      ls -la android 2>/dev/null || true
+
+      # Verify Android applicationId matches the expected package.
+      EXPECTED_ANDROID_ID="com.doseroutine.app"
+      GRADLE_FILE="android/app/build.gradle"
+      if [ -f "$GRADLE_FILE" ]; then
+        ANDROID_APP_ID=$(grep -Eo "applicationId[[:space:]]+['\"][^'\"]+['\"]" "$GRADLE_FILE" \
+          | head -1 | sed -E "s/.*['\"]([^'\"]+)['\"].*/\1/")
+        if [ -z "$ANDROID_APP_ID" ]; then
+          echo "ERROR: Could not read 'applicationId' from $GRADLE_FILE."
+          echo "FIX: ensure $GRADLE_FILE contains a line like:  applicationId \"$EXPECTED_ANDROID_ID\""
+          exit 1
+        fi
+        if [ "$ANDROID_APP_ID" != "$EXPECTED_ANDROID_ID" ]; then
+          echo "ERROR: Android applicationId is '$ANDROID_APP_ID' but must be '$EXPECTED_ANDROID_ID'."
+          echo "This would upload the wrong package to Google Play and be rejected."
+          echo "FIX: edit $GRADLE_FILE and set:  applicationId \"$EXPECTED_ANDROID_ID\""
+          echo "     Or delete the android/ folder and let 'npx cap add android' regenerate it from capacitor.config.ts."
+          exit 1
+        fi
+        echo "OK: android applicationId = $ANDROID_APP_ID"
+      else
+        echo "NOTE: $GRADLE_FILE not found yet — skipping applicationId check (will be generated by cap add)."
+      fi
+      echo "=== Preflight complete ==="
+
+  install_and_sync_4: &cap_sync
+    name: Capacitor sync
+    script: |
+      set -e
+      set -o pipefail
+      mkdir -p "$CM_BUILD_DIR/build-logs"
+      trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+      if [ ! -f dist/client/index.html ]; then
+        echo "ERROR: dist/client/index.html is missing. The native app needs the built web files before Capacitor sync."
+        echo "FIX: make sure the 'Build web bundle' step completed successfully before this step."
+        exit 1
+      fi
+
+      case "${TARGET_PLATFORM:-both}" in
+        ios) PLATFORMS="ios" ;;
+        android) PLATFORMS="android" ;;
+        *) PLATFORMS="ios android" ;;
+      esac
+
+      : > "$CM_BUILD_DIR/build-logs/cap-sync.log"
+      for platform in $PLATFORMS; do
+        echo "=== npx cap sync $platform ===" | tee -a "$CM_BUILD_DIR/build-logs/cap-sync.log"
+        npx cap sync "$platform" 2>&1 | tee -a "$CM_BUILD_DIR/build-logs/cap-sync.log"
+      done
+
+      if printf '%s\n' "$PLATFORMS" | grep -qw ios; then
+        # `npx cap sync ios` rewrites CapApp-SPM/Package.swift back to raw
+        # node_modules paths, which reintroduces the "Conflicting identity for
+        # app" SPM error (@capacitor/app vs @capacitor-firebase/app). Any
+        # xcodebuild invocation after sync fails until this is repaired, so it
+        # MUST run before the icon gates (verify:icons shells out to xcodebuild).
+        echo "→ Fixing Swift Package Manager identity collisions (e.g. @capacitor/app vs @capacitor-firebase/app)…"
+        node scripts/fix-ios-spm-identity.mjs
+
+        echo "Removing stale iOS icon/build artifacts before writing the DR AppIcon catalog."
+        rm -rf ios/App/build ios/App/App/Assets.xcassets/AppIcon.appiconset
+        echo "→ Verifying Assets.xcassets pbxproj membership (per-target report) before regenerating icons…"
+        npm run verify:assets
+        npm run verify:icons
+        echo "--- generated iOS AppIcon.appiconset listing after Capacitor sync ---"
+        ls -lah ios/App/App/Assets.xcassets/AppIcon.appiconset
+        node scripts/verify-appicon-png-modes.mjs
+
+        missing_ios=""
+        # Capacitor 8 writes Swift Package config under ios/App/CapApp-SPM/Package.swift,
+        # not directly at ios/App/Package.swift.
+        for required in ios/App/App.xcodeproj/project.pbxproj ios/App/CapApp-SPM/Package.swift ios/App/App/public/index.html; do
+          if [ ! -e "$required" ]; then
+            missing_ios="$missing_ios $required"
+          fi
+        done
+        if [ -n "$missing_ios" ]; then
+          echo "ERROR: Capacitor sync did not create the required iOS files:$missing_ios"
+          echo "This is the direct cause of Xcode errors like: The file 'public' couldn't be opened."
+          echo "FIX: the workflow will regenerate ios/ on the next run; if this repeats, clear the Codemagic iOS cache and rerun."
+          exit 1
+        fi
+        echo "OK: iOS Capacitor project contains Swift Package config and App/public/index.html."
+
+        # Re-assert identity fix in case any later regeneration touched it.
+        node scripts/fix-ios-spm-identity.mjs
+        grep -n 'node_modules' ios/App/CapApp-SPM/Package.swift && {
+          echo "ERROR: Package.swift still references node_modules paths — SPM identity collision would return."
+          exit 1
+        } || echo "OK: no node_modules paths remain in CapApp-SPM/Package.swift."
+      fi
+
+
+
+      if printf '%s\n' "$PLATFORMS" | grep -qw android; then
+        if [ ! -f android/app/src/main/assets/public/index.html ]; then
+          echo "ERROR: Capacitor sync did not create android/app/src/main/assets/public/index.html."
+          exit 1
+        fi
+        echo "OK: Android Capacitor project contains bundled web assets."
+
+        # android/ is regenerated by `npx cap add android` in CI, which ships
+        # Capacitor's default launcher icon. Regenerate the DoseRoutine
+        # launcher/splash from public/icon-master-dr.png and verify it, so
+        # Google Play never receives the placeholder icon.
+        echo "→ Generating DoseRoutine Android launcher icons + splash from the DR master…"
+        node scripts/generate-native-assets.mjs --android-only
+        echo "→ Verifying Android launcher icons match the DR master…"
+        TARGET_PLATFORM=android node scripts/verify-native-icons.mjs
+        echo "--- android mipmap listing after icon generation ---"
+        ls -la android/app/src/main/res/mipmap-xxxhdpi 2>/dev/null || true
+      fi
+
+  extract_errors: &extract_errors
+    name: Extract error snippets from build logs
+    script: |
+      bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true
+    ignore_failure: true
+
+workflows:
+  # ────────────────────────────────────────────────────────────
+  # iOS → TestFlight
+  # ────────────────────────────────────────────────────────────
+  ios-testflight:
+    name: iOS · TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      <<: *env_versions
+      groups:
+        - doseroutine_env
+      vars:
+        TARGET_PLATFORM: "ios"
+        BUNDLE_ID: "com.doseroutine.app"
+        APP_STORE_APP_ID: "6793807589"
+        XCODE_WORKSPACE: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        AUTO_REPAIR_IOS_SIGNING: "true"
+
+    cache:
+      cache_paths: *cache_paths
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: "ios-v*"
+          include: true
+    scripts:
+      - name: Version source — allow branch builds
+        script: |
+          set -e
+          RAW_TAG="${CM_TAG:-}"
+          if [ -z "$RAW_TAG" ]; then
+            echo "No iOS version tag found. Continuing from branch/commit and using fallback version 1.0.0."
+            exit 0
+          fi
+          case "$RAW_TAG" in
+            ios-v[0-9]*.[0-9]*.[0-9]*)
+              echo "OK: building from iOS version tag $RAW_TAG."
+              ;;
+            *)
+              echo "Tag '$RAW_TAG' is not an iOS version tag. Continuing with fallback version 1.0.0."
+              ;;
+          esac
+      - *build_info
+      - *install_deps
+      - *tooling_preflight
+      - *env_preflight
+
+      - name: Pre-build validation — App Store Connect credentials
+        script: |
+          set -e
+          echo "Checking App Store Connect credentials..."
+          [ -n "$APP_STORE_CONNECT_ISSUER_ID" ] || { echo "ERROR: APP_STORE_CONNECT_ISSUER_ID is not set. Add it to the doseroutine_env environment group in Codemagic → App settings → Environment variables."; exit 1; }
+          [ -n "$APP_STORE_CONNECT_KEY_ID" ] || { echo "ERROR: APP_STORE_CONNECT_KEY_ID is not set. Add it to the doseroutine_env environment group in Codemagic → App settings → Environment variables."; exit 1; }
+          [ -n "$APP_STORE_CONNECT_PRIVATE_KEY" ] || { echo "ERROR: APP_STORE_CONNECT_PRIVATE_KEY is not set. Paste the full contents of the .p8 file into the doseroutine_env environment group in Codemagic → App settings → Environment variables."; exit 1; }
+          # Sanity-check that the private key actually looks like a .p8 file
+          if ! printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" | grep -q "BEGIN PRIVATE KEY"; then
+            echo "ERROR: APP_STORE_CONNECT_PRIVATE_KEY does not look like a valid .p8 private key."
+            exit 1
+          fi
+          echo "All App Store Connect credentials are present."
+      - name: Verify App Store Connect API key has App Manager role
+        script: |
+          set -e
+          echo "Probing App Store Connect API key role..."
+          python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography requests >/dev/null
+          python3 - <<'PY'
+          import os, sys, time, json, uuid
+          import jwt, requests
+
+          issuer = os.environ["APP_STORE_CONNECT_ISSUER_ID"]
+          kid    = os.environ["APP_STORE_CONNECT_KEY_ID"]
+          pkey   = os.environ["APP_STORE_CONNECT_PRIVATE_KEY"]
+
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": issuer, "iat": now, "exp": now + 20 * 60, "aud": "appstoreconnect-v1"},
+              pkey,
+              algorithm="ES256",
+              headers={"kid": kid, "typ": "JWT"},
+          )
+          headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+          def die_auth(msg):
+              print("ERROR:", msg)
+              print("")
+              print("This is not a code problem. Apple rejected the three saved Codemagic values.")
+              print("")
+              print("Fix in Codemagic > DoseRoutine app > App settings > Environment variables > doseroutine_env:")
+              print("  1. APP_STORE_CONNECT_ISSUER_ID = the Issuer ID from the App Store Connect API page")
+              print("     (not the Apple ID, not the Team ID, not the Bundle ID).")
+              print("  2. APP_STORE_CONNECT_KEY_ID = the exact Key ID for the active Apple API key.")
+              print("  3. APP_STORE_CONNECT_PRIVATE_KEY = the entire matching AuthKey_*.p8 file text,")
+              print("     including BEGIN PRIVATE KEY and END PRIVATE KEY.")
+              print("")
+              print("Important: use an App Store Connect API key that shows an Issuer ID. If you created")
+              print("an 'Individual API Key' and it does not show the same Issuer ID, revoke it and create")
+              print("a normal App Store Connect API key with Access = App Manager, then replace Key ID")
+              print("and Private Key in Codemagic.")
+              sys.exit(1)
+
+          def die_role(msg):
+              print("ERROR:", msg)
+              print("")
+              print("Fix: In App Store Connect > Users and Access > Integrations > App Store Connect API,")
+              print("     find this key and confirm Access = App Manager or Admin.")
+              print("     If Apple will not let you edit it, revoke the key, create a new key with")
+              print("     Access = App Manager, download the new .p8, and update APP_STORE_CONNECT_KEY_ID")
+              print("     and APP_STORE_CONNECT_PRIVATE_KEY in Codemagic.")
+              sys.exit(1)
+
+          # Sanity: can we even authenticate?
+          r = requests.get("https://api.appstoreconnect.apple.com/v1/apps?limit=1", headers=headers, timeout=30)
+          if r.status_code == 401:
+              die_auth("Key authentication failed (401). Issuer ID, Key ID, or .p8 contents do not match.")
+          if r.status_code == 403:
+              die_role("Key authenticated but cannot read /v1/apps. Role is below Developer.")
+          if r.status_code >= 400:
+              die_role(f"Unexpected {r.status_code} from /v1/apps: {r.text[:300]}")
+
+          # Write probe: creating a bundleId requires App Manager (or Admin/Account Holder).
+          # We send an intentionally invalid identifier so it never actually creates anything.
+          probe_id = f"invalid probe {uuid.uuid4().hex}"  # space => 400 validation error if allowed
+          body = {"data": {"type": "bundleIds", "attributes": {
+              "identifier": probe_id, "name": "role-probe", "platform": "IOS"}}}
+          r = requests.post("https://api.appstoreconnect.apple.com/v1/bundleIds",
+                            headers=headers, data=json.dumps(body), timeout=30)
+
+          if r.status_code == 403:
+              die_role("Key role is insufficient (403 on POST /v1/bundleIds). "
+                       "App Store Connect requires 'App Manager' (or Admin) to create/manage "
+                       "certificates, profiles, bundle IDs, and TestFlight builds. "
+                       "Your current key appears to be 'Developer' or lower.")
+          if r.status_code == 401:
+              die_auth("Key authentication failed on write (401). Recheck Issuer ID / Key ID / .p8.")
+          if r.status_code in (400, 409, 422):
+              print(f"OK: write probe returned {r.status_code} (validation), role is App Manager or higher.")
+              sys.exit(0)
+          if 200 <= r.status_code < 300:
+              # Extremely unlikely — Apple accepted our garbage id. Clean it up.
+              created_id = r.json().get("data", {}).get("id")
+              if created_id:
+                  requests.delete(f"https://api.appstoreconnect.apple.com/v1/bundleIds/{created_id}",
+                                  headers=headers, timeout=30)
+              print("OK: write probe succeeded, role is App Manager or higher.")
+              sys.exit(0)
+          die_role(f"Unexpected {r.status_code} from POST /v1/bundleIds: {r.text[:300]}")
+          PY
+      - *build_web
+      - *cap_preflight
+      - *cap_sync
+
+      - name: Verify built iOS bundle id & entitlements match com.doseroutine.app
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/ios-identity-check.log"
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          exec > >(tee -a "$LOG") 2>&1
+
+          EXPECTED_BUNDLE_ID="com.doseroutine.app"
+          # Entitlements the App Store build MUST declare (extend if you add capabilities).
+          # Format: "entitlement-key=expected-value"  (value "*" means any value acceptable)
+          EXPECTED_ENTITLEMENTS=(
+            # StoreKit/IAP is granted implicitly by Apple with no entitlement key.
+            # com.apple.developer.in-app-payments is the Apple Pay entitlement — not needed.
+          )
+
+
+          PBXPROJ="ios/App/App.xcodeproj/project.pbxproj"
+          if [ ! -f "$PBXPROJ" ]; then
+            echo "ERROR: $PBXPROJ not found. Did 'npx cap add ios' run?"
+            exit 1
+          fi
+
+          echo "=== Bundle id check ==="
+          # Collect every PRODUCT_BUNDLE_IDENTIFIER value in the pbxproj (Debug + Release).
+          FOUND_IDS=$(grep -Eo 'PRODUCT_BUNDLE_IDENTIFIER = [^;]+;' "$PBXPROJ" \
+            | sed -E 's/PRODUCT_BUNDLE_IDENTIFIER = "?([^";]+)"?;/\1/' \
+            | sort -u)
+          if [ -z "$FOUND_IDS" ]; then
+            echo "ERROR: No PRODUCT_BUNDLE_IDENTIFIER entries in $PBXPROJ."
+            exit 1
+          fi
+          echo "Bundle ids in pbxproj:"
+          echo "$FOUND_IDS" | sed 's/^/  - /'
+          MISMATCH=0
+          while IFS= read -r bid; do
+            [ -z "$bid" ] && continue
+            if [ "$bid" != "$EXPECTED_BUNDLE_ID" ]; then
+              MISMATCH=1
+              echo ""
+              echo "DIFF: bundle id mismatch"
+              echo "  - expected: $EXPECTED_BUNDLE_ID"
+              echo "  + actual:   $bid"
+            fi
+          done <<< "$FOUND_IDS"
+          if [ "$MISMATCH" -ne 0 ]; then
+            echo ""
+            echo "FIX: open capacitor.config.ts and confirm appId is '$EXPECTED_BUNDLE_ID',"
+            echo "     then delete ios/ and re-run so 'npx cap add ios' regenerates the pbxproj."
+            exit 1
+          fi
+          echo "OK: every PRODUCT_BUNDLE_IDENTIFIER = $EXPECTED_BUNDLE_ID"
+
+          echo ""
+          echo "=== Entitlements check ==="
+          # Find the entitlements file(s) actually referenced by the Xcode target.
+          ENT_REFS=$(grep -Eo 'CODE_SIGN_ENTITLEMENTS = [^;]+;' "$PBXPROJ" \
+            | sed -E 's/CODE_SIGN_ENTITLEMENTS = "?([^";]+)"?;/\1/' \
+            | sort -u)
+          if [ -z "$ENT_REFS" ]; then
+            # Fall back to the default Capacitor path.
+            ENT_REFS="App/App.entitlements"
+            echo "NOTE: pbxproj has no CODE_SIGN_ENTITLEMENTS; falling back to $ENT_REFS"
+          fi
+
+          ENT_FILE=""
+          for rel in $ENT_REFS; do
+            candidate="ios/App/$rel"
+            if [ -f "$candidate" ]; then
+              ENT_FILE="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "$ENT_FILE" ]; then
+            if [ ${#EXPECTED_ENTITLEMENTS[@]} -eq 0 ]; then
+              echo "OK: no entitlements file and none required."
+            else
+              echo "ERROR: expected entitlements but no entitlements file was found."
+              echo "Looked for: $ENT_REFS (relative to ios/App/)"
+              printf 'Required entitlements:\n'
+              printf '  - %s\n' "${EXPECTED_ENTITLEMENTS[@]}"
+              echo "FIX: in Xcode -> App target -> Signing & Capabilities -> add the required capability,"
+              echo "     which will create the entitlements plist. Commit ios/App/App/App.entitlements."
+              exit 1
+            fi
+          else
+            echo "Entitlements file: $ENT_FILE"
+            echo "--- contents ---"
+            cat "$ENT_FILE"
+            echo "--- end ---"
+            ENT_MISS=0
+            for pair in "${EXPECTED_ENTITLEMENTS[@]}"; do
+              key="${pair%%=*}"
+              want="${pair#*=}"
+              if ! /usr/libexec/PlistBuddy -c "Print :$key" "$ENT_FILE" >/dev/null 2>&1; then
+                ENT_MISS=1
+                echo ""
+                echo "DIFF: entitlement missing"
+                echo "  - expected key: $key (value: $want)"
+                echo "  + actual:       <not present>"
+              elif [ "$want" != "*" ]; then
+                got=$(/usr/libexec/PlistBuddy -c "Print :$key" "$ENT_FILE" 2>/dev/null | tr -d '[:space:]')
+                if [ "$got" != "$want" ]; then
+                  ENT_MISS=1
+                  echo ""
+                  echo "DIFF: entitlement value mismatch for $key"
+                  echo "  - expected: $want"
+                  echo "  + actual:   $got"
+                fi
+              fi
+            done
+            if [ "$ENT_MISS" -ne 0 ]; then
+              echo ""
+              echo "FIX: in Xcode -> App target -> Signing & Capabilities, add the missing capability"
+              echo "     (e.g. 'In-App Purchase'). Commit the updated $ENT_FILE."
+              exit 1
+            fi
+            echo "OK: all required entitlements present."
+          fi
+
+          echo ""
+          echo "=== iOS identity check passed ==="
+
+      - name: Inspect App ID and signing readiness
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/appstore-preflight.log"
+          REPORT="$CM_BUILD_DIR/build-logs/appstore-preflight-report.log"
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          exec > >(tee -a "$LOG") 2>&1
+
+          echo "=== Apple preflight for $BUNDLE_ID ==="
+
+          # Consolidated report state. Each check appends one row:
+          # STATUS|CHECK|DETAIL|FIX
+          : > "$REPORT.tmp"
+          record() {
+            printf '%s|%s|%s|%s\n' "$1" "$2" "$3" "$4" >> "$REPORT.tmp"
+          }
+
+          apple_api_fix="No action needed here if the earlier App Store Connect credential probe passed. The next signing step will create/read the needed files directly."
+
+          read_apple_json_array() {
+            # $1 = output variable name, $2 = check name, $3... = app-store-connect command
+            local dest="$1" check="$2" out status
+            shift 2
+
+            set +e
+            out=$("$@" 2>/dev/null)
+            status=$?
+            set -e
+
+            if [ "$status" -ne 0 ]; then
+              record "WARN" "$check" \
+                "Codemagic's list command returned no usable JSON here (exit $status)." \
+                "$apple_api_fix"
+              printf -v "$dest" '[]'
+              return 1
+            fi
+
+            if ! printf '%s' "$out" | python3 -c 'import json,sys; raw=sys.stdin.read().strip(); data=json.loads(raw); assert isinstance(data, list)' >/dev/null 2>&1; then
+              record "WARN" "$check" \
+                "Codemagic's list command returned empty or non-JSON output." \
+                "$apple_api_fix"
+              printf -v "$dest" '[]'
+              return 1
+            fi
+
+            printf -v "$dest" '%s' "$out"
+            return 0
+          }
+
+          # 1) App ID (Bundle ID) must exist in the Apple Developer portal.
+          BUNDLE_JSON=""
+          read_apple_json_array BUNDLE_JSON "Read App ID list from Apple" \
+            app-store-connect list-bundle-ids \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --bundle-id-identifier "$BUNDLE_ID" \
+            --bundle-id-identifier-strict-match \
+            --json || true
+          BUNDLE_COUNT=$(printf '%s' "$BUNDLE_JSON" | python3 -c "import json,sys;print(len(json.load(sys.stdin)))")
+
+          BUNDLE_RESOURCE_ID=""
+          if [ "$BUNDLE_COUNT" -eq 0 ]; then
+            record "WARN" "App ID exists in Apple Developer portal" \
+              "Could not confirm an Explicit App ID for '$BUNDLE_ID' from the list command." \
+              "No action needed unless the next signing step fails; fetch-signing-files --create can create the missing signing assets."
+          else
+            BUNDLE_RESOURCE_ID=$(printf '%s' "$BUNDLE_JSON" | python3 -c "import json,sys;print(json.load(sys.stdin)[0]['id'])")
+            record "PASS" "App ID exists in Apple Developer portal" \
+              "Resource id: $BUNDLE_RESOURCE_ID" "-"
+          fi
+
+          # 2) In-App Purchase capability must be enabled on the App ID.
+          if [ -n "$BUNDLE_RESOURCE_ID" ]; then
+            CAPS_JSON=""
+            read_apple_json_array CAPS_JSON "Read App ID capabilities from Apple" \
+              app-store-connect get-bundle-id-capabilities "$BUNDLE_RESOURCE_ID" \
+              --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+              --key-id "$APP_STORE_CONNECT_KEY_ID" \
+              --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+              --json || true
+            if printf '%s' "$CAPS_JSON" | grep -q "IN_APP_PURCHASE"; then
+              record "PASS" "In-App Purchase capability enabled" "Capability IN_APP_PURCHASE present on App ID." "-"
+            else
+              record "WARN" "In-App Purchase capability enabled" \
+                "Could not confirm IN_APP_PURCHASE from the capabilities list." \
+                "No action needed for StoreKit/RevenueCat unless App Store Connect later blocks in-app purchases."
+            fi
+          else
+            record "SKIP" "In-App Purchase capability enabled" "Skipped because the App ID could not be confirmed by the list command." "No action needed unless the next signing step fails."
+          fi
+
+          # 3) Distribution certificate must exist for App Store signing.
+          CERT_JSON=""
+          read_apple_json_array CERT_JSON "Read iOS certificates from Apple" \
+            app-store-connect list-certificates \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --type IOS_DISTRIBUTION --json || true
+          CERT_COUNT=$(printf '%s' "$CERT_JSON" | python3 -c "import json,sys;print(len(json.load(sys.stdin)))")
+          if [ "$CERT_COUNT" -eq 0 ]; then
+            record "WARN" "iOS Distribution certificate present" \
+              "None found; fetch-signing-files --create will attempt to create one." \
+              "No action needed unless the next step fails."
+          else
+            record "PASS" "iOS Distribution certificate present" "$CERT_COUNT certificate(s) available." "-"
+          fi
+
+          # 4) App Store provisioning profile for this bundle id.
+          PROFILE_JSON=""
+          read_apple_json_array PROFILE_JSON "Read App Store provisioning profiles from Apple" \
+            app-store-connect list-profiles \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --profile-type IOS_APP_STORE \
+            --json || true
+          MATCH_COUNT=$(printf '%s' "$PROFILE_JSON" | BUNDLE_ID="$BUNDLE_ID" python3 -c "import json,sys,os; bid=os.environ['BUNDLE_ID']; data=json.load(sys.stdin); print(sum(1 for p in data if bid in (p.get('attributes',{}).get('name','') or '')))")
+          if [ "$MATCH_COUNT" -eq 0 ]; then
+            record "WARN" "App Store provisioning profile for $BUNDLE_ID" \
+              "None found; fetch-signing-files --create will create one." \
+              "No action needed unless the next step fails."
+          else
+            record "PASS" "App Store provisioning profile for $BUNDLE_ID" \
+              "$MATCH_COUNT profile(s) reference this bundle id." "-"
+          fi
+
+          # ---- Consolidated report ----
+          PASS_N=$(grep -c '^PASS|' "$REPORT.tmp" || true)
+          FAIL_N=$(grep -c '^FAIL|' "$REPORT.tmp" || true)
+          WARN_N=$(grep -c '^WARN|' "$REPORT.tmp" || true)
+          SKIP_N=$(grep -c '^SKIP|' "$REPORT.tmp" || true)
+          {
+            echo "============================================================"
+            echo " APPLE PREFLIGHT REPORT — $BUNDLE_ID"
+            echo " Generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo "============================================================"
+            printf '%-6s  %s\n' "STATUS" "CHECK"
+            printf '%-6s  %s\n' "------" "-----"
+            while IFS='|' read -r status check detail fix; do
+              printf '%-6s  %s\n' "$status" "$check"
+              printf '        detail: %s\n' "$detail"
+              [ "$fix" != "-" ] && printf '        fix:    %s\n' "$fix"
+            done < "$REPORT.tmp"
+            echo "------------------------------------------------------------"
+            echo "Summary: ${PASS_N} passed, ${FAIL_N} failed, ${WARN_N} warnings, ${SKIP_N} skipped."
+            echo "Report saved to: $REPORT"
+            echo "============================================================"
+          } | tee "$REPORT"
+          rm -f "$REPORT.tmp"
+
+          if [ "$FAIL_N" -ne 0 ]; then
+            echo "=== Apple preflight completed with failures, but this step is informational. Continuing to the signing step. ==="
+          else
+            echo "=== Apple preflight completed ==="
+          fi
+
+      - name: Set up code signing (uploaded .p12 or App Store Connect API key)
+        script: |
+          set -e
+          set -o pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/fetch-signing-files.log"
+          exec > >(tee -a "$LOG") 2>&1
+
+          echo "=== Set up iOS code signing ==="
+          echo "Bundle id: $BUNDLE_ID"
+          echo "Important: if Apple already has active Distribution certificates without their private key,"
+          echo "Codemagic cannot reuse them. Revoke an old unused Distribution certificate or upload"
+          echo "the matching .p12 certificate/private key to Codemagic."
+
+          CERT_DIR="$HOME/Library/Developer/Xcode/UserData/Certificates"
+          PROFILE_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+          LEGACY_CERT_DIR="$HOME/Library/MobileDevice/Certificates"
+          LEGACY_PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          SIGNING_CACHE_DIR="$CM_BUILD_DIR/.codemagic-code-signing"
+          CACHED_CERT_KEY_FILE="$SIGNING_CACHE_DIR/ios_distribution_private_key.pem"
+          mkdir -p "$CERT_DIR" "$PROFILE_DIR" "$LEGACY_CERT_DIR" "$LEGACY_PROFILE_DIR" "$SIGNING_CACHE_DIR"
+          chmod 700 "$SIGNING_CACHE_DIR" 2>/dev/null || true
+
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+
+          count_matches() {
+            # Bash 3.2-safe glob counter. Usage: count_matches "$DIR" "*.p12"
+            _dir="$1"
+            _pattern="$2"
+            _count=0
+            for _path in "$_dir"/$_pattern; do
+              [ -e "$_path" ] || continue
+              _count=$(( _count + 1 ))
+            done
+            echo "$_count"
+          }
+
+          build_profile_args() {
+            PROFILE_ARGS=()
+            for profile in "$PROFILE_DIR"/*.mobileprovision "$PROFILE_DIR"/*.provisionprofile "$LEGACY_PROFILE_DIR"/*.mobileprovision "$LEGACY_PROFILE_DIR"/*.provisionprofile; do
+              [ -f "$profile" ] || continue
+              PROFILE_ARGS+=(--profile "$profile")
+            done
+          }
+
+          decode_base64_to_file() {
+            _value="$1"
+            _dest="$2"
+            if printf '%s' "$_value" | tr -d '\n\r ' | base64 --decode > "$_dest" 2>/dev/null; then
+              return 0
+            fi
+            printf '%s' "$_value" | tr -d '\n\r ' | base64 -D > "$_dest"
+          }
+
+          add_available_certificates_to_keychain() {
+            keychain initialize
+            added=0
+            for cert in "$CERT_DIR"/*.p12 "$LEGACY_CERT_DIR"/*.p12; do
+              [ -f "$cert" ] || continue
+              if [ -n "${IOS_DISTRIBUTION_CERTIFICATE_PASSWORD:-}" ]; then
+                keychain add-certificates --certificate "$cert" --certificate-password "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"
+              else
+                keychain add-certificates --certificate "$cert"
+              fi
+              added=$(( added + 1 ))
+            done
+            for cert in "$CERT_DIR"/*.pem "$LEGACY_CERT_DIR"/*.pem; do
+              [ -f "$cert" ] || continue
+              keychain add-certificates --certificate "$cert"
+              added=$(( added + 1 ))
+            done
+            echo "Certificates added to keychain from files: $added"
+          }
+
+          # Fully manual fallback: exported .p12 + matching App Store profile.
+          # This bypasses Apple's certificate-matching API entirely, which is the
+          # correct fix when the original Mac has the matching private key.
+          if [ -n "${IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64:-}" ] || [ -n "${IOS_APP_STORE_PROVISIONING_PROFILE_BASE64:-}" ]; then
+            if [ -z "${IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64:-}" ] || [ -z "${IOS_APP_STORE_PROVISIONING_PROFILE_BASE64:-}" ]; then
+              echo "ERROR: incomplete manual iOS signing files."
+              echo "FIX: set BOTH variables in the doseroutine_env group:"
+              echo "  1. IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64"
+              echo "  2. IOS_APP_STORE_PROVISIONING_PROFILE_BASE64"
+              echo "Also set IOS_DISTRIBUTION_CERTIFICATE_PASSWORD if the exported .p12 has a password."
+              echo "Do not replace the App Store Connect .p8 for this certificate/private-key error."
+              exit 1
+            fi
+
+            echo "Using manual exported .p12 plus App Store provisioning profile from environment."
+            P12_FILE="$CERT_DIR/uploaded_distribution_certificate.p12"
+            PROFILE_FILE="$PROFILE_DIR/uploaded_app_store.mobileprovision"
+            decode_base64_to_file "$IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64" "$P12_FILE"
+            decode_base64_to_file "$IOS_APP_STORE_PROVISIONING_PROFILE_BASE64" "$PROFILE_FILE"
+            chmod 600 "$P12_FILE" "$PROFILE_FILE"
+
+            if ! openssl pkcs12 -in "$P12_FILE" -nokeys -passin "pass:${IOS_DISTRIBUTION_CERTIFICATE_PASSWORD:-}" >/dev/null 2>&1; then
+              echo "ERROR: could not read IOS_DISTRIBUTION_CERTIFICATE_P12_BASE64."
+              echo "FIX: confirm it is the base64 text of the exported .p12 and that IOS_DISTRIBUTION_CERTIFICATE_PASSWORD matches the export password."
+              exit 1
+            fi
+          fi
+
+          # If Codemagic already made signing files available, prefer those files so we do
+          # not ask Apple to create or match a new certificate key.
+          CERT_FILE_COUNT=$(( $(count_matches "$CERT_DIR" "*.p12") + $(count_matches "$CERT_DIR" "*.pem") + $(count_matches "$LEGACY_CERT_DIR" "*.p12") + $(count_matches "$LEGACY_CERT_DIR" "*.pem") ))
+          KEYCHAIN_DIST_COUNT=$(security find-identity -v -p codesigning 2>/dev/null | grep -E "Apple Distribution|iOS Distribution" | grep -c . || true)
+          UPLOADED_CERT_COUNT=$(( CERT_FILE_COUNT + KEYCHAIN_DIST_COUNT ))
+          UPLOADED_PROFILE_COUNT=$(( $(count_matches "$PROFILE_DIR" "*.mobileprovision") + $(count_matches "$PROFILE_DIR" "*.provisionprofile") + $(count_matches "$LEGACY_PROFILE_DIR" "*.mobileprovision") + $(count_matches "$LEGACY_PROFILE_DIR" "*.provisionprofile") ))
+          if [ "$UPLOADED_CERT_COUNT" -gt 0 ] || [ "$UPLOADED_PROFILE_COUNT" -gt 0 ]; then
+            echo "Detected Codemagic code signing identities."
+            echo "  Certificate files found:     $CERT_FILE_COUNT"
+            echo "  Keychain distribution IDs:   $KEYCHAIN_DIST_COUNT"
+            echo "  Provisioning profiles found: $UPLOADED_PROFILE_COUNT"
+            if [ "$UPLOADED_CERT_COUNT" -eq 0 ] || [ "$UPLOADED_PROFILE_COUNT" -eq 0 ]; then
+              echo "ERROR: Codemagic found only part of the uploaded signing setup."
+              echo "FIX: upload/fetch BOTH of these in Codemagic Code signing identities:"
+              echo "  1. the matching Apple Distribution .p12 certificate"
+              echo "  2. an App Store provisioning profile for $BUNDLE_ID"
+              echo "Then rerun the build. Do not replace the App Store Connect .p8 for this error."
+              exit 1
+            fi
+            build_profile_args
+            echo "Using uploaded .p12/profile signing files from Codemagic."
+            add_available_certificates_to_keychain
+            xcode-project use-profiles "${PROFILE_ARGS[@]}" --archive-method app-store
+            exit 0
+          fi
+
+          # Important: this key must be stable across builds. A new random key on
+          # every run makes Apple see an existing Distribution certificate that
+          # Codemagic cannot match, causing "Did not find any Signing Certificates
+          # for given private key" / ios-cert-key-mismatch loops.
+          CERT_KEY_FILE="$CACHED_CERT_KEY_FILE"
+
+          write_certificate_key() {
+            if [ -n "${IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY:-}" ]; then
+              echo "Using IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY from Codemagic environment."
+              printf '%s\n' "$IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY" > "$CERT_KEY_FILE"
+            elif [ -f "$CERT_KEY_FILE" ]; then
+              echo "Using cached iOS Distribution private key from prior Codemagic run."
+            else
+              echo "No cached iOS Distribution private key found; generating one stable key for this app."
+              openssl genrsa -out "$CERT_KEY_FILE" 2048 >/dev/null 2>&1
+            fi
+            chmod 600 "$CERT_KEY_FILE"
+            if ! openssl pkey -in "$CERT_KEY_FILE" -noout >/dev/null 2>&1; then
+              echo "ERROR: iOS Distribution private key file is invalid."
+              echo "FIX: clear the Codemagic cache for this app, then rerun. If you set IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY manually, replace it with a valid PEM private key."
+              exit 1
+            fi
+          }
+
+          reset_certificate_key() {
+            rm -f "$CACHED_CERT_KEY_FILE"
+            echo "Generating a fresh iOS Distribution private key for the repaired certificate."
+            openssl genrsa -out "$CERT_KEY_FILE" 2048 >/dev/null 2>&1
+            chmod 600 "$CERT_KEY_FILE"
+          }
+
+          fetch_signing_files_once() {
+            _out="$1"
+            app-store-connect fetch-signing-files "$BUNDLE_ID" \
+              --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+              --key-id "$APP_STORE_CONNECT_KEY_ID" \
+              --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+              --certificate-key "@file:$CERT_KEY_FILE" \
+              --certificates-dir "$CERT_DIR" \
+              --profiles-dir "$PROFILE_DIR" \
+              --type IOS_APP_STORE \
+              --strict-match-identifier \
+              --delete-stale-profiles \
+              --create > "$_out" 2>&1
+          }
+
+          repair_apple_distribution_certificates() {
+            echo "Auto-repair is ON. Removing old Apple Distribution certificates so Apple can create one that matches this build's private key."
+            echo "This is the code-level fix for the certificate/private-key mismatch loop."
+            python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography requests >/dev/null
+            python3 - <<'PY'
+          import os
+          import sys
+          import time
+
+          import jwt
+          import requests
+
+          issuer = os.environ["APP_STORE_CONNECT_ISSUER_ID"]
+          kid = os.environ["APP_STORE_CONNECT_KEY_ID"]
+          pkey = os.environ["APP_STORE_CONNECT_PRIVATE_KEY"]
+
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": issuer, "iat": now, "exp": now + 20 * 60, "aud": "appstoreconnect-v1"},
+              pkey,
+              algorithm="ES256",
+              headers={"kid": kid, "typ": "JWT"},
+          )
+          headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+          base = "https://api.appstoreconnect.apple.com/v1"
+
+          certs = []
+          for cert_type in ("DISTRIBUTION", "IOS_DISTRIBUTION"):
+              url = f"{base}/certificates?filter[certificateType]={cert_type}&limit=200"
+              r = requests.get(url, headers=headers, timeout=30)
+              if r.status_code >= 400:
+                  print(f"ERROR: could not list {cert_type} certificates ({r.status_code}).")
+                  print(r.text[:500])
+                  sys.exit(1)
+              certs.extend(r.json().get("data", []))
+
+          seen = set()
+          unique = []
+          for cert in certs:
+              cert_id = cert.get("id")
+              if cert_id and cert_id not in seen:
+                  seen.add(cert_id)
+                  unique.append(cert)
+
+          if not unique:
+              print("No existing Distribution certificates found to remove.")
+              sys.exit(0)
+
+          print(f"Found {len(unique)} Distribution certificate(s) blocking a fresh matching key.")
+          for cert in unique:
+              cert_id = cert.get("id")
+              attrs = cert.get("attributes", {})
+              name = attrs.get("name") or attrs.get("displayName") or "Apple Distribution"
+              expires = attrs.get("expirationDate", "unknown expiration")
+              cert_type = attrs.get("certificateType", "distribution")
+              print(f"Deleting old {cert_type} certificate: {name} ({cert_id}), expires {expires}")
+              r = requests.delete(f"{base}/certificates/{cert_id}", headers=headers, timeout=30)
+              if r.status_code not in (200, 202, 204, 404):
+                  print(f"ERROR: could not delete certificate {cert_id} ({r.status_code}).")
+                  print(r.text[:500])
+                  sys.exit(1)
+
+          print("Old Distribution certificates removed. A fresh matching certificate will be created now.")
+          PY
+          }
+
+          explain_fetch_failure() {
+            echo "Most common causes:"
+            echo "  1. App Store Connect API key role is not 'App Manager' or higher."
+            echo "     FIX: appstoreconnect.apple.com -> Users and Access -> Integrations -> Keys"
+            echo "          Edit your key, set Access = App Manager, save, re-run."
+            echo "  2. The App ID '$BUNDLE_ID' is not attached to any App Store Connect app record."
+            echo "     FIX: appstoreconnect.apple.com -> My Apps -> + -> New App, pick this bundle id."
+            echo "  3. Two-factor / legal agreements not accepted on the Apple Developer account."
+            echo "     FIX: sign in to developer.apple.com and accept any pending agreements."
+            echo "  4. Apple has a pending certificate request that the API cannot remove."
+            echo "     FIX: Apple Developer > Certificates > delete the pending Distribution request, then rerun."
+          }
+
+          write_certificate_key
+          FETCH_OUTPUT="$CM_BUILD_DIR/build-logs/fetch-signing-files.raw.log"
+          if ! fetch_signing_files_once "$FETCH_OUTPUT"; then
+            cat "$FETCH_OUTPUT"
+            echo ""
+            echo "ERROR: fetch-signing-files failed for bundle id '$BUNDLE_ID'."
+            if grep -qiE "Did not find any Signing Certificates for given private key|already have a current Distribution certificate|pending certificate request|returned 409" "$FETCH_OUTPUT"; then
+              echo ""
+              echo "EXACT CAUSE: Apple has Distribution certificate records that do not match this build's private key."
+              echo "The old workflow/cache caused this. The build will repair it now instead of making you repeat the same steps."
+              if [ "${AUTO_REPAIR_IOS_SIGNING:-true}" = "true" ]; then
+                repair_apple_distribution_certificates
+                reset_certificate_key
+                RETRY_OUTPUT="$CM_BUILD_DIR/build-logs/fetch-signing-files.retry.log"
+                echo "Retrying signing-file fetch after automatic certificate repair..."
+                if ! fetch_signing_files_once "$RETRY_OUTPUT"; then
+                  cat "$RETRY_OUTPUT"
+                  echo ""
+                  echo "ERROR: automatic signing repair did not complete."
+                  echo "Only remaining manual fix: delete any pending Distribution certificate request in Apple Developer, then rerun once."
+                  echo "Do not replace the App Store Connect .p8 for this specific certificate/private-key error."
+                  exit 1
+                fi
+                cat "$RETRY_OUTPUT"
+              else
+                echo "AUTO_REPAIR_IOS_SIGNING is off. Turn it on or manually remove stale Distribution certificates, then rerun."
+                exit 1
+              fi
+            else
+              explain_fetch_failure
+              exit 1
+            fi
+          else
+            cat "$FETCH_OUTPUT"
+          fi
+
+          add_available_certificates_to_keychain
+          build_profile_args
+          xcode-project use-profiles "${PROFILE_ARGS[@]}" --archive-method app-store
+      - name: Verify downloaded provisioning profile matches com.doseroutine.app
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/provisioning-profile-check.log"
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          exec > >(tee -a "$LOG") 2>&1
+
+          EXPECTED_BUNDLE_ID="com.doseroutine.app"
+          PROFILE_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+          LEGACY_PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+
+          echo "=== Provisioning profile verification ==="
+          echo "Expected bundle id: $EXPECTED_BUNDLE_ID"
+          echo "Profile directory:  $PROFILE_DIR"
+
+          if [ ! -d "$PROFILE_DIR" ] || [ -z "$(ls -A "$PROFILE_DIR" 2>/dev/null)" ]; then
+            if [ -d "$LEGACY_PROFILE_DIR" ] && [ -n "$(ls -A "$LEGACY_PROFILE_DIR" 2>/dev/null)" ]; then
+              echo "NOTE: using legacy profile directory: $LEGACY_PROFILE_DIR"
+              PROFILE_DIR="$LEGACY_PROFILE_DIR"
+            else
+              echo "ERROR: No provisioning profiles were installed by fetch-signing-files."
+              echo "Checked:"
+              echo "  - $PROFILE_DIR"
+              echo "  - $LEGACY_PROFILE_DIR"
+              echo "FIX: re-run the 'Set up code signing' step and check its log for API key/permission errors."
+              exit 1
+            fi
+          fi
+
+          TMP_PLIST="$(mktemp)"
+          MATCH_COUNT=0
+          MATCH_UUID=""
+          MATCH_NAME=""
+          MATCH_APPID=""
+          MATCH_TEAM=""
+          MATCH_FILE=""
+          ALL_ROWS=""
+
+          shopt -s nullglob
+          for profile in "$PROFILE_DIR"/*.mobileprovision "$PROFILE_DIR"/*.provisionprofile; do
+            [ -f "$profile" ] || continue
+            if ! security cms -D -i "$profile" > "$TMP_PLIST" 2>/dev/null; then
+              echo "WARN: could not decode $profile — skipping."
+              continue
+            fi
+            UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$TMP_PLIST" 2>/dev/null || echo "")
+            NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$TMP_PLIST" 2>/dev/null || echo "")
+            APPID=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$TMP_PLIST" 2>/dev/null || echo "")
+            TEAM=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$TMP_PLIST" 2>/dev/null || echo "")
+            HAS_DEVICES=$(/usr/libexec/PlistBuddy -c "Print :ProvisionedDevices" "$TMP_PLIST" 2>/dev/null || echo "")
+            GTA=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:get-task-allow" "$TMP_PLIST" 2>/dev/null || echo "")
+            # application-identifier is "<TEAMID>.<bundle-id>" — strip the team prefix.
+            PROFILE_BID="${APPID#${TEAM}.}"
+            # App Store profiles: no ProvisionedDevices AND get-task-allow=false.
+            IS_APPSTORE="no"
+            if [ -z "$HAS_DEVICES" ] && [ "$GTA" = "false" ]; then
+              IS_APPSTORE="yes"
+            fi
+            ALL_ROWS="${ALL_ROWS}$(printf '\n  - name=%q  uuid=%s  bundle=%s  team=%s  appstore=%s' "$NAME" "$UUID" "$PROFILE_BID" "$TEAM" "$IS_APPSTORE")"
+            if [ "$PROFILE_BID" = "$EXPECTED_BUNDLE_ID" ] && [ "$IS_APPSTORE" = "yes" ]; then
+              MATCH_COUNT=$((MATCH_COUNT + 1))
+              MATCH_UUID="$UUID"
+              MATCH_NAME="$NAME"
+              MATCH_APPID="$APPID"
+              MATCH_TEAM="$TEAM"
+              MATCH_FILE="$profile"
+            fi
+          done
+          rm -f "$TMP_PLIST"
+
+          echo ""
+          echo "Installed profiles:$ALL_ROWS"
+          echo ""
+
+          if [ "$MATCH_COUNT" -eq 0 ]; then
+            echo "ERROR: No installed provisioning profile matches App Store distribution for '$EXPECTED_BUNDLE_ID'."
+            echo ""
+            echo "DIFF"
+            echo "  - expected bundle id (from application-identifier suffix): $EXPECTED_BUNDLE_ID"
+            echo "  - expected profile type: IOS_APP_STORE (no ProvisionedDevices, get-task-allow=false)"
+            echo "  + actual profiles installed: see list above"
+            echo ""
+            echo "Most common causes & FIX:"
+            echo "  1. The App ID in Apple Developer portal is not exactly '$EXPECTED_BUNDLE_ID'."
+            echo "     FIX: developer.apple.com -> Certificates, IDs & Profiles -> Identifiers"
+            echo "          Confirm an Explicit App ID with Bundle ID = $EXPECTED_BUNDLE_ID exists."
+            echo "  2. fetch-signing-files downloaded a Development or Ad Hoc profile instead of App Store."
+            echo "     FIX: re-run with '--type IOS_APP_STORE --create' (already set) and check that step's log."
+            echo "  3. An older profile for a different bundle id is cached and being picked up."
+            echo "     FIX: in Codemagic UI, clear the build cache and re-run."
+            exit 1
+          fi
+
+          echo "OK: matched $MATCH_COUNT App Store provisioning profile(s) for $EXPECTED_BUNDLE_ID"
+          echo "  Name:                    $MATCH_NAME"
+          echo "  UUID:                    $MATCH_UUID"
+          echo "  Team:                    $MATCH_TEAM"
+          echo "  application-identifier:  $MATCH_APPID"
+          echo "  File:                    $MATCH_FILE"
+
+          # Cross-check against the Xcode target's selected profile UUID, if pbxproj was updated.
+          PBXPROJ="ios/App/App.xcodeproj/project.pbxproj"
+          if [ -f "$PBXPROJ" ]; then
+            SELECTED=$(grep -Eo 'PROVISIONING_PROFILE_SPECIFIER = "?[^";]+"?;' "$PBXPROJ" \
+              | sed -E 's/PROVISIONING_PROFILE_SPECIFIER = "?([^";]+)"?;/\1/' | sort -u)
+            if [ -n "$SELECTED" ]; then
+              echo ""
+              echo "Xcode target PROVISIONING_PROFILE_SPECIFIER values:"
+              echo "$SELECTED" | sed 's/^/  - /'
+              if ! echo "$SELECTED" | grep -qxF "$MATCH_NAME"; then
+                echo ""
+                echo "WARNING: Xcode target references a profile specifier that does not match the App Store profile name '$MATCH_NAME'."
+                echo "         'xcode-project use-profiles' should have fixed this — inspect the previous step's output."
+              fi
+            fi
+          fi
+
+          echo ""
+          echo "=== Provisioning profile verification passed ==="
+
+      - name: Set version & build number (iOS)
+        script: |
+          set -e
+          cd ios/App
+          # Marketing version from tag: ios-v1.2.3 → 1.2.3 (fallback 1.0.0)
+          RAW_TAG="${CM_TAG:-}"
+          VERSION="${RAW_TAG#ios-v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$RAW_TAG" ]; then
+            VERSION="1.0.0"
+          fi
+          # Build number comes from Codemagic so no App Store numeric ID is needed here.
+          NEXT="${BUILD_NUMBER:-1}"
+          echo "iOS marketing version: $VERSION  build number: $NEXT"
+          agvtool new-marketing-version "$VERSION"
+          agvtool new-version -all "$NEXT"
+      - name: iOS dependencies (Swift Package Manager)
+        script: |
+          set -e
+          set -o pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          cd "$CM_BUILD_DIR"
+          echo "→ Re-applying SPM identity fix immediately before xcodebuild dependency resolution…"
+          node scripts/fix-ios-spm-identity.mjs
+          echo "--- CapApp-SPM/Package.swift after SPM identity fix ---"
+          sed -n '1,90p' ios/App/CapApp-SPM/Package.swift
+          if grep -Eq '@capacitor(-firebase)?/app|node_modules/.*/app' ios/App/CapApp-SPM/Package.swift; then
+            echo "ERROR: CapApp-SPM/Package.swift still points at colliding node_modules app packages."
+            exit 1
+          fi
+          if find ios/App/CapApp-SPM/LocalPackages -type l | grep -q .; then
+            echo "ERROR: LocalPackages contains symlinks. Xcode resolves symlinks back to node_modules and keeps the app/app identity collision."
+            find ios/App/CapApp-SPM/LocalPackages -type l -print
+            exit 1
+          fi
+          rm -rf ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm \
+                 ios/App/App.xcodeproj/project.xcworkspace/xcuserdata \
+                 ios/App/Package.resolved \
+                 ios/App/CapApp-SPM/Package.resolved \
+                 "$HOME/Library/Developer/Xcode/DerivedData"/*
+          cd ios/App
+          if [ ! -f App.xcodeproj/project.pbxproj ]; then
+            echo "ERROR: App.xcodeproj is missing in ios/App."
+            echo "Direct cause: the iOS Capacitor project was not generated correctly."
+            exit 1
+          fi
+          if [ ! -f CapApp-SPM/Package.swift ]; then
+            echo "ERROR: CapApp-SPM/Package.swift is missing in ios/App."
+            echo "Direct cause: Capacitor sync did not write Swift Package dependencies."
+            exit 1
+          fi
+          echo "OK: Capacitor 8 uses Swift Package Manager; no Podfile is required."
+          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App \
+            -clonedSourcePackagesDirPath "$CM_BUILD_DIR/build-logs/spm-clones" \
+            2>&1 | tee "$CM_BUILD_DIR/build-logs/xcode-spm-resolve.log"
+
+      - name: Locate Xcode workspace & scheme
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/xcode-locate.log"
+          exec > >(tee -a "$LOG") 2>&1
+
+          EXPECTED_BUNDLE_ID="com.doseroutine.app"
+
+          # 1) Find .xcworkspace / .xcodeproj under ios/.
+          if [ ! -d ios ]; then
+            echo "ERROR: ios/ directory does not exist."
+            echo "FIX: 'npx cap add ios' must run before this step (see cap_preflight)."
+            exit 1
+          fi
+
+          # macOS runners still use Bash 3.2, which does not support `mapfile`.
+          # Use a Bash-3-compatible read loop instead.
+          WORKSPACES=()
+          while IFS= read -r path; do
+            [ -n "$path" ] && WORKSPACES+=("$path")
+          done < <(find ios -type d -name '*.xcworkspace' \
+            -not -path '*/Pods/*' -not -path '*/build/*' 2>/dev/null | sort)
+
+          PROJECTS=()
+          while IFS= read -r path; do
+            [ -n "$path" ] && PROJECTS+=("$path")
+          done < <(find ios -type d -name '*.xcodeproj' \
+            -not -path '*/Pods/*' -not -path '*/build/*' 2>/dev/null | sort)
+
+          echo "Discovered workspaces:"; printf '  %s\n' "${WORKSPACES[@]:-<none>}"
+          echo "Discovered projects:";   printf '  %s\n' "${PROJECTS[@]:-<none>}"
+
+          # 2) Pick exactly one workspace (preferred) or exactly one project.
+          CHOSEN_WS=""
+          CHOSEN_PROJ=""
+          if [ "${#WORKSPACES[@]}" -eq 1 ]; then
+            CHOSEN_WS="${WORKSPACES[0]}"
+          elif [ "${#WORKSPACES[@]}" -gt 1 ]; then
+            echo ""
+            echo "ERROR: Found ${#WORKSPACES[@]} .xcworkspace directories under ios/."
+            echo "Codemagic can only build one. Delete the extras or pin XCODE_WORKSPACE explicitly."
+            echo "FIX: in codemagic.yaml under ios-testflight.environment.vars, set:"
+            echo "  XCODE_WORKSPACE: \"<pick one from the list above>\""
+            exit 1
+          elif [ "${#PROJECTS[@]}" -eq 1 ]; then
+            CHOSEN_PROJ="${PROJECTS[0]}"
+            echo "NOTE: no .xcworkspace found; using .xcodeproj (expected for Capacitor 8 Swift Package builds)."
+          elif [ "${#PROJECTS[@]}" -gt 1 ]; then
+            echo ""
+            echo "ERROR: Found ${#PROJECTS[@]} .xcodeproj directories under ios/ and no workspace."
+            echo "FIX: set XCODE_WORKSPACE explicitly in codemagic.yaml or delete ios/ and rerun."
+            exit 1
+          else
+            echo ""
+            echo "ERROR: Found no .xcworkspace or .xcodeproj under ios/."
+            echo "FIX: delete ios/ and re-run so cap_preflight regenerates it via 'npx cap add ios'."
+            exit 1
+          fi
+
+          # 3) If XCODE_WORKSPACE is set, confirm it matches what we discovered.
+          DETECTED="${CHOSEN_WS:-$CHOSEN_PROJ}"
+          if [ -n "${XCODE_WORKSPACE:-}" ] && [ -e "$XCODE_WORKSPACE" ]; then
+            if [ "$XCODE_WORKSPACE" != "$DETECTED" ]; then
+              echo ""
+              echo "WARN: XCODE_WORKSPACE ($XCODE_WORKSPACE) differs from auto-detected ($DETECTED)."
+              echo "      Using the pinned value from codemagic.yaml."
+            fi
+            DETECTED="$XCODE_WORKSPACE"
+          fi
+
+          # 4) List schemes and pick / validate one.
+          if [[ "$DETECTED" == *.xcworkspace ]]; then
+            LIST=$(xcodebuild -list -workspace "$DETECTED" 2>&1 || true)
+            LIST_ARG=(-workspace "$DETECTED")
+          else
+            LIST=$(xcodebuild -list -project "$DETECTED" 2>&1 || true)
+            LIST_ARG=(-project "$DETECTED")
+          fi
+          echo ""
+          echo "=== xcodebuild -list ($DETECTED) ==="
+          echo "$LIST"
+
+          SCHEMES=$(printf '%s\n' "$LIST" | awk '/Schemes:/{flag=1; next} /^$/{flag=0} flag {gsub(/^ +| +$/,""); if(length) print}')
+          SCHEME_COUNT=$(printf '%s\n' "$SCHEMES" | grep -c . || true)
+
+          CHOSEN_SCHEME="${XCODE_SCHEME:-}"
+          if [ -n "$CHOSEN_SCHEME" ]; then
+            if ! printf '%s\n' "$SCHEMES" | grep -qx "$CHOSEN_SCHEME"; then
+              echo ""
+              echo "ERROR: XCODE_SCHEME='$CHOSEN_SCHEME' is not in the list of schemes above."
+              echo "FIX: update XCODE_SCHEME under ios-testflight.environment.vars to one of:"
+              printf '  - %s\n' $SCHEMES
+              exit 1
+            fi
+          else
+            if [ "$SCHEME_COUNT" -eq 0 ]; then
+              echo ""
+              echo "ERROR: No schemes found in $DETECTED. The project is likely corrupt."
+              echo "FIX: delete ios/ and re-run so 'npx cap add ios' regenerates it."
+              exit 1
+            elif [ "$SCHEME_COUNT" -gt 1 ]; then
+              # Prefer 'App' (Capacitor default) if present, else fail.
+              if printf '%s\n' "$SCHEMES" | grep -qx "App"; then
+                CHOSEN_SCHEME="App"
+                echo "NOTE: multiple schemes found; picking Capacitor default 'App'."
+              else
+                echo ""
+                echo "ERROR: Found $SCHEME_COUNT schemes and none named 'App'."
+                echo "FIX: set XCODE_SCHEME under ios-testflight.environment.vars to one of:"
+                printf '  - %s\n' $SCHEMES
+                exit 1
+              fi
+            else
+              CHOSEN_SCHEME=$(printf '%s' "$SCHEMES" | tr -d '\n')
+            fi
+          fi
+
+          echo ""
+          echo "Selected workspace/project: $DETECTED"
+          echo "Selected scheme:            $CHOSEN_SCHEME"
+
+          # 5) Export for later steps in the same workflow.
+          echo "XCODE_WORKSPACE=$DETECTED" >> "$CM_ENV"
+          echo "XCODE_SCHEME=$CHOSEN_SCHEME" >> "$CM_ENV"
+
+      - name: Force DR AppIcon into iOS archive (final icon lock)
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          test -f public/icon-master-dr.png || { echo "ERROR: public/icon-master-dr.png missing"; exit 1; }
+          echo "DR master icon SHA256: $(shasum -a 256 public/icon-master-dr.png | awk '{print $1}')"
+          rm -rf ios/App/build "$HOME/Library/Developer/Xcode/DerivedData"/*
+          node scripts/force-ios-app-icons.mjs
+          TARGET_PLATFORM=ios node scripts/verify-native-icons.mjs
+          PBXPROJ="ios/App/App.xcodeproj/project.pbxproj"
+          if grep -q "UIPrerenderedIcon" "$PBXPROJ"; then
+            echo "ERROR: project.pbxproj still contains UIPrerenderedIcon. App Store Connect keeps reading this as Prerendered Icon Flag: Yes."
+            exit 1
+          fi
+          INFO="ios/App/App/Info.plist"
+          for KEY in \
+            ":UIPrerenderedIcon" \
+            ":CFBundleIcons:CFBundlePrimaryIcon:UIPrerenderedIcon" \
+            ":CFBundleIcons~ipad:CFBundlePrimaryIcon:UIPrerenderedIcon"; do
+            if /usr/libexec/PlistBuddy -c "Print $KEY" "$INFO" >/dev/null 2>&1; then
+              echo "ERROR: Info.plist still contains $KEY. It must be absent, not YES/NO."
+              exit 1
+            fi
+          done
+          echo "OK: UIPrerenderedIcon is absent from all Info.plist icon dictionaries."
+      - name: Clean xcodebuild state (fresh DerivedData + archive dir)
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          echo "=== Pre-clean disk usage ==="
+          du -sh "$HOME/Library/Developer/Xcode/DerivedData" 2>/dev/null || true
+          du -sh build/ios 2>/dev/null || true
+          du -sh ios/App/build 2>/dev/null || true
+          # Nuke every path that could cache a prior .xcarchive, .ipa, or compiled Assets.car
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData"/*
+          rm -rf "$HOME/Library/Developer/Xcode/Archives"/*
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm" 2>/dev/null || true
+          rm -rf build/ios ios/App/build ios/App/DerivedData
+          # Force xcodebuild's own clean pass so ModuleCache / Assets.car intermediates are dropped.
+          # Xcode may recreate a fresh DerivedData shell during clean, so purge it again after clean.
+          if [[ "$XCODE_WORKSPACE" == *.xcworkspace ]]; then
+            xcodebuild clean \
+              -workspace "$XCODE_WORKSPACE" \
+              -scheme "$XCODE_SCHEME" \
+              -destination 'generic/platform=iOS' \
+              -configuration Release 2>&1 | tail -40 || true
+          else
+            xcodebuild clean \
+              -project "$XCODE_WORKSPACE" \
+              -scheme "$XCODE_SCHEME" \
+              -destination 'generic/platform=iOS' \
+              -configuration Release 2>&1 | tail -40 || true
+          fi
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData"/*
+          echo "=== Post-clean verification ==="
+          test ! -d build/ios/xcarchive || { echo "ERROR: build/ios/xcarchive still exists after clean"; exit 1; }
+          test ! -d build/ios/ipa || { echo "ERROR: build/ios/ipa still exists after clean"; exit 1; }
+          REMAINING_DD=$(ls -1 "$HOME/Library/Developer/Xcode/DerivedData" 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$REMAINING_DD" != "0" ]; then
+            echo "ERROR: DerivedData not empty after clean ($REMAINING_DD entries)"
+            ls -1 "$HOME/Library/Developer/Xcode/DerivedData"
+            exit 1
+          fi
+          echo "OK: clean xcodebuild state — no cached DerivedData, xcarchive, or ipa."
+      - name: Build .ipa
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          set -o pipefail
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          if [ ! -f ios/App/App/public/index.html ]; then
+            echo "ERROR: ios/App/App/public/index.html is missing."
+            echo "Direct cause: Capacitor did not copy the web app into the iOS native project."
+            echo "FIX: rerun the workflow after this update; the Capacitor sync step now fails early if public/ is missing."
+            exit 1
+          fi
+          if [[ "$XCODE_WORKSPACE" == *.xcworkspace ]]; then
+            XP_ARG=(--workspace "$XCODE_WORKSPACE")
+          else
+            XP_ARG=(--project "$XCODE_WORKSPACE")
+          fi
+          # Sanity: no stale archive/ipa may exist at this point
+          if [ -d build/ios/xcarchive ] || [ -d build/ios/ipa ]; then
+            echo "ERROR: stale build/ios/xcarchive or build/ios/ipa present before archive. Aborting to prevent caching a prior icon."
+            exit 1
+          fi
+          xcode-project build-ipa \
+            "${XP_ARG[@]}" \
+            --scheme "$XCODE_SCHEME" 2>&1 | tee "$CM_BUILD_DIR/build-logs/xcodebuild.log"
+          # Confirm a fresh archive was actually produced by this run
+          FRESH_ARCHIVE=$(ls -1d build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1 || true)
+          if [ -z "$FRESH_ARCHIVE" ]; then
+            echo "ERROR: build-ipa completed but no .xcarchive was produced under build/ios/xcarchive/."
+            exit 1
+          fi
+          echo "Fresh archive: $FRESH_ARCHIVE"
+          echo "Archive mtime: $(stat -f '%Sm' "$FRESH_ARCHIVE" 2>/dev/null || stat -c '%y' "$FRESH_ARCHIVE")"
+      - name: Fail on Xcode asset catalog icon warnings
+        script: |
+          set -eo pipefail
+          LOG="$CM_BUILD_DIR/build-logs/xcodebuild.log"
+          if [ ! -f "$LOG" ]; then
+            echo "ERROR: xcodebuild log not found at $LOG; cannot prove Xcode compiled the AppIcon catalog cleanly."
+            exit 1
+          fi
+          PATTERN='None of the input catalogs contained a matching app icon set|unassigned-children|has an unassigned child'
+          if grep -Ein "$PATTERN" "$LOG"; then
+            echo "ERROR: xcodebuild emitted asset catalog/AppIcon warnings. Refusing to upload because Apple may show the default placeholder icon."
+            exit 1
+          fi
+          echo "OK: xcodebuild.log has no AppIcon asset-catalog warnings."
+      - *extract_errors
+      - name: Verify archived iOS app icon before upload gates
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/archive-icon-check.log"
+          exec > >(tee -a "$LOG") 2>&1
+          ARCHIVE=$(ls -1d "$CM_BUILD_DIR"/build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1 \
+                    || ls -1d build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1)
+          if [ -z "$ARCHIVE" ] || [ ! -d "$ARCHIVE" ]; then
+            echo "ERROR: no .xcarchive found under build/ios/xcarchive/. Cannot prove Apple-facing app icons before upload."
+            exit 1
+          fi
+          echo "Archive under test: $ARCHIVE"
+          DR_ICON_EXPORT_DIR="$CM_BUILD_DIR/build-logs/extracted-app-icons-archive" \
+            node scripts/verify-ios-ipa-icon.mjs "$ARCHIVE"
+          if ! grep -q "OK — signed iOS binary contains the DoseRoutine DR app icon" "$LOG"; then
+            echo "ERROR: archive icon verifier did not emit the expected success sentinel. Refusing to upload."
+            exit 1
+          fi
+          echo "=== DR_ICON_ARCHIVE_GATE_PASSED ==="
+      - name: AppIcon set pixel-match sanity check (archive + ipa)
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/appicon-set-pixel-match.log"
+          exec > >(tee -a "$LOG") 2>&1
+
+          ARCHIVE=$(ls -1d "$CM_BUILD_DIR"/build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1 \
+                    || ls -1d build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1)
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+
+          if [ -z "$ARCHIVE" ] && [ -z "$IPA" ]; then
+            echo "ERROR: no .xcarchive or .ipa found; nothing to compare against the expected DR icon set."
+            exit 1
+          fi
+
+          FAILED=0
+          if [ -n "$ARCHIVE" ] && [ -d "$ARCHIVE" ]; then
+            echo "--- Comparing archive AppIcon slots against expected DR set ---"
+            echo "Archive: $ARCHIVE"
+            APPICON_SET_REPORT_DIR="$CM_BUILD_DIR/build-logs/appicon-set-match-archive" \
+              node scripts/verify-appicon-set-pixel-match.mjs "$ARCHIVE" || FAILED=1
+          fi
+          if [ -n "$IPA" ] && [ -f "$IPA" ]; then
+            echo "--- Comparing signed .ipa AppIcon slots against expected DR set ---"
+            echo "IPA: $IPA"
+            APPICON_SET_REPORT_DIR="$CM_BUILD_DIR/build-logs/appicon-set-match-ipa" \
+              node scripts/verify-appicon-set-pixel-match.mjs "$IPA" || FAILED=1
+          fi
+
+          if [ "$FAILED" != "0" ]; then
+            echo "ERROR: one or more AppIcon slots did not pixel-match the expected DR icon set. Refusing to upload."
+            exit 1
+          fi
+          # Cross-verify the sentinel actually appears in the log for both artifacts we tested.
+          EXPECTED_HITS=0
+          [ -n "$ARCHIVE" ] && EXPECTED_HITS=$((EXPECTED_HITS + 1))
+          [ -n "$IPA" ] && EXPECTED_HITS=$((EXPECTED_HITS + 1))
+          ACTUAL_HITS=$(grep -c "APPICON_SET_PIXEL_MATCH_GATE_PASSED" "$LOG" || true)
+          if [ "$ACTUAL_HITS" -lt "$EXPECTED_HITS" ]; then
+            echo "ERROR: expected $EXPECTED_HITS APPICON_SET_PIXEL_MATCH_GATE_PASSED sentinels, saw $ACTUAL_HITS."
+            exit 1
+          fi
+          echo "=== APPICON_SET_PIXEL_MATCH_GATE_PASSED (all artifacts) ==="
+      - name: Verify Assets.car AppIcon catalog (archive + ipa)
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/assets-car-appicon.log"
+          exec > >(tee -a "$LOG") 2>&1
+          ARCHIVE=$(ls -1d "$CM_BUILD_DIR"/build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1 \
+                    || ls -1d build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1)
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$ARCHIVE" ] && [ -z "$IPA" ]; then
+            echo "ERROR: no .xcarchive or .ipa found for Assets.car catalog verification."
+            exit 1
+          fi
+          FAILED=0
+          if [ -n "$ARCHIVE" ] && [ -d "$ARCHIVE" ]; then
+            echo "--- Assets.car catalog check: archive ---"
+            ASSETS_CAR_REPORT_DIR="$CM_BUILD_DIR/build-logs/assets-car-archive" \
+              node scripts/verify-assets-car-appicon.mjs "$ARCHIVE" || FAILED=1
+          fi
+          if [ -n "$IPA" ] && [ -f "$IPA" ]; then
+            echo "--- Assets.car catalog check: signed .ipa ---"
+            ASSETS_CAR_REPORT_DIR="$CM_BUILD_DIR/build-logs/assets-car-ipa" \
+              node scripts/verify-assets-car-appicon.mjs "$IPA" || FAILED=1
+          fi
+          if [ "$FAILED" != "0" ]; then
+            echo "ERROR: Assets.car AppIcon catalog is missing expected slots or the 1024×1024 marketing icon. Refusing to upload."
+            exit 1
+          fi
+          EXPECTED_HITS=0
+          [ -n "$ARCHIVE" ] && EXPECTED_HITS=$((EXPECTED_HITS + 1))
+          [ -n "$IPA" ] && EXPECTED_HITS=$((EXPECTED_HITS + 1))
+          ACTUAL_HITS=$(grep -c "ASSETS_CAR_APPICON_CATALOG_GATE_PASSED" "$LOG" || true)
+          if [ "$ACTUAL_HITS" -lt "$EXPECTED_HITS" ]; then
+            echo "ERROR: expected $EXPECTED_HITS ASSETS_CAR_APPICON_CATALOG_GATE_PASSED sentinels, saw $ACTUAL_HITS."
+            exit 1
+          fi
+          echo "=== ASSETS_CAR_APPICON_CATALOG_GATE_PASSED (all artifacts) ==="
+      - name: Diff archive AppIcon PNGs + Contents.json against generator output
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/archive-matches-generator.log"
+          exec > >(tee -a "$LOG") 2>&1
+
+          ARCHIVE=$(ls -1d "$CM_BUILD_DIR"/build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1 \
+                    || ls -1d build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1)
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+
+          if [ -z "$ARCHIVE" ] && [ -z "$IPA" ]; then
+            echo "ERROR: no .xcarchive or .ipa found; cannot diff archive icons against generator output."
+            exit 1
+          fi
+
+          FAILED=0
+          if [ -n "$ARCHIVE" ] && [ -d "$ARCHIVE" ]; then
+            echo "--- Diffing archive against generator output ---"
+            echo "Archive: $ARCHIVE"
+            ARCHIVE_MATCHES_GENERATOR_REPORT_DIR="$CM_BUILD_DIR/build-logs/archive-matches-generator-archive" \
+              node scripts/verify-archive-matches-generator.mjs "$ARCHIVE" || FAILED=1
+          fi
+          if [ -n "$IPA" ] && [ -f "$IPA" ]; then
+            echo "--- Diffing signed .ipa against generator output ---"
+            echo "IPA: $IPA"
+            ARCHIVE_MATCHES_GENERATOR_REPORT_DIR="$CM_BUILD_DIR/build-logs/archive-matches-generator-ipa" \
+              node scripts/verify-archive-matches-generator.mjs "$IPA" || FAILED=1
+          fi
+
+          if [ "$FAILED" != "0" ]; then
+            echo "ERROR: archive AppIcon PNGs or Contents.json diverge from scripts/force-ios-app-icons.mjs output. Refusing to upload."
+            exit 1
+          fi
+          EXPECTED_HITS=0
+          [ -n "$ARCHIVE" ] && EXPECTED_HITS=$((EXPECTED_HITS + 1))
+          [ -n "$IPA" ] && EXPECTED_HITS=$((EXPECTED_HITS + 1))
+          ACTUAL_HITS=$(grep -c "ARCHIVE_MATCHES_GENERATOR_GATE_PASSED" "$LOG" || true)
+          if [ "$ACTUAL_HITS" -lt "$EXPECTED_HITS" ]; then
+            echo "ERROR: expected $EXPECTED_HITS ARCHIVE_MATCHES_GENERATOR_GATE_PASSED sentinels, saw $ACTUAL_HITS."
+            exit 1
+          fi
+          echo "=== ARCHIVE_MATCHES_GENERATOR_GATE_PASSED (all artifacts) ==="
+      - name: Verify signed .ipa contains DoseRoutine DR icon (pre-upload gate)
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/ipa-icon-check.log"
+          exec > >(tee -a "$LOG") 2>&1
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA" ] || [ ! -f "$IPA" ]; then
+            echo "ERROR: no .ipa found under build/ios/ipa/. Did the archive step succeed?"
+            exit 1
+          fi
+          echo "Signed IPA under test: $IPA"
+          MASTER="public/icon-master-dr.png"
+          MASTER_DIM=$(node -e "require('sharp')('$MASTER').metadata().then(m=>console.log(m.width+'x'+m.height))")
+          if [ "$MASTER_DIM" != "1024x1024" ]; then
+            echo "ERROR: master DR icon must be 1024x1024 PNG, got $MASTER_DIM."
+            exit 1
+          fi
+          DR_ICON_EXPORT_DIR="$CM_BUILD_DIR/build-logs/extracted-app-icons-ipa" \
+            node scripts/verify-ios-ipa-icon.mjs "$IPA"
+          if ! grep -q "OK — signed iOS binary contains the DoseRoutine DR app icon" "$LOG"; then
+            echo "ERROR: verifier did not emit the expected success sentinel. Refusing to upload."
+            exit 1
+          fi
+          echo "=== DR_ICON_PREUPLOAD_GATE_PASSED — upload allowed ==="
+      - name: Verify signed .ipa entitlements match com.doseroutine.app
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/ipa-entitlements-check.log"
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          exec > >(tee -a "$LOG") 2>&1
+
+          EXPECTED_BUNDLE_ID="com.doseroutine.app"
+          # Required entitlements in the SIGNED binary. "*" = any value ok.
+          # aps-environment is only required if you ship push; leave commented until enabled.
+          EXPECTED_ENTITLEMENTS=(
+            "application-identifier=*"   # <TEAMID>.com.doseroutine.app — checked separately below
+            # "aps-environment=production"
+          )
+
+
+          # Locate the built .ipa (Codemagic default: build/ios/ipa/*.ipa).
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA" ] || [ ! -f "$IPA" ]; then
+            echo "ERROR: no .ipa found under build/ios/ipa/. Did the archive step succeed?"
+            exit 1
+          fi
+          echo "IPA: $IPA"
+
+          WORK="$(mktemp -d)"
+          unzip -q "$IPA" -d "$WORK"
+          APP=$(ls -d "$WORK"/Payload/*.app 2>/dev/null | head -1)
+          if [ -z "$APP" ] || [ ! -d "$APP" ]; then
+            echo "ERROR: could not find Payload/*.app inside $IPA"
+            rm -rf "$WORK"
+            exit 1
+          fi
+          echo ".app:  $APP"
+
+          # Dump entitlements exactly as embedded in the signed binary.
+          ENT_XML="$CM_BUILD_DIR/build-logs/ipa-entitlements.plist"
+          if ! codesign -d --entitlements :- "$APP" > "$ENT_XML" 2>/dev/null; then
+            # Older codesign requires --xml
+            codesign -d --entitlements :- --xml "$APP" > "$ENT_XML"
+          fi
+          echo "--- signed entitlements ---"
+          cat "$ENT_XML"
+          echo "--- end ---"
+
+          FAIL=0
+
+          # 1) bundle id inside signed Info.plist
+          INFO="$APP/Info.plist"
+          ACTUAL_BID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$INFO" 2>/dev/null || true)
+          if [ "$ACTUAL_BID" != "$EXPECTED_BUNDLE_ID" ]; then
+            FAIL=1
+            echo ""
+            echo "DIFF: signed bundle id mismatch"
+            echo "  - expected: $EXPECTED_BUNDLE_ID"
+            echo "  + actual:   $ACTUAL_BID"
+          else
+            echo "OK: signed CFBundleIdentifier = $EXPECTED_BUNDLE_ID"
+          fi
+
+          # 2) application-identifier suffix must equal the bundle id
+          APP_ID=$(/usr/libexec/PlistBuddy -c "Print :application-identifier" "$ENT_XML" 2>/dev/null || true)
+          if [ -z "$APP_ID" ]; then
+            FAIL=1
+            echo "DIFF: application-identifier entitlement missing from signed binary"
+          else
+            SUFFIX="${APP_ID#*.}"   # strip TEAMID.
+            if [ "$SUFFIX" != "$EXPECTED_BUNDLE_ID" ]; then
+              FAIL=1
+              echo ""
+              echo "DIFF: application-identifier suffix mismatch"
+              echo "  - expected suffix: $EXPECTED_BUNDLE_ID"
+              echo "  + actual:          $APP_ID"
+            else
+              echo "OK: application-identifier = $APP_ID"
+            fi
+          fi
+
+          # 3) required entitlement keys / values
+          for pair in "${EXPECTED_ENTITLEMENTS[@]}"; do
+            key="${pair%%=*}"
+            want="${pair#*=}"
+            [ "$key" = "application-identifier" ] && continue  # handled above
+            if ! /usr/libexec/PlistBuddy -c "Print :$key" "$ENT_XML" >/dev/null 2>&1; then
+              FAIL=1
+              echo ""
+              echo "DIFF: signed entitlement missing"
+              echo "  - expected key: $key (value: $want)"
+              echo "  + actual:       <not present in .ipa>"
+            elif [ "$want" != "*" ]; then
+              got=$(/usr/libexec/PlistBuddy -c "Print :$key" "$ENT_XML" 2>/dev/null | tr -d '[:space:]')
+              if [ "$got" != "$want" ]; then
+                FAIL=1
+                echo ""
+                echo "DIFF: signed entitlement value mismatch for $key"
+                echo "  - expected: $want"
+                echo "  + actual:   $got"
+              fi
+            fi
+          done
+
+          # 4) App Store/TestFlight icon proof inside the signed .ipa itself.
+          ICON_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIconName" "$INFO" 2>/dev/null || true)
+          if [ "$ICON_NAME" != "AppIcon" ]; then
+            FAIL=1
+            echo ""
+            echo "DIFF: signed Info.plist CFBundleIconName mismatch"
+            echo "  - expected: AppIcon"
+            echo "  + actual:   ${ICON_NAME:-<missing>}"
+          else
+            echo "OK: signed Info.plist CFBundleIconName = AppIcon"
+          fi
+
+          PRIMARY_ICON=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName" "$INFO" 2>/dev/null || true)
+          if [ "$PRIMARY_ICON" != "AppIcon" ]; then
+            FAIL=1
+            echo ""
+            echo "DIFF: signed Info.plist primary CFBundleIconName mismatch"
+            echo "  - expected: AppIcon"
+            echo "  + actual:   ${PRIMARY_ICON:-<missing>}"
+          else
+            echo "OK: signed Info.plist primary CFBundleIconName = AppIcon"
+          fi
+
+          IPAD_ICON=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIcons~ipad:CFBundlePrimaryIcon:CFBundleIconName" "$INFO" 2>/dev/null || true)
+          if [ -n "$IPAD_ICON" ] && [ "$IPAD_ICON" != "AppIcon" ]; then
+            FAIL=1
+            echo ""
+            echo "DIFF: signed Info.plist iPad primary CFBundleIconName mismatch"
+            echo "  - expected: AppIcon"
+            echo "  + actual:   $IPAD_ICON"
+          elif [ -n "$IPAD_ICON" ]; then
+            echo "OK: signed Info.plist iPad primary CFBundleIconName = AppIcon"
+          fi
+
+          if ls "$APP"/AppIcon60x60@2x.png >/dev/null 2>&1 || ls "$APP"/AppIcon*.png >/dev/null 2>&1; then
+            echo "OK: signed .app contains top-level thinned AppIcon PNG(s):"
+            ls -1 "$APP"/AppIcon*.png 2>/dev/null || true
+          else
+            FAIL=1
+            echo "DIFF: signed .app has no top-level AppIcon PNG such as AppIcon60x60@2x.png"
+          fi
+
+          ASSETS_CAR="$APP/Assets.car"
+          if [ ! -f "$ASSETS_CAR" ]; then
+            FAIL=1
+            echo "DIFF: signed .app is missing Assets.car"
+          else
+            echo "OK: signed .app contains Assets.car"
+            ASSET_JSON="$CM_BUILD_DIR/build-logs/ipa-assets-car-info.json"
+            if xcrun --sdk iphoneos assetutil --info "$ASSETS_CAR" > "$ASSET_JSON" 2>"$CM_BUILD_DIR/build-logs/ipa-assets-car-info.stderr"; then
+              if grep -q '"Name"[[:space:]]*:[[:space:]]*"AppIcon"' "$ASSET_JSON"; then
+                echo "OK: assetutil found AppIcon entries inside signed Assets.car"
+              else
+                FAIL=1
+                echo "DIFF: assetutil did not find AppIcon entries inside signed Assets.car"
+                head -80 "$ASSET_JSON" || true
+              fi
+            else
+              FAIL=1
+              echo "DIFF: assetutil failed to inspect signed Assets.car"
+              cat "$CM_BUILD_DIR/build-logs/ipa-assets-car-info.stderr" || true
+            fi
+          fi
+
+          rm -rf "$WORK"
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "FIX: entitlements in the signed .ipa don't match com.doseroutine.app."
+            echo "  1. In Xcode > App target > Signing & Capabilities, confirm the required"
+            echo "     capabilities (In-App Purchase, etc.) are enabled for Release."
+            echo "  2. Confirm the App ID in App Store Connect / Developer portal has the"
+            echo "     matching Capabilities enabled for com.doseroutine.app."
+            echo "  3. Re-fetch signing files (fetch-signing-files) so the provisioning"
+            echo "     profile picks up the updated entitlements, then rebuild."
+            exit 1
+          fi
+          echo ""
+          echo "=== signed .ipa entitlements check passed ==="
+      - name: Pre-upload ASC version/build format check
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/asc-version-check.log"
+          exec > >(tee -a "$LOG") 2>&1
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA" ] || [ ! -f "$IPA" ]; then
+            echo "ERROR: no signed .ipa found; cannot pre-validate CFBundleShortVersionString/CFBundleVersion."
+            exit 1
+          fi
+          node scripts/verify-asc-version.mjs "$IPA"
+          echo "=== ASC_VERSION_PREUPLOAD_GATE_PASSED ==="
+      - name: Pre-upload .ipa version matches expected values
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/ipa-version-match.log"
+          exec > >(tee -a "$LOG") 2>&1
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA" ] || [ ! -f "$IPA" ]; then
+            echo "ERROR: no signed .ipa found; cannot verify .ipa version matches the gate."
+            exit 1
+          fi
+          # Reproduce the exact values the earlier "Set version & build number (iOS)"
+          # step wrote via agvtool, so the .ipa MUST carry these post-archive.
+          RAW_TAG="${CM_TAG:-}"
+          EXPECTED_SHORT_VERSION="${RAW_TAG#ios-v}"
+          if [ -z "$EXPECTED_SHORT_VERSION" ] || [ "$EXPECTED_SHORT_VERSION" = "$RAW_TAG" ]; then
+            EXPECTED_SHORT_VERSION="${BUILD_VERSION:-1.0.0}"
+          fi
+          EXPECTED_BUILD_VERSION="${BUILD_NUMBER_IOS:-${BUILD_NUMBER:-}}"
+          if [ -z "$EXPECTED_BUILD_VERSION" ]; then
+            echo "ERROR: no BUILD_NUMBER_IOS/BUILD_NUMBER available; cannot compute expected CFBundleVersion."
+            exit 1
+          fi
+          echo "Expected CFBundleShortVersionString: $EXPECTED_SHORT_VERSION"
+          echo "Expected CFBundleVersion:            $EXPECTED_BUILD_VERSION"
+          EXPECTED_SHORT_VERSION="$EXPECTED_SHORT_VERSION" \
+          EXPECTED_BUILD_VERSION="$EXPECTED_BUILD_VERSION" \
+            node scripts/verify-ipa-version-matches.mjs "$IPA"
+          echo "=== IPA_VERSION_MATCHES_GATE_PASSED ==="
+      - name: Upload signed .ipa to TestFlight (after DR icon gates pass)
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/testflight-upload.log"
+          exec > >(tee -a "$LOG") 2>&1
+          if [ -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ] || [ -z "${APP_STORE_CONNECT_KEY_ID:-}" ] || [ -z "${APP_STORE_CONNECT_PRIVATE_KEY:-}" ]; then
+            echo "ERROR: App Store Connect API credentials are not set. DoseRoutine iOS builds must upload only after DR icon gates pass."
+            echo "FIX: set APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_ID, and APP_STORE_CONNECT_PRIVATE_KEY in the doseroutine_env group."
+            exit 1
+          fi
+          IPA=$(ls -1 "$CM_BUILD_DIR"/build/ios/ipa/*.ipa 2>/dev/null | head -1 \
+                || ls -1 build/ios/ipa/*.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA" ] || [ ! -f "$IPA" ]; then
+            echo "ERROR: no .ipa found under build/ios/ipa/. Cannot upload to TestFlight."
+            exit 1
+          fi
+          echo "Uploading IPA: $IPA"
+          app-store-connect publish \
+            --path "$IPA" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --testflight \
+            --max-find-build-wait 20 \
+            --max-build-processing-wait 30 \
+            --altool-retries 10 \
+            --altool-retry-wait 2
+          echo "=== TESTFLIGHT_UPLOAD_COMPLETE ==="
+      - name: Verify App Store Connect extracted the DR app icon
+        script: |
+          set -eo pipefail
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/apple-extracted-icon-check.log"
+          exec > >(tee -a "$LOG") 2>&1
+          if [ -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ] || [ -z "${APP_STORE_CONNECT_KEY_ID:-}" ] || [ -z "${APP_STORE_CONNECT_PRIVATE_KEY:-}" ]; then
+            echo "ERROR: Apple-side icon verification cannot run without App Store Connect API credentials."
+            exit 1
+          fi
+          VERSION="${BUILD_VERSION:-1.0.0}"
+          BUILD="${BUILD_NUMBER_IOS:-${BUILD_NUMBER:-}}"
+          if [ -z "$BUILD" ]; then
+            echo "ERROR: BUILD_NUMBER_IOS/BUILD_NUMBER missing; cannot verify Apple-side build icon."
+            exit 1
+          fi
+          echo "Checking Apple-processed build: $VERSION ($BUILD)"
+          DR_APPLE_ICON_EXPORT_DIR="$CM_BUILD_DIR/build-logs/apple-extracted-icons" \
+            ASC_APP_ID="${APP_STORE_APP_ID:-6793807589}" \
+            node scripts/verify-testflight-build.mjs "$VERSION" "$BUILD"
+          echo "=== APPLE_EXTRACTED_ICON_GATE_PASSED ==="
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/ipa/**/*.ipa
+      - $CM_BUILD_DIR/build/ios/ipa/*.ipa
+      - build/ios/xcarchive/**/*.dSYM
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+      - build/ios/xcarchive/*.xcarchive
+      - build-logs/*.log
+      - build-logs/ipa-entitlements.plist
+      - build-logs/build-info.txt
+      - build-logs/errors/**
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      # TestFlight upload is done manually above, AFTER the DR icon gates pass.
+      # Do NOT re-add app_store_connect here — it would upload a second time
+      # without gating on the icon.
+      email:
+        recipients:
+          - support@doseroutine.com
+        notify:
+          success: true
+          failure: true
+
+  # ────────────────────────────────────────────────────────────
+  # Android → Google Play internal track
+  # ────────────────────────────────────────────────────────────
+  android-play:
+    name: Android · Play Internal
+    max_build_duration: 60
+    # instance_type omitted on purpose — Codemagic picks the default Linux
+    # machine allowed by the current billing plan.
+
+    environment:
+      <<: *env_versions
+      groups:
+        # Android only needs the Play publisher credentials. The iOS-only
+        # "doseroutine_env" group is intentionally NOT referenced here.
+        - google_play # provides GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+      android_signing:
+        - doseroutine_keystore # reference name from Code signing identities
+      vars:
+        TARGET_PLATFORM: "android"
+        PACKAGE_NAME: "com.doseroutine.app"
+    cache:
+      cache_paths: *cache_paths
+    scripts:
+      - name: Android workflow audit — catch known Codemagic blockers
+        script: |
+          set -e
+          node scripts/audit-android-codemagic.mjs
+      - name: Android signing preflight — verify keystore env vars
+        script: |
+          set -e
+          # These are injected by the "doseroutine_keystore" reference declared
+          # under `android_signing:` in this workflow's environment block.
+          # Catch missing/misconfigured keystore up-front instead of failing deep
+          # inside `./gradlew bundleRelease` with a cryptic Gradle error.
+          FAIL=0
+          check() {
+            local name="$1" fix="$2"
+            if [ -z "${!name:-}" ]; then
+              echo "FAIL $name is not set."
+              echo "     FIX: $fix"
+              FAIL=1
+            else
+              echo "OK   $name is set."
+            fi
+          }
+          echo "=== Android keystore preflight ==="
+          check CM_KEYSTORE_PATH     "Codemagic auto-sets this when the 'doseroutine_keystore' reference resolves. If empty, the reference name in this workflow does not match a keystore uploaded in Codemagic → App settings → Code signing identities → Android keystores."
+          check CM_KEYSTORE_PASSWORD "Re-upload the keystore in Codemagic → App settings → Code signing identities → Android keystores and paste the keystore password. Reference name must be 'doseroutine_keystore'."
+          check CM_KEY_ALIAS         "Set the key alias on the uploaded keystore in Codemagic → App settings → Code signing identities → Android keystores."
+          check CM_KEY_PASSWORD      "Set the key password on the uploaded keystore in Codemagic → App settings → Code signing identities → Android keystores."
+          if [ -n "${CM_KEYSTORE_PATH:-}" ] && [ ! -f "$CM_KEYSTORE_PATH" ]; then
+            echo "FAIL CM_KEYSTORE_PATH points to '$CM_KEYSTORE_PATH' but the file does not exist."
+            echo "     FIX: re-upload the .jks/.keystore file in Codemagic → App settings → Code signing identities → Android keystores (reference name: doseroutine_keystore)."
+            FAIL=1
+          elif [ -n "${CM_KEYSTORE_PATH:-}" ]; then
+            echo "OK   Keystore file exists at CM_KEYSTORE_PATH."
+          fi
+          # Google Play publishing credentials (only enforced because this
+          # workflow publishes to the internal track).
+          if [ -z "${GCLOUD_SERVICE_ACCOUNT_CREDENTIALS:-}" ]; then
+            echo "FAIL GCLOUD_SERVICE_ACCOUNT_CREDENTIALS is not set."
+            echo "     FIX: paste the full JSON of your Play Console service account into the google_play environment group in Codemagic → App settings → Environment variables."
+            FAIL=1
+          else
+            echo "OK   GCLOUD_SERVICE_ACCOUNT_CREDENTIALS is set."
+          fi
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "Android signing preflight FAILED. Fix the items above and re-run the build."
+            exit 1
+          fi
+          echo "Android signing preflight PASSED."
+      - *build_info
+      - *install_deps
+      - *tooling_preflight
+      - *env_preflight
+
+      - *build_web
+      - *cap_preflight
+      - *cap_sync
+      - name: Enable Gradle build cache & daemon
+        script: |
+          set -e
+          # android/ is regenerated by `npx cap add android`, so cap sync may
+          # reset gradle.properties. Enforce cache/daemon settings after sync
+          # by merging our required flags in idempotently.
+          PROPS="android/gradle.properties"
+          mkdir -p android
+          touch "$PROPS"
+          echo "=== Enforcing Gradle performance flags in $PROPS ==="
+          set_prop() {
+            local key="$1" val="$2"
+            if grep -qE "^${key}=" "$PROPS"; then
+              # Replace existing line in place.
+              sed -i.bak -E "s|^${key}=.*|${key}=${val}|" "$PROPS"
+            else
+              printf '%s=%s\n' "$key" "$val" >> "$PROPS"
+            fi
+            echo "  ${key}=${val}"
+          }
+          # Reuse task outputs across builds (backed by ~/.gradle/caches, which
+          # is already cached at the workflow level).
+          set_prop "org.gradle.caching"        "true"
+          # Keep the Gradle JVM warm within a build. Codemagic tears the daemon
+          # down between builds; this only benefits sub-tasks in one run.
+          set_prop "org.gradle.daemon"         "true"
+          # Parallel project execution — Capacitor emits multiple subprojects.
+          set_prop "org.gradle.parallel"       "true"
+          # Only configure projects touched by the requested tasks.
+          set_prop "org.gradle.configureondemand" "true"
+          # Bigger heap so bundleRelease doesn't OOM under R8/D8.
+          set_prop "org.gradle.jvmargs" "-Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+          # AndroidX / Kotlin incremental (Capacitor default, re-asserted).
+          set_prop "android.useAndroidX"       "true"
+          set_prop "kotlin.incremental"        "true"
+          rm -f "$PROPS.bak"
+          echo "--- Final $PROPS ---"
+          cat "$PROPS"
+
+      - name: Set versionName & versionCode (Android)
+        script: |
+          set -e
+          cd android
+          # versionName from tag: android-v1.2.3 → 1.2.3 (fallback 1.0.0)
+          RAW_TAG="${CM_TAG:-}"
+          VERSION_NAME="${RAW_TAG#android-v}"
+          if [ -z "$VERSION_NAME" ] || [ "$VERSION_NAME" = "$RAW_TAG" ]; then
+            VERSION_NAME="1.0.0"
+          fi
+          # versionCode = 1 above max(Play latest, Codemagic BUILD_NUMBER).
+          # A brand-new app with no release on any track makes this CLI call
+          # fail or print non-numeric text — sanitize to digits so the
+          # arithmetic below can never abort the build.
+          RAW_LATEST=$(google-play get-latest-build-number \
+            --package-name "$PACKAGE_NAME" \
+            --tracks internal production beta alpha 2>/dev/null || echo 0)
+          LATEST_PLAY=$(printf '%s' "$RAW_LATEST" | tr -dc '0-9\n' | tail -1)
+          case "$LATEST_PLAY" in ''|*[!0-9]*) LATEST_PLAY=0 ;; esac
+          CM_BN=$(printf '%s' "${BUILD_NUMBER:-0}" | tr -dc '0-9')
+          case "$CM_BN" in ''|*[!0-9]*) CM_BN=0 ;; esac
+          echo "Play latest versionCode: $LATEST_PLAY (raw: '$RAW_LATEST'), Codemagic BUILD_NUMBER: $CM_BN"
+          if [ "$CM_BN" -gt "$LATEST_PLAY" ]; then HIGH=$CM_BN; else HIGH=$LATEST_PLAY; fi
+          NEXT_CODE=$(( HIGH + 1 ))
+          echo "Android versionName: $VERSION_NAME  versionCode: $NEXT_CODE"
+          sed -i.bak "s/versionCode .*/versionCode $NEXT_CODE/" app/build.gradle
+          sed -i.bak "s/versionName .*/versionName \"$VERSION_NAME\"/" app/build.gradle
+          rm -f app/build.gradle.bak
+          echo "--- applied version lines ---"
+          grep -nE 'versionCode|versionName' app/build.gradle
+          if ! grep -qE "versionCode[[:space:]]+$NEXT_CODE\b" app/build.gradle; then
+            echo "ERROR: versionCode was not written to android/app/build.gradle."
+            exit 1
+          fi
+          if ! grep -qE "versionName[[:space:]]+\"$VERSION_NAME\"" app/build.gradle; then
+            echo "ERROR: versionName was not written to android/app/build.gradle."
+            exit 1
+          fi
+
+      - name: Build signed release AAB (cache-aware)
+        script: |
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          set -o pipefail
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          LOG="$CM_BUILD_DIR/build-logs/gradle-bundle-release.log"
+          cd android
+
+          # Archive/API-based repository syncs can lose the executable bit.
+          # Repair it on every clean Codemagic checkout before invoking Gradle.
+          chmod +x gradlew
+
+          # Print the real Gradle failure LAST so it is visible at the tail of
+          # the Codemagic step output (previously buried under --info noise and
+          # a 40-line stack trace, which made the cause unreadable).
+          report_failure() {
+            echo ""
+            echo "════════════════════════════════════════════════════════════"
+            echo " GRADLE FAILURE — root cause"
+            echo "════════════════════════════════════════════════════════════"
+            echo "--- Failed tasks ---"
+            grep -E "^> Task :.* FAILED|Execution failed for task" "$LOG" | sort -u | head -20 || true
+            echo ""
+            echo "--- What went wrong ---"
+            awk '/^\* What went wrong:/{f=1} f{print} /^\* Try:/{if(f)exit}' "$LOG" | head -60 || true
+            echo ""
+            echo "--- Error lines ---"
+            grep -nE "^(e: |ERROR:|error:|Caused by:|AAPT: error|> )" "$LOG" \
+              | grep -viE "warning|deprecat" | head -40 || true
+            echo "════════════════════════════════════════════════════════════"
+          }
+
+          run_gradle() {
+            # No --info: it buries the failure under tens of thousands of lines.
+            bash gradlew bundleRelease --stacktrace --build-cache --daemon \
+              -Pandroid.injected.signing.store.file="$CM_KEYSTORE_PATH" \
+              -Pandroid.injected.signing.store.password="$CM_KEYSTORE_PASSWORD" \
+              -Pandroid.injected.signing.key.alias="$CM_KEY_ALIAS" \
+              -Pandroid.injected.signing.key.password="$CM_KEY_PASSWORD" \
+              2>&1 | tee -a "$LOG"
+          }
+
+          : > "$LOG"
+          if ! run_gradle; then
+            echo "Retrying gradle bundleRelease after transient failure..."
+            if ! run_gradle; then
+              report_failure
+              exit 1
+            fi
+          fi
+
+      - *extract_errors
+      - name: Extract native debug symbols zip (for manual Play Console upload)
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          cd android
+
+          # AGP places the extracted/merged native libs here when debugSymbolLevel is set.
+          LIBS_DIR="app/build/intermediates/merged_native_libs/release/out/lib"
+          SYM_ZIP="$CM_BUILD_DIR/native-debug-symbols.zip"
+
+          if [ -d "$LIBS_DIR" ]; then
+            echo "=== Native libs found; packing debug symbols zip ==="
+            (cd "$LIBS_DIR" && zip -r "$SYM_ZIP" .)
+            echo "OK   created $SYM_ZIP ($(du -h "$SYM_ZIP" | cut -f1))"
+          else
+            echo "INFO no merged native libs dir at $LIBS_DIR — symbols likely embedded in the AAB already."
+          fi
+
+          # Also look for AGP-generated native-debug-symbols output.
+          if [ -f "app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip" ]; then
+            cp "app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip" "$SYM_ZIP"
+            echo "OK   copied AGP native-debug-symbols.zip ($(du -h "$SYM_ZIP" | cut -f1))"
+          fi
+      - name: Verify built Android artifact applicationId matches $PACKAGE_NAME
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/build-logs"
+          LOG="$CM_BUILD_DIR/build-logs/android-package-check.log"
+          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          exec > >(tee -a "$LOG") 2>&1
+
+          EXPECTED="${PACKAGE_NAME:-com.doseroutine.app}"
+          echo "Expected applicationId: $EXPECTED"
+
+          # Locate the built AAB (primary release artifact) and optional APK.
+          AAB=$(ls -1 android/app/build/outputs/bundle/release/*.aab 2>/dev/null | head -1)
+          APK=$(ls -1 android/app/build/outputs/apk/release/*.apk    2>/dev/null | head -1)
+
+          if [ -z "$AAB" ] && [ -z "$APK" ]; then
+            echo "ERROR: no .aab or .apk found under android/app/build/outputs/."
+            echo "       Did 'gradlew bundleRelease' succeed?"
+            exit 1
+          fi
+
+          # Find bundletool / aapt2. bundletool ships as a jar in the Android SDK image on Codemagic.
+          find_tool() {
+            command -v "$1" 2>/dev/null && return 0
+            # Search common Codemagic locations.
+            for p in \
+              "$ANDROID_HOME/build-tools"/*/"$1" \
+              "$ANDROID_SDK_ROOT/build-tools"/*/"$1" \
+              /usr/local/share/android-sdk/build-tools/*/"$1"; do
+              [ -x "$p" ] && echo "$p" && return 0
+            done
+            return 1
+          }
+          AAPT2=$(find_tool aapt2 || true)
+          BUNDLETOOL_JAR=$(ls -1 /usr/local/bin/bundletool*.jar 2>/dev/null | head -1)
+          [ -z "$BUNDLETOOL_JAR" ] && BUNDLETOOL_JAR=$(ls -1 "$HOME"/programs/bundletool/*.jar 2>/dev/null | head -1)
+
+          FAIL=0
+          check_id() {
+            local kind="$1" actual="$2" source="$3"
+            if [ -z "$actual" ]; then
+              echo "WARN: could not extract applicationId from $source ($kind) — tool missing?"
+              return 0
+            fi
+            if [ "$actual" != "$EXPECTED" ]; then
+              FAIL=1
+              echo ""
+              echo "DIFF: $kind applicationId mismatch ($source)"
+              echo "  - expected: $EXPECTED"
+              echo "  + actual:   $actual"
+            else
+              echo "OK: $kind applicationId = $actual ($source)"
+            fi
+          }
+
+          # ---- AAB check via bundletool ----
+          if [ -n "$AAB" ]; then
+            echo ""
+            echo "=== AAB: $AAB ==="
+            AAB_ID=""
+            if [ -n "$BUNDLETOOL_JAR" ]; then
+              AAB_ID=$(java -jar "$BUNDLETOOL_JAR" dump manifest --bundle="$AAB" 2>/dev/null \
+                       | grep -Eo 'package="[^"]+"' | head -1 | sed -E 's/package="([^"]+)"/\1/')
+            fi
+            if [ -z "$AAB_ID" ]; then
+              # Fallback: unzip the base module manifest and read with aapt2.
+              TMP="$(mktemp -d)"
+              unzip -q -o "$AAB" -d "$TMP" base/manifest/AndroidManifest.xml
+              if [ -n "$AAPT2" ] && [ -f "$TMP/base/manifest/AndroidManifest.xml" ]; then
+                AAB_ID=$("$AAPT2" dump xmltree "$TMP/base/manifest/AndroidManifest.xml" 2>/dev/null \
+                         | grep -Eo 'package="[^"]+"' | head -1 | sed -E 's/package="([^"]+)"/\1/')
+              fi
+              rm -rf "$TMP"
+            fi
+            check_id "AAB" "$AAB_ID" "$(basename "$AAB")"
+          fi
+
+          # ---- APK check via aapt2 ----
+          if [ -n "$APK" ]; then
+            echo ""
+            echo "=== APK: $APK ==="
+            APK_ID=""
+            if [ -n "$AAPT2" ]; then
+              APK_ID=$("$AAPT2" dump badging "$APK" 2>/dev/null \
+                       | grep -Eo "package: name='[^']+'" | head -1 \
+                       | sed -E "s/package: name='([^']+)'/\1/")
+            fi
+            check_id "APK" "$APK_ID" "$(basename "$APK")"
+          fi
+
+          # ---- Also verify what Gradle believes the applicationId is ----
+          echo ""
+          echo "=== Gradle build.gradle applicationId ==="
+          GRADLE_ID=$(grep -Eo 'applicationId[[:space:]]+"[^"]+"' android/app/build.gradle 2>/dev/null \
+                     | head -1 | sed -E 's/applicationId[[:space:]]+"([^"]+)"/\1/')
+          [ -z "$GRADLE_ID" ] && GRADLE_ID=$(grep -Eo 'applicationId[[:space:]]*=[[:space:]]*"[^"]+"' \
+                     android/app/build.gradle.kts 2>/dev/null | head -1 \
+                     | sed -E 's/.*"([^"]+)".*/\1/')
+          check_id "Gradle" "$GRADLE_ID" "android/app/build.gradle"
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "FIX: applicationId in the built artifact doesn't match $EXPECTED."
+            echo "  1. Confirm 'appId' in capacitor.config.ts is '$EXPECTED'."
+            echo "  2. Confirm 'applicationId' in android/app/build.gradle is '$EXPECTED'."
+            echo "  3. Delete android/ and re-run so 'npx cap add android' regenerates it,"
+            echo "     then re-run bundleRelease."
+            exit 1
+          fi
+          echo ""
+          echo "=== Android applicationId check passed ==="
+
+    artifacts:
+      # Signed Play Store bundle — this is what you upload / Codemagic ships to internal.
+      - android/app/build/outputs/bundle/release/*.aab
+      - android/app/build/outputs/**/*.aab
+      # Release APK (handy for sideload testing on a real device).
+      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/**/*.apk
+      # ProGuard/R8 mapping for crash de-obfuscation.
+      - android/app/build/outputs/mapping/**/mapping.txt
+      - android/app/build/outputs/**/mapping.txt
+      # Native debug symbols for Play Console crash/ANR symbolication.
+      - native-debug-symbols.zip
+      - android/app/build/outputs/native-debug-symbols/**/*.zip
+      # Lint / test reports.
+      - android/app/build/reports/**/*
+      # Diagnostics.
+      - build-logs/*.log
+      - build-logs/build-info.txt
+      - build-logs/errors/**
+
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: false
+      email:
+        recipients:
+          - support@doseroutine.com
+        notify:
+          success: true
+          failure: true

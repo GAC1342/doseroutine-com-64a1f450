@@ -1,0 +1,653 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+/* Only the exact critical variants ship. Body copy uses the system sans stack
+ * (Inter is used only when installed locally), and Space Grotesk ships just the
+ * two weights the UI actually renders (600 headings/nav, 700 display headings)
+ * in latin + latin-ext. Every face declares font-display: swap so text paints
+ * immediately in the fallback instead of blocking on the font download. */
+@import "@fontsource/space-grotesk/latin-600.css";
+@import "@fontsource/space-grotesk/latin-ext-600.css";
+@import "@fontsource/space-grotesk/latin-700.css";
+@import "@fontsource/space-grotesk/latin-ext-700.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * DoseRoutine design system.
+ * Brand palette per 06-DESIGN-SYSTEM.md — converted to oklch.
+ * Severity tokens are used ONLY for warnings and dose status.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-cta-hover: var(--cta-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --color-synergy: var(--synergy);
+  --color-caution: var(--caution);
+  --color-warning: var(--warning);
+  --color-avoid: var(--avoid);
+  --color-missed: var(--missed);
+
+  --color-primary-tint: var(--primary-tint);
+  --color-cta-tint: var(--cta-tint);
+  --color-accent-warm: var(--accent-warm);
+  --color-accent-warm-foreground: var(--accent-warm-foreground);
+  --color-accent-warm-tint: var(--accent-warm-tint);
+  --color-pro: var(--pro);
+  --color-pro-foreground: var(--pro-foreground);
+  --color-pro-tint: var(--pro-tint);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-tint: var(--success-tint);
+  --color-success-strong: var(--success-strong);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.75rem; /* 12px */
+
+  /* Neutrals — warm stone: off-white page, white cards, warm ink text */
+  --background: oklch(0.984 0.004 106); /* #FAFAF7 warm off-white */
+  --foreground: oklch(0.185 0.007 56); /* deepened ink for sharper hierarchy */
+  --card: oklch(1 0 0); /* pure white */
+  --card-foreground: oklch(0.185 0.007 56);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.185 0.007 56);
+  --muted: oklch(0.962 0.005 90);
+  --muted-foreground: oklch(0.478 0.012 70); /* warm stone gray — AA on white */
+  --secondary: oklch(0.962 0.005 90);
+  --secondary-foreground: oklch(0.216 0.006 56);
+  --accent: oklch(0.962 0.005 90);
+  --accent-foreground: oklch(0.216 0.006 56);
+  --border: oklch(0.888 0.007 85);
+  --input: oklch(0.888 0.007 85);
+  --ring: oklch(0.511 0.086 186);
+
+  /* Brand — teal: logo, nav, links, structural UI */
+  --primary: oklch(0.511 0.086 186); /* #0F766E */
+  --primary-foreground: oklch(0.99 0.003 106);
+  --primary-hover: oklch(0.437 0.071 188); /* #115E59 pressed */
+  --primary-tint: oklch(0.953 0.05 181); /* #CCFBF1 chips/backgrounds */
+
+  /* Money moments ONLY — upgrade CTAs, compound-limit banner, locked Pro.
+   * #F97316 kept for tints/icons; filled buttons use a slightly deeper
+   * coral so white label text still clears WCAG AA. */
+  --cta: oklch(0.57 0.185 44); /* deep coral, 4.8:1 with white text (WCAG AA) */
+  --cta-foreground: oklch(1 0 0);
+  --cta-hover: oklch(0.5 0.175 42);
+  --cta-tint: oklch(0.954 0.037 75); /* #FFEDD5 */
+
+  /* Pro / premium badges — amber */
+  --pro: oklch(0.769 0.165 70); /* #F59E0B */
+  --pro-foreground: oklch(0.216 0.006 56);
+  --pro-tint: oklch(0.962 0.058 96); /* #FEF3C7 */
+
+  /* Momentum accent — warm amber used for ONE focal element per screen
+   * (streak, next-due action, caution chips). Deliberately distinct from
+   * --cta, which stays reserved for upgrade / paywall moments. */
+  --accent-warm: oklch(0.54 0.145 62); /* deep amber — AA on white and on its tint */
+  --accent-warm-foreground: oklch(1 0 0);
+  --accent-warm-tint: oklch(0.958 0.045 84);
+
+  /* Success — adherence, streaks, calendar (separate from brand) */
+  --success: oklch(0.627 0.17 149); /* #16A34A */
+  --success-foreground: oklch(1 0 0);
+  --success-tint: oklch(0.962 0.043 157); /* #DCFCE7 */
+  /* AA-safe success text on white/card backgrounds (--success itself is a fill). */
+  --success-strong: oklch(0.5 0.13 149);
+
+  /* Streak / momentum badge text — AA on its own 10% tint */
+  --streak: oklch(0.47 0.12 62); /* #8F4A05 */
+
+  /* Severity — warnings + dose status only */
+  --synergy: var(--success);
+  --caution: oklch(0.68 0.14 80); /* #C98A00 */
+  --warning: oklch(0.49 0.15 45); /* #A03A00 — AA on amber tints */
+  --avoid: oklch(0.58 0.21 27); /* #D5352B */
+  --missed: oklch(0.5 0.15 15); /* #B23A48 */
+
+  /* Severity badge pairs — foreground is AA (>=4.5:1) on its own tint,
+   * so badges no longer rely on raw hex fallbacks. */
+  --severity-avoid: oklch(0.5 0.19 27);
+  --severity-avoid-bg: oklch(0.955 0.025 27);
+  --severity-note: oklch(0.5 0.15 258);
+  --severity-note-bg: oklch(0.962 0.022 258);
+  --severity-synergy: oklch(0.5 0.12 155);
+  --severity-synergy-bg: oklch(0.958 0.035 155);
+
+  --destructive: var(--avoid);
+  --destructive-foreground: oklch(0.99 0.003 106);
+
+  --sidebar: oklch(0.99 0.003 106);
+  --sidebar-foreground: oklch(0.216 0.006 56);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.962 0.005 90);
+  --sidebar-accent-foreground: oklch(0.216 0.006 56);
+  --sidebar-border: oklch(0.908 0.006 85);
+  --sidebar-ring: var(--primary);
+}
+
+.dark {
+  --background: oklch(0.17 0.006 60);
+  --foreground: oklch(0.965 0.004 100);
+  --card: oklch(0.225 0.007 60);
+  --card-foreground: oklch(0.965 0.004 100);
+  --popover: oklch(0.225 0.007 60);
+  --popover-foreground: oklch(0.965 0.004 100);
+  --muted: oklch(0.27 0.007 60);
+  --muted-foreground: oklch(0.72 0.01 80);
+  --secondary: oklch(0.27 0.007 60);
+  --secondary-foreground: oklch(0.965 0.004 100);
+  --accent: oklch(0.27 0.007 60);
+  --accent-foreground: oklch(0.965 0.004 100);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.66 0.1 186);
+
+  --primary: oklch(0.66 0.1 186);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --primary-hover: oklch(0.57 0.09 186);
+  --primary-tint: oklch(0.34 0.05 186);
+
+  --cta: oklch(0.705 0.187 48); /* #F97316 */
+  --cta-foreground: oklch(0.17 0.006 60);
+  --cta-hover: oklch(0.63 0.19 44);
+  --cta-tint: oklch(0.34 0.07 55);
+
+  --pro: oklch(0.8 0.155 72);
+  --pro-foreground: oklch(0.17 0.006 60);
+  --pro-tint: oklch(0.35 0.06 80);
+
+  --accent-warm: oklch(0.78 0.145 68);
+  --accent-warm-foreground: oklch(0.17 0.006 60);
+  --accent-warm-tint: oklch(0.34 0.06 70);
+
+  --success: oklch(0.72 0.16 150);
+  --success-foreground: oklch(0.17 0.006 60);
+  --success-tint: oklch(0.33 0.07 152);
+  --success-strong: oklch(0.8 0.16 150);
+
+  --streak: oklch(0.82 0.13 62);
+
+  --synergy: var(--success);
+  --caution: oklch(0.74 0.14 80);
+  --warning: oklch(0.78 0.15 45);
+  --avoid: oklch(0.66 0.2 27);
+  --missed: oklch(0.6 0.15 15);
+
+  --severity-avoid: oklch(0.78 0.15 27);
+  --severity-avoid-bg: oklch(0.33 0.08 27);
+  --severity-note: oklch(0.8 0.1 258);
+  --severity-note-bg: oklch(0.33 0.06 258);
+  --severity-synergy: oklch(0.82 0.14 155);
+  --severity-synergy-bg: oklch(0.32 0.07 155);
+
+  --destructive: var(--avoid);
+  --destructive-foreground: oklch(0.965 0.004 100);
+
+  --sidebar: oklch(0.225 0.007 60);
+  --sidebar-foreground: oklch(0.965 0.004 100);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.27 0.007 60);
+  --sidebar-accent-foreground: oklch(0.965 0.004 100);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: var(--primary);
+}
+
+/* ---------------------------------------------------------------------
+ * Selectable color themes
+ *
+ * Each palette overrides ONLY the brand tokens. Severity tokens
+ * (--synergy, --caution, --warning, --avoid, --missed), --success,
+ * --destructive, --cta and --pro are deliberately excluded: severity
+ * color carries clinical meaning and must never shift with a cosmetic
+ * preference, and coral/amber stay reserved for money moments.
+ *
+ * Applied via data-theme on <html>. Teal is the default (no attribute).
+ * ------------------------------------------------------------------ */
+
+[data-theme="teal"] {
+  --primary: oklch(0.511 0.086 186);
+  --primary-hover: oklch(0.437 0.071 188);
+  --primary-tint: oklch(0.953 0.05 181);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.511 0.086 186);
+}
+.dark[data-theme="teal"] {
+  --primary: oklch(0.66 0.1 186);
+  --primary-hover: oklch(0.57 0.09 186);
+  --primary-tint: oklch(0.34 0.05 186);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.66 0.1 186);
+}
+
+[data-theme="blue"] {
+  --primary: oklch(0.512 0.152 257);
+  --primary-hover: oklch(0.441 0.142 257);
+  --primary-tint: oklch(0.951 0.03 250);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.512 0.152 257);
+}
+.dark[data-theme="blue"] {
+  --primary: oklch(0.7 0.128 254);
+  --primary-hover: oklch(0.62 0.132 254);
+  --primary-tint: oklch(0.34 0.07 258);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.7 0.128 254);
+}
+
+[data-theme="turquoise"] {
+  --primary: oklch(0.52 0.095 202);
+  --primary-hover: oklch(0.448 0.082 204);
+  --primary-tint: oklch(0.955 0.042 196);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.52 0.095 202);
+}
+.dark[data-theme="turquoise"] {
+  --primary: oklch(0.72 0.098 200);
+  --primary-hover: oklch(0.63 0.092 200);
+  --primary-tint: oklch(0.34 0.052 200);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.72 0.098 200);
+}
+
+[data-theme="indigo"] {
+  --primary: oklch(0.47 0.17 276);
+  --primary-hover: oklch(0.405 0.16 276);
+  --primary-tint: oklch(0.945 0.035 285);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.47 0.17 276);
+}
+.dark[data-theme="indigo"] {
+  --primary: oklch(0.7 0.135 278);
+  --primary-hover: oklch(0.62 0.145 278);
+  --primary-tint: oklch(0.34 0.075 278);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.7 0.135 278);
+}
+
+[data-theme="green"] {
+  --primary: oklch(0.5 0.115 150);
+  --primary-hover: oklch(0.43 0.1 150);
+  --primary-tint: oklch(0.952 0.05 152);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.5 0.115 150);
+}
+.dark[data-theme="green"] {
+  --primary: oklch(0.71 0.135 152);
+  --primary-hover: oklch(0.63 0.13 152);
+  --primary-tint: oklch(0.33 0.07 152);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.71 0.135 152);
+}
+
+[data-theme="violet"] {
+  --primary: oklch(0.495 0.19 305);
+  --primary-hover: oklch(0.428 0.18 305);
+  --primary-tint: oklch(0.95 0.04 310);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.495 0.19 305);
+}
+.dark[data-theme="violet"] {
+  --primary: oklch(0.71 0.15 305);
+  --primary-hover: oklch(0.63 0.155 305);
+  --primary-tint: oklch(0.34 0.08 305);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.71 0.15 305);
+}
+
+[data-theme="graphite"] {
+  --primary: oklch(0.42 0.014 250);
+  --primary-hover: oklch(0.345 0.012 250);
+  --primary-tint: oklch(0.945 0.006 250);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.42 0.014 250);
+}
+.dark[data-theme="graphite"] {
+  --primary: oklch(0.76 0.012 250);
+  --primary-hover: oklch(0.68 0.012 250);
+  --primary-tint: oklch(0.34 0.008 250);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.76 0.012 250);
+}
+
+/* Neon mint: dark mode runs the true neon; light mode uses a deeper mint so
+   mint-on-white text and links still clear WCAG AA. */
+[data-theme="mint"] {
+  --primary: oklch(0.52 0.15 168);
+  --primary-hover: oklch(0.455 0.14 168);
+  --primary-tint: oklch(0.955 0.05 168);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.52 0.15 168);
+}
+.dark[data-theme="mint"] {
+  --primary: oklch(0.82 0.17 168);
+  --primary-hover: oklch(0.74 0.165 168);
+  --primary-tint: oklch(0.32 0.07 168);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.82 0.17 168);
+}
+
+
+
+@utility tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------
+ * Canonical card treatment — single source of truth
+ *
+ * Any element with `.bg-card` (or `.bg-popover`, which shares the same
+ * surface token) automatically renders the DoseRoutine card: pure white
+ * surface, canonical border color, and the soft float shadow that lifts
+ * the card off the gray page background. This applies to <Card>, but
+ * also to any div/section/article/button/anchor that happens to use the
+ * utility — so a stray hand-rolled card can't drift from the design.
+ *
+ * Rules:
+ *   - Light mode only. Dark mode uses a lighter surface color instead of
+ *     shadow (a light-alpha shadow is invisible on a dark bg anyway).
+ *   - `shadow-none` and any explicit `shadow-{sm,md,lg,xl,2xl}` win via
+ *     specificity because Tailwind emits them last with equal weight and
+ *     our selector is intentionally low-specificity (`:where(...)`).
+ *   - Translucent variants (`bg-card/60`, `bg-card/80`) are deliberately
+ *     excluded — they are a different visual pattern (tinted panels).
+ *   - `--card-shadow` is exposed as a variable so the entire app's card
+ *     elevation can be retuned in one place.
+ * ------------------------------------------------------------------ */
+:root {
+  --card-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  --card-border: var(--border);
+}
+
+:where(:not(.dark)) :where(.bg-card, .bg-popover) {
+  background-color: var(--color-card);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+:where(.dark) :where(.bg-card, .bg-popover) {
+  background-color: var(--color-card);
+  border-color: var(--card-border);
+  box-shadow: none;
+}
+
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100%;
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+
+  /* The library search remains below an iPhone notch/Dynamic Island and can
+   * always scroll clear of the software keyboard. --keyboard-inset is kept in
+   * sync with window.visualViewport by the route while it is mounted. */
+  .library-search-sticky {
+    top: env(safe-area-inset-top, 0px);
+  }
+
+  .library-keyboard-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--keyboard-inset, 0px));
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
+    scroll-padding-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
+  }
+
+  .library-keyboard-safe input[type="search"] {
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
+    scroll-margin-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+
+  /* Focus indicators — WCAG 2.4.7 / 2.4.11 compliant.
+   * The double-layer "outline + box-shadow halo" ensures the ring is
+   * visible on ANY background (including primary-colored buttons where
+   * a single primary-colored ring would disappear). The inner halo is
+   * the background color so it carves out contrast against the element
+   * itself; the outer ring is the ring token which contrasts against
+   * the page. This works identically in light and dark themes because
+   * both --ring and --background flip with the theme. */
+  :focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Interactive primitives get an extra inner halo so the ring stays
+   * visible even when the element's own background matches --ring
+   * (e.g. the primary teal Button). box-shadow doesn't affect layout,
+   * so nothing shifts on focus. */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  [role="link"]:focus-visible,
+  [role="menuitem"]:focus-visible,
+  [role="tab"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--color-background);
+  }
+
+  /* Form fields also get a subtle border color change so the focused
+   * field is obvious even before the ring is drawn (helps low-vision
+   * users who rely on the field's own chrome). */
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    border-color: var(--color-ring);
+  }
+
+  /* Never suppress focus. Tailwind's `focus:outline-none` and shadcn's
+   * `outline-none` set outline to a 2px transparent solid — great for
+   * `ring` utilities, silent-fail for keyboard users on custom widgets.
+   * This reasserts a visible ring on :focus-visible so keyboard users
+   * always see focus. Mouse focus (plain :focus) stays quiet. */
+  *:focus-visible {
+    outline-style: solid !important;
+    outline-color: var(--color-ring) !important;
+    outline-width: 3px !important;
+  }
+
+  /* Skip-to-content link — first tab stop on every page. Visually
+   * hidden until focused, then pinned to the top-left with high
+   * contrast so it's obvious the user just gained a shortcut past
+   * the header/nav straight into <main>. */
+  .skip-link {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+    transform: translateY(-200%);
+    transition: transform 150ms ease-out;
+  }
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  /* ---------------------------------------------------------------------
+   * Overlay focus indicators
+   *
+   * Radix primitives (Dialog, DropdownMenu, Popover, Sheet/Drawer,
+   * ContextMenu, Menubar, NavigationMenu, Command, HoverCard, Select,
+   * AlertDialog) render inside portals and use `outline-none` on their
+   * Content wrappers plus programmatic focus on their items. That means:
+   *   - :focus-visible sometimes never fires on menu items because Radix
+   *     drives selection via [data-highlighted] / [data-selected], not
+   *     the browser's focus ring heuristic.
+   *   - The Content wrapper itself receives focus on open but shows no
+   *     ring because shadcn sets `outline-none` on it.
+   * We reassert visible rings for both — same ring token as the rest of
+   * the app, so light and dark modes match automatically because --ring
+   * flips with the theme.
+   * ------------------------------------------------------------------ */
+
+  /* Overlay Content wrappers: ring when the wrapper itself takes focus
+   * (Dialog/AlertDialog trap focus onto Content on open). */
+  [role="dialog"]:focus,
+  [role="alertdialog"]:focus,
+  [role="menu"]:focus,
+  [role="listbox"]:focus,
+  [data-radix-popper-content-wrapper] > *:focus,
+  [data-radix-popper-content-wrapper] > *:focus-visible {
+    outline: 3px solid var(--color-ring) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Menu / listbox / option items — Radix marks the active row with
+   * [data-highlighted] (menus) or [data-selected] (command/listbox).
+   * Draw the ring on those states so keyboard users see a persistent
+   * indicator that survives Radix's programmatic focus management. */
+  [role="menuitem"][data-highlighted],
+  [role="menuitemcheckbox"][data-highlighted],
+  [role="menuitemradio"][data-highlighted],
+  [role="option"][data-highlighted],
+  [role="option"][data-selected="true"],
+  [cmdk-item][data-selected="true"] {
+    outline: 2px solid var(--color-ring) !important;
+    outline-offset: -2px;
+  }
+
+  /* Close buttons inside overlays use `focus:ring-2 focus:ring-ring`.
+   * Make sure the ring is offset from the background so it's visible
+   * against both light and dark surface colors. */
+  [role="dialog"] [data-state] button:focus-visible,
+  [role="alertdialog"] [data-state] button:focus-visible {
+    outline: 3px solid var(--color-ring) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 2px var(--color-popover, var(--color-background));
+  }
+
+  /* Mobile menu (Sheet/Drawer) triggers and items — the Sheet content
+   * is a [role="dialog"] so the rule above covers the panel itself.
+   * Items inside the mobile nav are usually <a> / <button> and pick
+   * up the base a/button :focus-visible rule automatically. */
+
+  /* Windows High Contrast Mode — system colors, not our tokens. */
+  @media (forced-colors: active) {
+    :focus-visible,
+    [role="menuitem"][data-highlighted],
+    [role="option"][data-highlighted],
+    [role="option"][data-selected="true"],
+    [cmdk-item][data-selected="true"] {
+      outline: 3px solid Highlight !important;
+      outline-offset: 2px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Unlayered so it wins over Tailwind text-size utilities: iOS Safari zooms the
+ * page whenever a focused form control renders below 16px, which shifts the
+ * layout sideways and can leave it stuck off-screen. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

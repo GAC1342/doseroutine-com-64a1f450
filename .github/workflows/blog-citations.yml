@@ -1,0 +1,43 @@
+name: blog-citations
+
+# Re-validates every /blog citation: offline rules (bad URL, unknown host,
+# duplicate, thin or stale sourcing) plus a live fetch of each source to catch
+# dead links and permanent redirects.
+#
+# Runs after a deploy to main when blog content or the audit rules change, and
+# on demand from the Actions tab. Kept path-filtered to avoid burning minutes.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/lib/blog-posts.ts"
+      - "src/lib/blog-citation-audit.ts"
+      - "scripts/check-blog-citations.mjs"
+      - "scripts/blog-citations.entry.ts"
+      - ".github/workflows/blog-citations.yml"
+
+concurrency:
+  group: blog-citations-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: npm
+      - run: npm ci
+      - name: Validate blog citations (static + live)
+        run: node scripts/check-blog-citations.mjs --json citation-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blog-citation-report
+          path: citation-report.json

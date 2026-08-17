@@ -1,0 +1,10 @@
+name: OG image MIME validation
+
+# Verifies every file under public/og/ has a supported image extension
+# (.jpg/.jpeg/.png/.webp) AND that its on-disk magic bytes match the
+# MIME type implied by that extension. Catches renamed formats
+# (e.g. PNG saved as .jpg), unsupported formats (AVIF, GIF, SVG, HEIC),
+# and zero-byte/truncated files before they break link previews.
+
+on:
+  workflow_dispatch:

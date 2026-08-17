@@ -1,0 +1,12 @@
+name: post-deploy-smoke
+
+# Runs the live post-deploy smoke test (attribution headers, robots/llms/
+# tdm/sitemap, and — when CRON_SECRET is set — the IndexNow ping response)
+# and uploads all captured output as a CI artifact so failures are easy
+# to debug.
+#
+# Trigger manually from the Actions tab, or on push to main after a deploy.
+# Override the target URL with the `base_url` input on workflow_dispatch.
+
+on:
+  workflow_dispatch:

@@ -1,0 +1,29 @@
+name: JSON-LD schema validation
+
+# Validates structured data across every sitemap URL:
+#   - Every <script type="application/ld+json"> parses as strict JSON
+#   - Recognised @type nodes carry their required fields
+#   - @id references resolve and no @id is defined twice on one page
+# Manual only, so it never burns CI minutes on ordinary pushes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to sweep (defaults to the production site)"
+        required: false
+        default: "https://doseroutine.com"
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Structured-data sweep across all indexable pages
+        run: python3 scripts/jsonld-sweep.py "${{ inputs.base_url || 'https://doseroutine.com' }}"
+      - name: Required-schema check on critical routes
+        run: python3 scripts/validate-schema-sitemap.py "${{ inputs.base_url || 'https://doseroutine.com' }}"

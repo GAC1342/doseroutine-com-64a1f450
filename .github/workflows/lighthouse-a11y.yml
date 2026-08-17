@@ -1,0 +1,40 @@
+name: Lighthouse accessibility (illustration controls)
+
+# Manual + weekly. The audited controls are behind auth inside a sheet, so this
+# drives the real flow with Playwright and runs Lighthouse in snapshot mode
+# against the live DOM (see scripts/lighthouse-a11y-illustrations.mjs).
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base URL to audit
+        default: https://doseroutine.com
+        required: false
+  schedule:
+    - cron: "0 9 * * 1"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Audit illustration controls
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base || 'https://doseroutine.com' }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          PLAYWRIGHT_CHROMIUM_PATH: ""
+        run: node scripts/lighthouse-a11y-illustrations.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-a11y-report
+          path: test-results/lighthouse-a11y/
+          retention-days: 14

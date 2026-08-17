@@ -1,0 +1,1 @@
+ALTER TABLE public.compound_content ADD COLUMN IF NOT EXISTS last_reviewed date;

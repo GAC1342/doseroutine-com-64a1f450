@@ -1,0 +1,83 @@
+name: Debug context
+description: >
+  Prints runner, git, tool, and network diagnostics for CI debugging. Reports
+  presence (not values) of well-known secrets and env vars so failures caused
+  by missing configuration are visible without leaking sensitive data. Also
+  enables GitHub Actions step + runner debug logging for the remainder of the
+  job by writing ACTIONS_STEP_DEBUG / ACTIONS_RUNNER_DEBUG to $GITHUB_ENV.
+
+inputs:
+  secret_names:
+    description: >
+      Space-separated list of secret/env var names to report presence for.
+      Never prints values — only "SET" or "MISSING".
+    required: false
+    default: >-
+      VITE_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PROJECT_ID
+      SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SUPABASE_PROJECT_ID
+      TEST_USER_EMAIL TEST_USER_PASSWORD CRON_SECRET GITHUB_TOKEN
+
+runs:
+  using: composite
+  steps:
+    - name: Enable Actions debug logging for the rest of the job
+      shell: bash
+      run: |
+        {
+          echo "ACTIONS_STEP_DEBUG=true"
+          echo "ACTIONS_RUNNER_DEBUG=true"
+        } >> "$GITHUB_ENV"
+
+    - name: Print runner + tool versions
+      shell: bash
+      run: |
+        set -x
+        echo "runner_os=$RUNNER_OS  arch=$RUNNER_ARCH"
+        uname -a || true
+        cat /etc/os-release || true
+        echo "cpu=$(nproc)  mem=$(free -h | awk '/Mem:/ {print $2}')  disk=$(df -h / | awk 'NR==2 {print $4" free"}')"
+        node --version || true
+        bun --version || true
+        python3 --version || true
+        git --version || true
+        bunx playwright --version 2>/dev/null || true
+
+    - name: Print git context
+      shell: bash
+      run: |
+        set -x
+        echo "event=$GITHUB_EVENT_NAME ref=$GITHUB_REF sha=$GITHUB_SHA"
+        echo "actor=$GITHUB_ACTOR repo=$GITHUB_REPOSITORY run=$GITHUB_RUN_ID attempt=$GITHUB_RUN_ATTEMPT"
+        git log -1 --pretty=full || true
+        git status --porcelain || true
+
+    - name: Report configured secrets / env vars (presence only)
+      shell: bash
+      env:
+        SECRET_NAMES: ${{ inputs.secret_names }}
+      run: |
+        echo "## Environment presence report" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Variable | Status |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+        missing=0
+        for name in $SECRET_NAMES; do
+          val="${!name-}"
+          if [ -n "$val" ]; then
+            status="✅ SET (${#val} chars)"
+          else
+            status="❌ MISSING"
+            missing=$((missing+1))
+          fi
+          echo "$name -> $status"
+          echo "| \`$name\` | $status |" >> "$GITHUB_STEP_SUMMARY"
+        done
+        echo ""
+        echo "Missing count: $missing"
+
+    - name: Sanity-check network egress (non-fatal)
+      shell: bash
+      run: |
+        set -x
+        curl -sS -o /dev/null -w "github.com -> HTTP %{http_code} in %{time_total}s\n" https://api.github.com/ || true
+        curl -sS -o /dev/null -w "registry.npmjs.org -> HTTP %{http_code} in %{time_total}s\n" https://registry.npmjs.org/ || true

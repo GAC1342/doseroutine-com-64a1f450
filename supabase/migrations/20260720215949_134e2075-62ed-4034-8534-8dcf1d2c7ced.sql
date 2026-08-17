@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX IF NOT EXISTS schedule_events_uc_time_uidx ON public.schedule_events (user_compound_id, scheduled_at);
+CREATE INDEX IF NOT EXISTS schedule_events_user_time_idx ON public.schedule_events (user_id, scheduled_at);

@@ -1,0 +1,110 @@
+{
+  "//": "Performance + font budget. Thresholds are the CI contract \u2014 tightening is fine, loosening needs a deliberate PR.",
+  "budgets": {
+    "first-contentful-paint": {
+      "maxMs": 2000,
+      "label": "First Contentful Paint"
+    },
+    "largest-contentful-paint": {
+      "maxMs": 2800,
+      "label": "Largest Contentful Paint"
+    },
+    "speed-index": {
+      "maxMs": 3400,
+      "label": "Speed Index"
+    },
+    "total-blocking-time": {
+      "maxMs": 300,
+      "label": "Total Blocking Time"
+    },
+    "cumulative-layout-shift": {
+      "max": 0.1,
+      "label": "Cumulative Layout Shift"
+    }
+  },
+  "performanceScore": {
+    "min": 0.85
+  },
+  "fonts": {
+    "//": "Guards the Space Grotesk 600/700 optimization: swap on every face, only critical faces preloaded, and a hard transfer-size ceiling.",
+    "maxTransferBytes": 140000,
+    "maxRequests": 4,
+    "maxPreloads": 2,
+    "requireFontDisplaySwap": true,
+    "maxRenderBlockingFontMs": 0
+  },
+  "audits": {
+    "font-display": {
+      "minScore": 1
+    },
+    "render-blocking-resources": {
+      "maxWastedMs": 300
+    }
+  },
+  "routeOverrides": {
+    "//": "Known offenders held at their current level so CI still catches NEW regressions. /library ships a large client-side dataset+filter UI; tighten these back down when that is fixed.",
+    "/library": {
+      "budgets": {
+        "total-blocking-time": {
+          "maxMs": 1100,
+          "label": "Total Blocking Time"
+        }
+      },
+      "performanceScore": {
+        "min": 0.65
+      }
+    }
+  },
+  "profiles": {
+    "//": "Device-profile overrides layered over the base (desktop) budgets by scripts/check-perf-budget.mjs --profile <name>. Mobile runs Lighthouse's slow-4G + 4x CPU throttling, so absolute timings are naturally higher.",
+    "mobile": {
+      "budgets": {
+        "first-contentful-paint": {
+          "maxMs": 3300,
+          "label": "First Contentful Paint"
+        },
+        "largest-contentful-paint": {
+          "maxMs": 4500,
+          "label": "Largest Contentful Paint"
+        },
+        "speed-index": {
+          "maxMs": 6000,
+          "label": "Speed Index"
+        },
+        "total-blocking-time": {
+          "maxMs": 900,
+          "label": "Total Blocking Time"
+        },
+        "cumulative-layout-shift": {
+          "max": 0.1,
+          "label": "Cumulative Layout Shift"
+        }
+      },
+      "performanceScore": {
+        "min": 0.7
+      },
+      "audits": {
+        "font-display": {
+          "minScore": 1
+        },
+        "render-blocking-resources": {
+          "maxWastedMs": 600
+        }
+      },
+      "routeOverrides": {
+        "//": "/library ships a large client-side dataset+filter UI; heaviest on throttled mobile CPU.",
+        "/library": {
+          "budgets": {
+            "total-blocking-time": {
+              "maxMs": 4000,
+              "label": "Total Blocking Time"
+            }
+          },
+          "performanceScore": {
+            "min": 0.45
+          }
+        }
+      }
+    }
+  }
+}

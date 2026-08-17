@@ -1,0 +1,25 @@
+// Staged, NOT active. See ./README.md for activation instructions.
+// Final location: src/routes/api/public/health/live.ts
+import { createFileRoute } from "@tanstack/react-router";
+
+// Liveness must be cheap and MUST NOT check downstream services.
+// A failing DB should not cause the orchestrator to kill this container —
+// that's what readiness is for.
+export const Route = createFileRoute("/api/public/health/live")({
+  server: {
+    handlers: {
+      GET: async () => {
+        return new Response(
+          JSON.stringify({ probe: "live", ok: true, ts: Date.now() }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-store, must-revalidate",
+            },
+          },
+        );
+      },
+    },
+  },
+});

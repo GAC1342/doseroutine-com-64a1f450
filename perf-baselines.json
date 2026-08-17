@@ -1,0 +1,85 @@
+{
+  "//": "Per-route Lighthouse baselines. CI fails when a route's performance score drops more than `scoreTolerance` below its baseline, or a metric grows more than `metricTolerance` (relative) past its baseline. Regenerate deliberately with `npm run perf:baseline:update` after an intentional change, and review the diff in the PR.",
+  "scoreTolerance": 0.03,
+  "metricTolerance": 0.2,
+  "trackedMetrics": [
+    "first-contentful-paint",
+    "largest-contentful-paint",
+    "total-blocking-time",
+    "cumulative-layout-shift"
+  ],
+  "routes": {
+    "/": {
+      "performanceScore": 0.99,
+      "metrics": {
+        "first-contentful-paint": 636.835,
+        "largest-contentful-paint": 656.835,
+        "total-blocking-time": 96.75,
+        "cumulative-layout-shift": 0
+      }
+    },
+    "/calculators": {
+      "performanceScore": 0.99,
+      "metrics": {
+        "first-contentful-paint": 587.029,
+        "largest-contentful-paint": 607.029,
+        "total-blocking-time": 4.5,
+        "cumulative-layout-shift": 0
+      }
+    },
+    "/closed-testing": {
+      "performanceScore": 1,
+      "metrics": {
+        "first-contentful-paint": 609.255,
+        "largest-contentful-paint": 609.255,
+        "total-blocking-time": 5,
+        "cumulative-layout-shift": 0.027
+      }
+    },
+    "/help": {
+      "performanceScore": 0.99,
+      "metrics": {
+        "first-contentful-paint": 575.957,
+        "largest-contentful-paint": 654.457,
+        "total-blocking-time": 14.5,
+        "cumulative-layout-shift": 0
+      }
+    },
+    "/install": {
+      "performanceScore": 1,
+      "metrics": {
+        "first-contentful-paint": 564.851,
+        "largest-contentful-paint": 644.851,
+        "total-blocking-time": 0,
+        "cumulative-layout-shift": 0
+      }
+    },
+    "/interaction-checker": {
+      "performanceScore": 1,
+      "metrics": {
+        "first-contentful-paint": 596.405,
+        "largest-contentful-paint": 596.405,
+        "total-blocking-time": 0,
+        "cumulative-layout-shift": 0
+      }
+    },
+    "/library": {
+      "performanceScore": 0.71,
+      "metrics": {
+        "first-contentful-paint": 626.144,
+        "largest-contentful-paint": 674.644,
+        "total-blocking-time": 895,
+        "cumulative-layout-shift": 0
+      }
+    },
+    "/library/guides/hexarelin-protocol": {
+      "performanceScore": 1,
+      "metrics": {
+        "first-contentful-paint": 589.846,
+        "largest-contentful-paint": 589.846,
+        "total-blocking-time": 8.25,
+        "cumulative-layout-shift": 0
+      }
+    }
+  }
+}

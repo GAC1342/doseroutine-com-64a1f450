@@ -1,0 +1,70 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { collectRouteAssets, evaluate } from "../../../scripts/check-route-bundles.mjs";
+
+const ROOT = process.cwd();
+const budgets = JSON.parse(readFileSync(path.join(ROOT, "route-bundle-budgets.json"), "utf8"));
+const baselines = JSON.parse(readFileSync(path.join(ROOT, "route-bundle-baselines.json"), "utf8"));
+
+// Routes users actually land on. Losing budget coverage on any of these is how a
+// slow bundle ships unnoticed, so lock the list down.
+const REQUIRED_ROUTES = [
+  "/",
+  "/library/",
+  "/calculators",
+  "/auth",
+  "/_authenticated/today",
+  "/_authenticated/timeline",
+  "/_authenticated/stack",
+  "/_authenticated/fitness",
+];
+
+describe("route bundle budgets", () => {
+  it("tracks every high-traffic route", () => {
+    for (const route of REQUIRED_ROUTES) {
+      expect(Object.keys(budgets.routes)).toContain(route);
+    }
+  });
+
+  it("has a baseline recorded for every tracked route", () => {
+    for (const route of Object.keys(budgets.routes)) {
+      expect(baselines.routes[route], `missing baseline for ${route}`).toBeTruthy();
+      expect(baselines.routes[route].gzip).toBeGreaterThan(0);
+    }
+  });
+
+  it("keeps every baseline under its hard ceiling", () => {
+    for (const [route, raw] of Object.entries(budgets.routes)) {
+      const cfg = raw as { maxGzipBytes?: number };
+      const cap = cfg.maxGzipBytes ?? budgets.defaults.maxGzipBytes;
+      expect(
+        baselines.routes[route].gzip,
+        `${route} baseline exceeds its ceiling`,
+      ).toBeLessThanOrEqual(cap);
+    }
+  });
+
+  it("flags growth past tolerance and passes shrinkage", () => {
+    const base = { baseline: 100_000, tolerancePct: 5, slackBytes: 0, hardMaxGzip: 200_000 };
+    expect(evaluate({ ...base, gzip: 99_000 })).toEqual([]);
+    expect(evaluate({ ...base, gzip: 104_000 })).toEqual([]);
+    expect(evaluate({ ...base, gzip: 120_000 }).join(" ")).toContain("regressed");
+    expect(evaluate({ ...base, baseline: undefined, gzip: 250_000 }).join(" ")).toContain(
+      "hard ceiling",
+    );
+  });
+
+  it("collects root + layout + leaf chunks for nested routes", () => {
+    const routes = {
+      __root__: { children: ["/_authenticated"], preloads: ["/assets/root.js"] },
+      "/_authenticated": { children: ["/_authenticated/today"], preloads: ["/assets/auth.js"] },
+      "/_authenticated/today": { preloads: ["/assets/today.js", "/assets/root.js"] },
+    };
+    expect(collectRouteAssets(routes, "/_authenticated/today")).toEqual([
+      "/assets/auth.js",
+      "/assets/root.js",
+      "/assets/today.js",
+    ]);
+  });
+});

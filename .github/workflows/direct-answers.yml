@@ -1,0 +1,24 @@
+name: direct-answers
+
+# Verifies every /library/<compound> page opens with a 40-60 word direct answer
+# immediately under the H1, with no CTA or marketing copy above it.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  direct-answers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Unit contract for the audit rules
+        run: npx vitest run src/lib/__tests__/direct-answer-ssr.test.ts
+      - name: Sweep live library pages
+        env:
+          BASE_URL: https://doseroutine.com
+        run: node scripts/check-direct-answers.mjs

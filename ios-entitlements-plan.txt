@@ -1,0 +1,66 @@
+# DoseRoutine — TestFlight Submission Entitlements Plan
+#
+# Source of truth for what capabilities the iOS app is ALLOWED to declare.
+# The check-entitlements script diffs the built .ipa's embedded entitlements
+# and the ASC capabilities list against this file and fails on any drift.
+#
+# Format: one key per line. Comments start with #. Sections:
+#   [required]   MUST be present in the built app
+#   [optional]   MAY be present; not flagged either way
+#   [forbidden]  MUST NOT be present (would trigger extra App Review scrutiny)
+#
+# When you intentionally add or remove a capability, update this file in the
+# same commit as the Xcode/Capacitor change. That commit becomes the audit trail.
+
+[required]
+application-identifier
+com.apple.developer.team-identifier
+
+[optional]
+# StoreKit / IAP does NOT require an explicit entitlement — Apple grants it
+# implicitly when the app has active in-app products. RevenueCat uses StoreKit
+# under the hood, so no entitlement key is needed. `com.apple.developer.in-app-payments`
+# is the Apple Pay (merchant IDs) entitlement, not StoreKit IAP — do not add it
+# unless the app actually integrates Apple Pay.
+com.apple.developer.in-app-payments
+
+
+[optional]
+# Push notifications: enabled for dose reminders only if the native build
+# opts in. Absent in the current Capacitor build; harmless if added later.
+aps-environment
+# Background modes for local notification scheduling
+com.apple.developer.background-modes
+# Keychain sharing group used by Capacitor Preferences
+keychain-access-groups
+# get-task-allow is TRUE for debug builds, FALSE/absent for release
+get-task-allow
+
+[forbidden]
+# DoseRoutine is a logging + planner app. None of the below should ship.
+com.apple.developer.healthkit
+com.apple.developer.healthkit.access
+com.apple.developer.homekit
+com.apple.developer.family-controls
+com.apple.developer.associated-domains
+com.apple.developer.applesignin
+com.apple.developer.icloud-container-identifiers
+com.apple.developer.icloud-services
+com.apple.developer.ubiquity-kvstore-identifier
+com.apple.developer.networking.wifi-info
+com.apple.developer.networking.HotspotConfiguration
+com.apple.developer.networking.multipath
+com.apple.developer.networking.vpn.api
+com.apple.developer.nfc.readersession.formats
+com.apple.developer.siri
+com.apple.developer.pass-type-identifiers
+com.apple.developer.default-data-protection
+com.apple.developer.usernotifications.communication
+com.apple.developer.usernotifications.critical-alerts
+com.apple.developer.usernotifications.time-sensitive
+com.apple.security.personal-information.location
+com.apple.security.device.camera
+com.apple.security.device.microphone
+com.apple.security.personal-information.photos-library
+com.apple.security.personal-information.contacts
+com.apple.security.personal-information.calendars

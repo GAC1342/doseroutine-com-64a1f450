@@ -1,0 +1,20 @@
+name: font-contract
+
+# Fails if font families, weights (600/700), @font-face definitions, preload
+# URLs or font-weight class usage ever drift apart.
+# Manual trigger to keep Actions minutes down — the always-on guard is the
+# vitest suite (src/lib/__tests__/font-loading.test.ts).
+on:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Validate font contract
+        run: npm run validate:fonts

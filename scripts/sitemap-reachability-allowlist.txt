@@ -1,0 +1,6 @@
+# URLs known to be orphans in the internal link graph.
+# Listed here so `validate-sitemap-reachability.py` passes in CI while we
+# work through adding internal links. Remove a line once the page has at
+# least one link from a reachable page.
+#
+# Every entry MUST be present in sitemap.xml. Comments start with `#`.

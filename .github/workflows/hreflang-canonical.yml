@@ -1,0 +1,71 @@
+name: hreflang-canonical
+
+# Fails the build when hreflang/canonical tags drift across sitemap URLs:
+#   • exactly one self-referencing, https, same-origin canonical per page
+#   • canonical target is itself listed in the sitemap
+#   • hreflang clusters carry x-default + the default locale, no duplicates,
+#     valid codes, and every alternate stays on the canonical path/origin
+#
+# The rule engine is unit-tested on every push (fast, no network); the live
+# audit builds this commit, serves it locally, and audits that build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override target (blank = build and check locally)"
+        required: false
+        default: ""
+
+jobs:
+  rules:
+    name: Consistency rules (unit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+      - run: npx vitest run src/lib/__tests__/hreflang-canonical-check.test.ts
+
+  live:
+    name: Live hreflang + canonical audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: rules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: npm run build
+
+      - name: Start server
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: |
+          node dist/server/index.mjs &
+          echo $! > server.pid
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3000/robots.txt && exit 0
+            sleep 2
+          done
+          echo "server never became ready"; exit 1
+
+      - name: Audit hreflang + canonical
+        env:
+          HREFLANG_BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}
+          HREFLANG_SAMPLE: "60"
+        run: node scripts/hreflang-canonical-check.mjs
+
+      - name: Stop server
+        if: always()
+        run: '[ -f server.pid ] && kill "$(cat server.pid)" || true'

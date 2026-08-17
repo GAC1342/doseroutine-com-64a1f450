@@ -1,0 +1,36 @@
+name: sitemap-indexability
+
+# Crawls sitemap.xml on the live site and asserts every listed URL is
+# indexable (no noindex in X-Robots-Tag or meta robots) and carries a
+# correct self-referencing canonical. Also asserts private paths stay
+# noindexed. Manual trigger to keep Actions minutes down.
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base URL to crawl
+        default: https://doseroutine.com
+        required: false
+      only_library:
+        description: Only check /library URLs
+        type: boolean
+        default: false
+      limit:
+        description: Max sitemap URLs to check (0 = all)
+        default: "0"
+        required: false
+
+jobs:
+  indexability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate sitemap indexability
+        run: |
+          python scripts/validate-sitemap-indexability.py \
+            --base "${{ inputs.base || 'https://doseroutine.com' }}" \
+            --limit "${{ inputs.limit || '0' }}" \
+            ${{ inputs.only_library == true && '--only-library' || '' }}

@@ -1,0 +1,44 @@
+name: JSON-LD schema contract
+
+# Fast, source-level structured-data guard for the homepage and every blog
+# post: SoftwareApplication, FAQPage, BlogPosting and BreadcrumbList must
+# parse and carry the fields Google Rich Results requires.
+#
+# Cheap by design (one vitest file, no server boot) and path-filtered, so it
+# only burns minutes when schema-bearing code changes. The full live-crawl
+# validation across all sitemap URLs stays manual in jsonld-schema.yml.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/lib/home-jsonld.ts"
+      - "src/lib/jsonld-validate.ts"
+      - "src/lib/blog-seo.ts"
+      - "src/lib/blog-posts.ts"
+      - "src/routes/index.tsx"
+      - "src/routes/blog.*.tsx"
+      - "src/lib/__tests__/jsonld-schema-contract.test.ts"
+      - "src/lib/jsonld-duplicates.ts"
+      - "src/lib/software-app-schema.ts"
+      - "src/routes/__root.tsx"
+      - "src/routes/__tests__/jsonld-duplicate-lint.test.ts"
+      - "src/lib/entity-jsonld-lint.ts"
+      - "src/lib/__tests__/entity-jsonld-lint.test.ts"
+      - "src/routes/__tests__/entity-jsonld-lint.test.ts"
+      - ".github/workflows/jsonld-contract.yml"
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Validate homepage and blog JSON-LD
+        run: npx vitest run src/lib/__tests__/jsonld-schema-contract.test.ts
+      - name: No duplicate or conflicting JSON-LD per page
+        run: npx vitest run src/routes/__tests__/jsonld-duplicate-lint.test.ts src/lib/__tests__/jsonld-duplicates.test.ts
+      - name: Organization / Person entity completeness
+        run: npx vitest run src/lib/__tests__/entity-jsonld-lint.test.ts src/routes/__tests__/entity-jsonld-lint.test.ts

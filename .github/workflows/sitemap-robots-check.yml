@@ -1,0 +1,73 @@
+name: sitemap-robots-check
+
+# Validates sitemap.xml and robots.txt on every build:
+#   • both respond 200 with the right content type
+#   • sitemap parses, child sitemaps resolve, URL count stays sane
+#   • no private/off-origin/duplicate URLs leak into the sitemap
+#   • sampled sitemap URLs return 200 with no redirect into auth
+#
+# The rule engine is unit-tested on every push (fast, no network); the live
+# HTTP check runs against a locally built server so it validates the commit
+# being built, not whatever is currently deployed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override target (blank = build and check locally)"
+        required: false
+        default: ""
+
+jobs:
+  rules:
+    name: Contract rules (unit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+      - run: npx vitest run src/lib/__tests__/sitemap-robots-check.test.ts
+
+  live:
+    name: Live sitemap + robots check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: rules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: npm run build
+
+      - name: Start server
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: |
+          node dist/server/index.mjs &
+          echo $! > server.pid
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3000/robots.txt && exit 0
+            sleep 2
+          done
+          echo "server never became ready"; exit 1
+
+      - name: Check sitemap.xml and robots.txt
+        env:
+          SITEMAP_BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}
+          SITEMAP_SAMPLE: "40"
+          SITEMAP_MIN_URLS: "200"
+        run: node scripts/sitemap-robots-check.mjs
+
+      - name: Stop server
+        if: always()
+        run: '[ -f server.pid ] && kill "$(cat server.pid)" || true'

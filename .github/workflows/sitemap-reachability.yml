@@ -1,0 +1,4 @@
+name: sitemap-reachability
+
+on:
+  workflow_dispatch:

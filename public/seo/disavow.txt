@@ -1,0 +1,9 @@
+# DoseRoutine disavow list
+# Upload at: https://search.google.com/search-console/disavow-links
+# Property: doseroutine.com
+#
+# Scraper / auto-generated link farms reported under "Top linking sites".
+# They send no real traffic and provide no editorial value.
+domain:thenet1.com
+domain:similarpages.com
+domain:odiasearch.com

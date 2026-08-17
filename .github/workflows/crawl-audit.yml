@@ -1,0 +1,53 @@
+name: crawl-audit
+
+# Automated crawler audit: revalidates metadata, internal links and JSON-LD
+# schema across the sitemap on every build.
+#
+# The pure check logic runs on every build through the unit suite
+# (src/lib/__tests__/crawl-audit.test.ts). This workflow runs the live crawl.
+#
+# Triggers are manual by design to keep Actions minutes down — flip on the
+# `push`/`schedule` block below if you want it fully automatic.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Site to crawl
+        required: false
+        default: https://doseroutine.com
+      limit:
+        description: Pages to audit (0 = every sitemap URL)
+        required: false
+        default: "60"
+  # push:
+  #   branches: [main]
+  # schedule:
+  #   - cron: "0 6 * * *"
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Unit-test the audit rules
+        run: npx vitest run src/lib/__tests__/crawl-audit.test.ts
+
+      - name: Crawl audit
+        env:
+          CRAWL_BASE_URL: ${{ github.event.inputs.base_url || 'https://doseroutine.com' }}
+          CRAWL_LIMIT: ${{ github.event.inputs.limit || '60' }}
+        run: node scripts/crawl-audit.mjs
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawl-audit-report
+          path: crawl-audit-report.json
+          if-no-files-found: ignore
