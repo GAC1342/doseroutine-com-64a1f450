@@ -2070,10 +2070,41 @@ workflows:
             echo "ERROR: stale build/ios/xcarchive or build/ios/ipa present before archive. Aborting to prevent caching a prior icon."
             exit 1
           fi
+          # Resolve the installed App Store profile for this bundle id so the
+          # archive is given an explicit PROVISIONING_PROFILE_SPECIFIER. Without
+          # it, manual signing archives fail with a generic "Failed to archive".
+          PROFILE_NAME=""
+          PROFILE_UUID=""
+          TMP_PLIST=$(mktemp)
+          for d in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
+                   "$HOME/Library/MobileDevice/Provisioning Profiles"; do
+            [ -d "$d" ] || continue
+            for p in "$d"/*.mobileprovision; do
+              [ -e "$p" ] || continue
+              security cms -D -i "$p" > "$TMP_PLIST" 2>/dev/null || continue
+              APPID=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$TMP_PLIST" 2>/dev/null || true)
+              BID="${APPID#*.}"
+              [ "$BID" = "$BUNDLE_ID" ] || continue
+              /usr/libexec/PlistBuddy -c "Print :ProvisionedDevices" "$TMP_PLIST" >/dev/null 2>&1 && continue
+              PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$TMP_PLIST" 2>/dev/null || true)
+              PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$TMP_PLIST" 2>/dev/null || true)
+              PROFILE_TEAM=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$TMP_PLIST" 2>/dev/null || true)
+            done
+          done
+          rm -f "$TMP_PLIST"
+          if [ -z "$PROFILE_NAME" ]; then
+            echo "ERROR: no installed App Store provisioning profile found for $BUNDLE_ID at archive time."
+            exit 1
+          fi
+          echo "Archiving with profile: $PROFILE_NAME ($PROFILE_UUID)"
           set +e
           xcode-project build-ipa \
             "${XP_ARG[@]}" \
-            --scheme "$XCODE_SCHEME" 2>&1 | tee "$CM_BUILD_DIR/build-logs/xcodebuild.log"
+            --scheme "$XCODE_SCHEME" \
+            --verbose \
+            --archive-xcargs "COMPILER_INDEX_STORE_ENABLE=NO CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=$PROFILE_TEAM PROVISIONING_PROFILE_SPECIFIER=$PROFILE_UUID" \
+            2>&1 | tee "$CM_BUILD_DIR/build-logs/xcodebuild.log"
+
           BUILD_STATUS=${PIPESTATUS[0]}
           set -e
           if [ "$BUILD_STATUS" -ne 0 ]; then
@@ -2084,6 +2115,13 @@ workflows:
             grep -Ein -B 4 -A 12 '(^|[[:space:]])error:|ARCHIVE FAILED|CodeSign|Provisioning profile|requires a development team|No signing certificate' \
               "$CM_BUILD_DIR/build-logs/xcodebuild.log" | tail -160 || \
               tail -160 "$CM_BUILD_DIR/build-logs/xcodebuild.log"
+            for RAW in "$CM_BUILD_DIR/xcodebuild.log" "$CM_BUILD_DIR/ios/App/xcodebuild.log"; do
+              if [ -f "$RAW" ]; then
+                echo ""
+                echo "--- raw xcodebuild output: $RAW (last 200 lines) ---"
+                tail -200 "$RAW"
+              fi
+            done
             echo "════════════════════════════════════════════════════════════"
             exit "$BUILD_STATUS"
           fi
