@@ -102,7 +102,7 @@ jobs:
 
       - name: Open a pull request with the new baselines
         if: ${{ inputs.open_pr }}
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           add-paths: e2e/**-snapshots/**
           branch: chore/visual-baselines-${{ github.run_id }}
