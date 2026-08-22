@@ -39,6 +39,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
       - name: Collect Lighthouse runs (${{ matrix.profile }})
         env:
           PERF_BASE_URL: ${{ github.event.inputs.base_url || 'https://doseroutine.com' }}
