@@ -1008,6 +1008,7 @@ function CompoundDetail() {
             itemtype: "https://schema.org/WebPageElement",
           }}
         >
+          <meta {...{ itemprop: "name" }} content={`${compound.name} benefits, dosage, and interactions`} />
           <header className="mb-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
             <div className="min-w-0">
               <div className="mb-2 flex flex-wrap items-center gap-2">
