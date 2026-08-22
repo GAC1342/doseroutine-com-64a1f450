@@ -1424,7 +1424,141 @@ workflows:
             echo "     FIX: Apple Developer > Certificates > delete the pending Distribution request, then rerun."
           }
 
+          preflight_match_certificate_to_key() {
+            # Proactive fix: never let the build discover the mismatch through a
+            # failed fetch. Compare the cached private key with every Apple
+            # Distribution certificate first. When none matches, delete them and
+            # regenerate the key so the very first fetch creates a matched pair.
+            python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography requests >/dev/null 2>&1 || true
+            set +e
+            CERT_KEY_FILE="$CERT_KEY_FILE" python3 - <<'PY'
+          import base64
+          import os
+          import sys
+          import time
+
+          try:
+              import jwt
+              import requests
+              from cryptography import x509
+              from cryptography.hazmat.primitives import serialization
+          except Exception as exc:  # pragma: no cover - build environment only
+              print(f"Preflight skipped (missing dependency: {exc}).")
+              sys.exit(0)
+
+          key_path = os.environ["CERT_KEY_FILE"]
+          with open(key_path, "rb") as fh:
+              private_key = serialization.load_pem_private_key(fh.read(), password=None)
+          our_pub = private_key.public_key().public_bytes(
+              serialization.Encoding.DER,
+              serialization.PublicFormat.SubjectPublicKeyInfo,
+          )
+
+          issuer = os.environ["APP_STORE_CONNECT_ISSUER_ID"]
+          kid = os.environ["APP_STORE_CONNECT_KEY_ID"]
+          pkey = os.environ["APP_STORE_CONNECT_PRIVATE_KEY"]
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": issuer, "iat": now, "exp": now + 20 * 60, "aud": "appstoreconnect-v1"},
+              pkey,
+              algorithm="ES256",
+              headers={"kid": kid, "typ": "JWT"},
+          )
+          headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+          base = "https://api.appstoreconnect.apple.com/v1"
+
+          r = requests.get(f"{base}/certificates?limit=200", headers=headers, timeout=30)
+          if r.status_code >= 400:
+              print(f"Preflight skipped (could not list certificates: {r.status_code}).")
+              sys.exit(0)
+
+          certs = [
+              c
+              for c in r.json().get("data", [])
+              if c.get("attributes", {}).get("certificateType")
+              in {"DISTRIBUTION", "IOS_DISTRIBUTION"}
+          ]
+          if not certs:
+              print("No Apple Distribution certificates exist yet; one will be created for this key.")
+              sys.exit(0)
+
+          matched = False
+          for cert in certs:
+              content = cert.get("attributes", {}).get("certificateContent")
+              if not content:
+                  continue
+              try:
+                  parsed = x509.load_der_x509_certificate(base64.b64decode(content))
+              except Exception:
+                  continue
+              cert_pub = parsed.public_key().public_bytes(
+                  serialization.Encoding.DER,
+                  serialization.PublicFormat.SubjectPublicKeyInfo,
+              )
+              if cert_pub == our_pub:
+                  matched = True
+                  break
+
+          if matched:
+              print("Cached private key matches an existing Apple Distribution certificate.")
+              sys.exit(0)
+
+          print(f"None of the {len(certs)} Apple Distribution certificate(s) match this build's private key.")
+          print("Removing them now so Apple can issue one matching certificate.")
+          pending = set()
+          for cert in certs:
+              cert_id = cert.get("id")
+              if not cert_id:
+                  continue
+              name = cert.get("attributes", {}).get("name", "Apple Distribution")
+              d = requests.delete(f"{base}/certificates/{cert_id}", headers=headers, timeout=30)
+              if d.status_code not in (200, 202, 204, 404):
+                  print(f"ERROR: could not delete certificate {name} ({d.status_code}).")
+                  print(d.text[:500])
+                  sys.exit(1)
+              print(f"Deleted {name} ({cert_id}).")
+              pending.add(cert_id)
+
+          for attempt in range(1, 13):
+              remaining = set()
+              for cert_id in pending:
+                  check = requests.get(f"{base}/certificates/{cert_id}", headers=headers, timeout=30)
+                  if check.status_code != 404:
+                      remaining.add(cert_id)
+              if not remaining:
+                  print("Apple confirmed the old certificates are removed.")
+                  break
+              pending = remaining
+              print(f"Waiting for Apple to finish removal ({attempt}/12)...")
+              time.sleep(10)
+          else:
+              print("ERROR: Apple did not finish removing the old certificates in time. Rerun this workflow.")
+              sys.exit(1)
+
+          time.sleep(10)
+          sys.exit(10)
+          PY
+            PREFLIGHT_STATUS=$?
+            set -e
+            if [ "$PREFLIGHT_STATUS" -eq 10 ]; then
+              echo "Generating a fresh private key so the new Apple certificate matches it exactly."
+              rm -f "$CERT_DIR"/*.p12 "$CERT_DIR"/*.pem "$CERT_DIR"/*.cer "$CERT_DIR"/*.key 2>/dev/null || true
+              rm -f "$LEGACY_CERT_DIR"/*.p12 "$LEGACY_CERT_DIR"/*.pem "$LEGACY_CERT_DIR"/*.cer "$LEGACY_CERT_DIR"/*.key 2>/dev/null || true
+              rm -f "$PROFILE_DIR"/*.mobileprovision "$PROFILE_DIR"/*.provisionprofile 2>/dev/null || true
+              rm -f "$LEGACY_PROFILE_DIR"/*.mobileprovision "$LEGACY_PROFILE_DIR"/*.provisionprofile 2>/dev/null || true
+              rm -f "$CACHED_CERT_KEY_FILE"
+              openssl genrsa -out "$CERT_KEY_FILE" 2048 >/dev/null 2>&1
+              chmod 600 "$CERT_KEY_FILE"
+            elif [ "$PREFLIGHT_STATUS" -ne 0 ]; then
+              echo "ERROR: certificate/private-key preflight failed."
+              exit "$PREFLIGHT_STATUS"
+            fi
+          }
+
           write_certificate_key
+          if [ "${AUTO_REPAIR_IOS_SIGNING:-true}" = "true" ]; then
+            preflight_match_certificate_to_key
+          fi
           FETCH_OUTPUT="$CM_BUILD_DIR/build-logs/fetch-signing-files.raw.log"
           if ! fetch_signing_files_once "$FETCH_OUTPUT"; then
             cat "$FETCH_OUTPUT"
