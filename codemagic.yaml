@@ -1178,8 +1178,24 @@ workflows:
             fi
           fi
 
+          # Install the profile where Xcode (and the next verification step)
+          # looks for it. `use-profiles --profile` only reads the given file;
+          # it does not copy it into the profile directories.
+          PROFILE_UUID="$(security cms -D -i "$DIRECT_PROFILE" 2>/dev/null \
+            | plutil -extract UUID raw -o - - 2>/dev/null || echo "")"
+          if [ -z "$PROFILE_UUID" ]; then
+            PROFILE_UUID="doseroutine_app_store"
+          fi
+          for dir in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
+                     "$HOME/Library/MobileDevice/Provisioning Profiles"; do
+            mkdir -p "$dir"
+            cp "$DIRECT_PROFILE" "$dir/$PROFILE_UUID.mobileprovision"
+          done
+          echo "Installed profile as $PROFILE_UUID.mobileprovision"
+
           xcode-project use-profiles --profile "$DIRECT_PROFILE" --archive-method app-store
           echo "Direct matched certificate and profile installed; skipping legacy fetch-signing-files path."
+
           exit 0
 
           count_matches() {
