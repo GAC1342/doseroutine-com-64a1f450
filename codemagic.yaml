@@ -1134,6 +1134,36 @@ workflows:
 
           trap 'status=$?; if [ "$status" -ne 0 ]; then bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true; fi; exit "$status"' EXIT
 
+          # Use Apple's API directly to create a certificate from the exact RSA
+          # private key imported below. This avoids the Codemagic CLI matching
+          # loop that repeatedly returned "Did not find any Signing Certificates
+          # for given private key" even after stale certificates were revoked.
+          DIRECT_SIGNING_DIR="$CM_BUILD_DIR/.codemagic-code-signing/direct"
+          DIRECT_KEY_FILE="$CM_BUILD_DIR/.codemagic-code-signing/ios_distribution_private_key.pem"
+          rm -rf "$DIRECT_SIGNING_DIR"
+          mkdir -p "$DIRECT_SIGNING_DIR" "$(dirname "$DIRECT_KEY_FILE")"
+          python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography requests >/dev/null
+          python3 "$CM_BUILD_DIR/scripts/setup-ios-signing.py" \
+            --bundle-id "$BUNDLE_ID" \
+            --key-file "$DIRECT_KEY_FILE" \
+            --output-dir "$DIRECT_SIGNING_DIR"
+
+          DIRECT_P12="$DIRECT_SIGNING_DIR/doseroutine_distribution.p12"
+          DIRECT_PROFILE="$DIRECT_SIGNING_DIR/doseroutine_app_store.mobileprovision"
+          if [ ! -s "$DIRECT_P12" ] || [ ! -s "$DIRECT_PROFILE" ]; then
+            echo "ERROR: direct signing setup did not produce both required files."
+            exit 1
+          fi
+          keychain initialize
+          keychain add-certificates --certificate "$DIRECT_P12"
+          if ! security find-identity -v -p codesigning | grep -qE "Apple Distribution|iOS Distribution"; then
+            echo "ERROR: the directly created certificate/private-key pair was not imported as a signing identity."
+            exit 1
+          fi
+          xcode-project use-profiles --profile "$DIRECT_PROFILE" --archive-method app-store
+          echo "Direct matched certificate and profile installed; skipping legacy fetch-signing-files path."
+          exit 0
+
           count_matches() {
             # Bash 3.2-safe glob counter. Usage: count_matches "$DIR" "*.p12"
             _dir="$1"
