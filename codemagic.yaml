@@ -1279,6 +1279,15 @@ workflows:
           }
 
           reset_certificate_key() {
+            # The failed fetch can leave an old certificate and provisioning
+            # profile on disk. If those files survive the retry,
+            # keychain add-certificates/use-profiles can select the stale pair
+            # even after Apple creates the replacement certificate.
+            echo "Removing stale signing files left by the failed fetch."
+            rm -f "$CERT_DIR"/*.p12 "$CERT_DIR"/*.pem "$CERT_DIR"/*.cer "$CERT_DIR"/*.key 2>/dev/null || true
+            rm -f "$LEGACY_CERT_DIR"/*.p12 "$LEGACY_CERT_DIR"/*.pem "$LEGACY_CERT_DIR"/*.cer "$LEGACY_CERT_DIR"/*.key 2>/dev/null || true
+            rm -f "$PROFILE_DIR"/*.mobileprovision "$PROFILE_DIR"/*.provisionprofile 2>/dev/null || true
+            rm -f "$LEGACY_PROFILE_DIR"/*.mobileprovision "$LEGACY_PROFILE_DIR"/*.provisionprofile 2>/dev/null || true
             rm -f "$CACHED_CERT_KEY_FILE"
             echo "Generating a fresh iOS Distribution private key for the repaired certificate."
             openssl genrsa -out "$CERT_KEY_FILE" 2048 >/dev/null 2>&1
@@ -1406,6 +1415,11 @@ workflows:
                   exit 1
                 fi
                 cat "$RETRY_OUTPUT"
+                if grep -qiE "Did not find any Signing Certificates for given private key|already have a current Distribution certificate|pending certificate request|returned 409" "$RETRY_OUTPUT"; then
+                  echo "ERROR: the retry returned certificate/private-key mismatch text even though the command exited successfully."
+                  echo "The build is stopping before Xcode so it cannot archive with stale signing files."
+                  exit 1
+                fi
               else
                 echo "AUTO_REPAIR_IOS_SIGNING is off. Turn it on or manually remove stale Distribution certificates, then rerun."
                 exit 1
