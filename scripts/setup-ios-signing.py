@@ -190,10 +190,11 @@ def get_bundle_id(api: AppleApi, identifier: str) -> str:
 
 
 def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: str) -> bytes:
-    for profile in api.list_data(
-        "/profiles",
-        {"filter[bundleId]": bundle_id, "filter[profileType]": "IOS_APP_STORE", "limit": "200"},
-    ):
+    # Apple does not accept filter[bundleId] on GET /profiles. Use the
+    # bundle ID relationship endpoint, then filter profile type locally.
+    for profile in api.list_data(f"/bundleIds/{bundle_id}/profiles", {"limit": "200"}):
+        if profile.get("attributes", {}).get("profileType") != "IOS_APP_STORE":
+            continue
         profile_id = profile.get("id")
         if profile_id:
             response = requests.delete(
