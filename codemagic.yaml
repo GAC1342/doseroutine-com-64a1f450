@@ -1183,6 +1183,23 @@ workflows:
             echo "Certificates added to keychain from files: $added"
           }
 
+          add_fetched_certificates_to_keychain() {
+            # Codemagic's fetch-signing-files command can save a certificate and
+            # its private key as separate files. Let the CLI discover and import
+            # the complete pair from its standard directories; importing only
+            # individual .pem/.p12 files can leave Xcode without a usable signing
+            # identity even though the fetch itself succeeded.
+            keychain initialize
+            keychain add-certificates
+            MATCHING_IDENTITIES=$(security find-identity -v -p codesigning 2>/dev/null | grep -E "Apple Distribution|iOS Distribution" | grep -c . || true)
+            if [ "$MATCHING_IDENTITIES" -eq 0 ]; then
+              echo "ERROR: signing files were fetched, but no Apple Distribution identity with a private key was imported."
+              echo "FIX: clear the Codemagic iOS signing cache and rerun once, or upload a matching .p12 and App Store profile."
+              exit 1
+            fi
+            echo "Usable Apple Distribution signing identities: $MATCHING_IDENTITIES"
+          }
+
           # Fully manual fallback: exported .p12 + matching App Store profile.
           # This bypasses Apple's certificate-matching API entirely, which is the
           # correct fix when the original Mac has the matching private key.
@@ -1398,7 +1415,7 @@ workflows:
             cat "$FETCH_OUTPUT"
           fi
 
-          add_available_certificates_to_keychain
+          add_fetched_certificates_to_keychain
           build_profile_args
           xcode-project use-profiles "${PROFILE_ARGS[@]}" --archive-method app-store
       - name: Verify downloaded provisioning profile matches com.doseroutine.app
