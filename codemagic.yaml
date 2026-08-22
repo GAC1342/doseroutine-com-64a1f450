@@ -1167,10 +1167,10 @@ workflows:
             --certificate "$DIRECT_P12" \
             --certificate-password "$DIRECT_P12_PASSWORD"
           unset DIRECT_P12_PASSWORD
-          if ! security find-identity -v -p codesigning | grep -qE "Apple Distribution|iOS Distribution"; then
+          if ! security find-identity -v -p codesigning | grep -qE "Apple Distribution|iOS Distribution|iPhone Distribution"; then
             echo "Valid-identity check found nothing; listing all identities for diagnosis:"
             security find-identity -p codesigning || true
-            if security find-identity -p codesigning | grep -qE "Apple Distribution|iOS Distribution"; then
+            if security find-identity -p codesigning | grep -qE "Apple Distribution|iOS Distribution|iPhone Distribution"; then
               echo "WARNING: identity present but not marked valid (chain/trust). Continuing with archive."
             else
               echo "ERROR: the directly created certificate/private-key pair was not imported as a signing identity."
@@ -1239,7 +1239,7 @@ workflows:
             # identity even though the fetch itself succeeded.
             keychain initialize
             keychain add-certificates
-            MATCHING_IDENTITIES=$(security find-identity -v -p codesigning 2>/dev/null | grep -E "Apple Distribution|iOS Distribution" | grep -c . || true)
+            MATCHING_IDENTITIES=$(security find-identity -v -p codesigning 2>/dev/null | grep -E "Apple Distribution|iOS Distribution|iPhone Distribution" | grep -c . || true)
             if [ "$MATCHING_IDENTITIES" -eq 0 ]; then
               echo "ERROR: signing files were fetched, but no Apple Distribution identity with a private key was imported."
               echo "FIX: clear the Codemagic iOS signing cache and rerun once, or upload a matching .p12 and App Store profile."
@@ -1279,7 +1279,7 @@ workflows:
           # If Codemagic already made signing files available, prefer those files so we do
           # not ask Apple to create or match a new certificate key.
           CERT_FILE_COUNT=$(( $(count_matches "$CERT_DIR" "*.p12") + $(count_matches "$CERT_DIR" "*.pem") + $(count_matches "$LEGACY_CERT_DIR" "*.p12") + $(count_matches "$LEGACY_CERT_DIR" "*.pem") ))
-          KEYCHAIN_DIST_COUNT=$(security find-identity -v -p codesigning 2>/dev/null | grep -E "Apple Distribution|iOS Distribution" | grep -c . || true)
+          KEYCHAIN_DIST_COUNT=$(security find-identity -v -p codesigning 2>/dev/null | grep -E "Apple Distribution|iOS Distribution|iPhone Distribution" | grep -c . || true)
           UPLOADED_CERT_COUNT=$(( CERT_FILE_COUNT + KEYCHAIN_DIST_COUNT ))
           UPLOADED_PROFILE_COUNT=$(( $(count_matches "$PROFILE_DIR" "*.mobileprovision") + $(count_matches "$PROFILE_DIR" "*.provisionprofile") + $(count_matches "$LEGACY_PROFILE_DIR" "*.mobileprovision") + $(count_matches "$LEGACY_PROFILE_DIR" "*.provisionprofile") ))
           if [ "$UPLOADED_CERT_COUNT" -gt 0 ] || [ "$UPLOADED_PROFILE_COUNT" -gt 0 ]; then
