@@ -12,6 +12,29 @@ SCRIPT = Path(__file__).with_name("setup-ios-signing.py")
 
 
 class SigningApiRequestTests(unittest.TestCase):
+    def test_required_capabilities_use_apple_api_enum_values(self) -> None:
+        tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
+        required_capabilities: set[str] | None = None
+
+        for node in tree.body:
+            if not isinstance(node, ast.Assign):
+                continue
+            if not any(
+                isinstance(target, ast.Name) and target.id == "REQUIRED_CAPABILITIES"
+                for target in node.targets
+            ):
+                continue
+            value = ast.literal_eval(node.value)
+            required_capabilities = set(value)
+            break
+
+        self.assertIsNotNone(required_capabilities)
+        self.assertEqual(
+            required_capabilities,
+            {"APPLE_ID_AUTH", "ASSOCIATED_DOMAINS", "HEALTHKIT"},
+        )
+        self.assertNotIn("SIGN_IN_WITH_APPLE", required_capabilities)
+
     def test_bundle_relationships_have_no_query_parameters(self) -> None:
         tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
         relationship_calls: list[ast.Call] = []

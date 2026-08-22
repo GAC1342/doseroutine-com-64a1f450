@@ -23,7 +23,8 @@ SUMMARY="$OUT_DIR/SUMMARY.txt"
 # Case-insensitive, extended regex.
 PATTERNS=(
   '(public.*opened|ios/App/App/public/index.html is missing|Capacitor sync did not create the required iOS files|No .*Podfile.* found)'
-  '(Did not find any Signing Certificates for given private key|already have a current Distribution certificate|pending certificate request|returned 409)'
+  '(ENTITY_ERROR\.ATTRIBUTE\.TYPE|not a valid value for the attribute .capabilityType)'
+  '(Did not find any Signing Certificates for given private key|already have a current Distribution certificate|pending certificate request)'
   '(Could not resolve package dependencies|Conflicting identity for app|package identity)'
   '\*\* (BUILD|ARCHIVE|TEST) FAILED \*\*'
   '(Execution failed for task|What went wrong:|Task :[^ ]+ FAILED)'
@@ -109,7 +110,9 @@ classify() {
   # $1 = log basename, $2 = matched line text
   local name="$1" line="$2"
   case "$line" in
-    *"Did not find any Signing Certificates for given private key"*|*"already have a current Distribution certificate"*|*"pending certificate request"*|*"returned 409"*)
+    *"ENTITY_ERROR.ATTRIBUTE.TYPE"*|*"not a valid value for the attribute 'capabilityType'"*)
+      echo "Apple capability configuration failed — the signing script sent an unsupported App Store Connect capability enum. Fix the capability mapping in setup-ios-signing.py; this is not a certificate/private-key mismatch." ;;
+    *"Did not find any Signing Certificates for given private key"*|*"already have a current Distribution certificate"*|*"pending certificate request"*)
       echo "iOS Distribution certificate/private-key mismatch — do not replace the App Store Connect .p8. Revoke the old Distribution certificate, or upload the matching .p12 plus an App Store provisioning profile to Codemagic Code signing identities, then rerun." ;;
     *"public"*"opened"*|*"ios/App/App/public/index.html is missing"*|*"Capacitor sync did not create the required iOS files"*|*"No "*"Podfile"*" found"*)
       echo "iOS native project generation failed — Capacitor did not create/copy ios/App/App/public or the Podfile. Regenerate the iOS project and rerun cap sync before pod install/build." ;;
@@ -153,6 +156,7 @@ FAIL_SUMMARY="$OUT_DIR/FAILURE_SUMMARY.txt"
 cat_label() {
   case "$1" in
     ios-code-signing) echo "iOS code signing" ;;
+    ios-capability-config) echo "iOS capability configuration" ;;
     ios-cert-key-mismatch) echo "iOS Distribution certificate/private key" ;;
     ios-capacitor-project) echo "iOS Capacitor project" ;;
     ios-spm) echo "iOS Swift Package Manager" ;;
@@ -176,7 +180,8 @@ cat_label() {
 _categorize() {
   local line="$1"
   case "$line" in
-    *"Did not find any Signing Certificates for given private key"*|*"already have a current Distribution certificate"*|*"pending certificate request"*|*"returned 409"*) echo "ios-cert-key-mismatch" ;;
+    *"ENTITY_ERROR.ATTRIBUTE.TYPE"*|*"not a valid value for the attribute 'capabilityType'"*) echo "ios-capability-config" ;;
+    *"Did not find any Signing Certificates for given private key"*|*"already have a current Distribution certificate"*|*"pending certificate request"*) echo "ios-cert-key-mismatch" ;;
     *"public"*"opened"*|*"ios/App/App/public/index.html is missing"*|*"Capacitor sync did not create the required iOS files"*|*"No "*"Podfile"*" found"*) echo "ios-capacitor-project" ;;
     *"No matching profiles found"*|*"Provisioning profile"*|*"Code Signing Error"*|*"doesn't include signing certificate"*) echo "ios-code-signing" ;;
     *"Could not resolve package dependencies"*|*"Conflicting identity for app"*|*"package identity"*) echo "ios-spm" ;;
@@ -253,6 +258,8 @@ rm -f "$ENTRIES_TSV"
 categorize() {
   local line="$1"
   case "$line" in
+    *"ENTITY_ERROR.ATTRIBUTE.TYPE"*|*"not a valid value for the attribute 'capabilityType'"*) echo "ios-capability-config" ;;
+    *"Did not find any Signing Certificates for given private key"*|*"already have a current Distribution certificate"*|*"pending certificate request"*) echo "ios-cert-key-mismatch" ;;
     *"public"*"opened"*|*"ios/App/App/public/index.html is missing"*|*"Capacitor sync did not create the required iOS files"*|*"No "*"Podfile"*" found"*) echo "ios-capacitor-project" ;;
     *"No matching profiles found"*|*"Provisioning profile"*|*"Code Signing Error"*|*"doesn't include signing certificate"*) echo "ios-code-signing" ;;
     *"Could not resolve package dependencies"*|*"Conflicting identity for app"*|*"package identity"*) echo "ios-spm" ;;
@@ -291,6 +298,8 @@ BUILD_SUMMARY="$LOG_DIR/build-summary.txt"
   done < "$SUMMARY"
   echo ""
   echo "Category legend:"
+  echo "  ios-capability-config Apple capability enum/configuration rejected by App Store Connect"
+  echo "  ios-cert-key-mismatch Distribution certificate does not match the imported private key"
   echo "  ios-capacitor-project  Missing ios/App/App/public or Podfile after Capacitor sync"
   echo "  ios-spm                Swift Package Manager dependency resolution / package identity collision"
   echo "  ios-code-signing  Provisioning profile / cert mismatch for com.doseroutine.app"

@@ -30,7 +30,10 @@ DISTRIBUTION_TYPES = {"DISTRIBUTION", "IOS_DISTRIBUTION"}
 REQUIRED_CAPABILITIES = {
     "ASSOCIATED_DOMAINS",
     "HEALTHKIT",
-    "SIGN_IN_WITH_APPLE",
+    # App Store Connect calls Sign in with Apple APPLE_ID_AUTH. The Xcode
+    # entitlement remains com.apple.developer.applesignin; these names are
+    # intentionally different.
+    "APPLE_ID_AUTH",
 }
 
 
