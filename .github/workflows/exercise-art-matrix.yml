@@ -159,7 +159,7 @@ jobs:
 
       - name: Upload landscape diffs (expected/actual/diff + HTML gallery)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: landscape-diffs-${{ matrix.name }}-${{ github.run_attempt }}
           path: landscape-diffs/
@@ -243,7 +243,7 @@ jobs:
 
       - name: Upload visual artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-artifacts-${{ matrix.name }}-${{ github.run_attempt }}
           path: visual-artifacts/
@@ -252,7 +252,7 @@ jobs:
 
       - name: Upload geometry ledgers
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: exercise-art-ledgers-${{ matrix.name }}
           path: |
@@ -264,7 +264,7 @@ jobs:
 
       - name: Upload failure artifacts (screenshots + video + traces)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: exercise-art-failures-${{ matrix.name }}-${{ github.run_attempt }}
           path: |
@@ -367,7 +367,7 @@ jobs:
 
       - name: Upload landscape diffs (expected/actual/diff + HTML gallery)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: landscape-diffs-stability-${{ matrix.name }}-${{ github.run_attempt }}
           path: landscape-diffs/
@@ -399,7 +399,7 @@ jobs:
 
       - name: Upload failure media (screenshots + videos + gallery)
         if: always() && steps.failure_media.outputs.has_new_media == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: failure-media-stability-${{ matrix.name }}-${{ github.run_attempt }}
           path: failure-media/
@@ -435,7 +435,7 @@ jobs:
 
       - name: Upload visual artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-artifacts-stability-${{ matrix.name }}-${{ github.run_attempt }}
           path: visual-artifacts/
@@ -444,7 +444,7 @@ jobs:
 
       - name: Upload geometry ledgers
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: exercise-art-ledgers-${{ matrix.name }}
           path: |
@@ -456,7 +456,7 @@ jobs:
 
       - name: Upload failure artifacts (screenshots + video + traces)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: exercise-art-failures-${{ matrix.name }}-${{ github.run_attempt }}
           path: |
@@ -506,7 +506,7 @@ jobs:
 
       - name: Upload merged landscape geometry
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: exercise-art-landscape-geometry-${{ github.run_attempt }}
           path: merged/landscape-final/
