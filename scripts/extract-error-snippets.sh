@@ -41,6 +41,12 @@ PATTERNS=(
 shopt -s nullglob
 found_any=0
 for f in "$LOG_DIR"/*.log; do
+  # A signing fetch may fail once, repair Apple's stale certificate records,
+  # then succeed on retry. Do not report that recovered first attempt as the
+  # cause of a later Xcode archive failure.
+  if grep -q '^SIGNING_REPAIR_SUCCEEDED$' "$f" 2>/dev/null; then
+    continue
+  fi
   base="$(basename "$f" .log)"
   out="$OUT_DIR/${base}.snippet.txt"
   match_line=""

@@ -831,7 +831,7 @@ workflows:
           set -e
           mkdir -p "$CM_BUILD_DIR/build-logs"
           LOG="$CM_BUILD_DIR/build-logs/ios-identity-check.log"
-          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          trap 'status=$?; if [ "$status" -ne 0 ]; then bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true; fi; exit "$status"' EXIT
           exec > >(tee -a "$LOG") 2>&1
 
           EXPECTED_BUNDLE_ID="com.doseroutine.app"
@@ -1132,7 +1132,7 @@ workflows:
           mkdir -p "$CERT_DIR" "$PROFILE_DIR" "$LEGACY_CERT_DIR" "$LEGACY_PROFILE_DIR" "$SIGNING_CACHE_DIR"
           chmod 700 "$SIGNING_CACHE_DIR" 2>/dev/null || true
 
-          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          trap 'status=$?; if [ "$status" -ne 0 ]; then bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true; fi; exit "$status"' EXIT
 
           count_matches() {
             # Bash 3.2-safe glob counter. Usage: count_matches "$DIR" "*.p12"
@@ -1261,11 +1261,14 @@ workflows:
           CERT_KEY_FILE="$CACHED_CERT_KEY_FILE"
 
           write_certificate_key() {
-            if [ -n "${IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY:-}" ]; then
-              echo "Using IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY from Codemagic environment."
+            # A key created by the automatic repair must remain authoritative.
+            # Otherwise an older environment variable overwrites the repaired
+            # key on the next build and recreates the mismatch loop.
+            if [ -f "$CERT_KEY_FILE" ]; then
+              echo "Using cached iOS Distribution private key from the prior repaired/successful Codemagic run."
+            elif [ -n "${IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY:-}" ]; then
+              echo "No cached key exists; seeding it from IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY."
               printf '%s\n' "$IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY" > "$CERT_KEY_FILE"
-            elif [ -f "$CERT_KEY_FILE" ]; then
-              echo "Using cached iOS Distribution private key from prior Codemagic run."
             else
               echo "No cached iOS Distribution private key found; generating one stable key for this app."
               openssl genrsa -out "$CERT_KEY_FILE" 2048 >/dev/null 2>&1
@@ -1420,6 +1423,15 @@ workflows:
                   echo "The build is stopping before Xcode so it cannot archive with stale signing files."
                   exit 1
                 fi
+                # The first fetch failure was successfully repaired. Mark its
+                # dedicated log so later failure triage does not misdiagnose an
+                # unrelated Xcode archive failure as the recovered mismatch.
+                echo "SIGNING_REPAIR_SUCCEEDED" >> "$FETCH_OUTPUT"
+                echo "SIGNING_REPAIR_SUCCEEDED"
+                if [ -n "${IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY:-}" ]; then
+                  echo "WARNING: IOS_DISTRIBUTION_CERTIFICATE_PRIVATE_KEY is stale and was intentionally ignored after repair."
+                  echo "Remove that variable from the doseroutine_env group; the repaired cached key is now authoritative."
+                fi
               else
                 echo "AUTO_REPAIR_IOS_SIGNING is off. Turn it on or manually remove stale Distribution certificates, then rerun."
                 exit 1
@@ -1440,7 +1452,7 @@ workflows:
           set -e
           mkdir -p "$CM_BUILD_DIR/build-logs"
           LOG="$CM_BUILD_DIR/build-logs/provisioning-profile-check.log"
-          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          trap 'status=$?; if [ "$status" -ne 0 ]; then bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true; fi; exit "$status"' EXIT
           exec > >(tee -a "$LOG") 2>&1
 
           EXPECTED_BUNDLE_ID="com.doseroutine.app"
@@ -1576,7 +1588,7 @@ workflows:
           set -e
           set -o pipefail
           mkdir -p "$CM_BUILD_DIR/build-logs"
-          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          trap 'status=$?; if [ "$status" -ne 0 ]; then bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true; fi; exit "$status"' EXIT
           cd "$CM_BUILD_DIR"
           echo "→ Re-applying SPM identity fix immediately before xcodebuild dependency resolution…"
           node scripts/fix-ios-spm-identity.mjs
@@ -1807,7 +1819,7 @@ workflows:
           set -e
           mkdir -p "$CM_BUILD_DIR/build-logs"
           set -o pipefail
-          trap 'bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true' EXIT
+          trap 'status=$?; if [ "$status" -ne 0 ]; then bash "$CM_BUILD_DIR/scripts/extract-error-snippets.sh" || true; fi; exit "$status"' EXIT
           if [ ! -f ios/App/App/public/index.html ]; then
             echo "ERROR: ios/App/App/public/index.html is missing."
             echo "Direct cause: Capacitor did not copy the web app into the iOS native project."
@@ -1824,9 +1836,23 @@ workflows:
             echo "ERROR: stale build/ios/xcarchive or build/ios/ipa present before archive. Aborting to prevent caching a prior icon."
             exit 1
           fi
+          set +e
           xcode-project build-ipa \
             "${XP_ARG[@]}" \
             --scheme "$XCODE_SCHEME" 2>&1 | tee "$CM_BUILD_DIR/build-logs/xcodebuild.log"
+          BUILD_STATUS=${PIPESTATUS[0]}
+          set -e
+          if [ "$BUILD_STATUS" -ne 0 ]; then
+            echo ""
+            echo "════════════════════════════════════════════════════════════"
+            echo " ACTUAL XCODE ARCHIVE ERRORS"
+            echo "════════════════════════════════════════════════════════════"
+            grep -Ein -B 4 -A 12 '(^|[[:space:]])error:|ARCHIVE FAILED|CodeSign|Provisioning profile|requires a development team|No signing certificate' \
+              "$CM_BUILD_DIR/build-logs/xcodebuild.log" | tail -160 || \
+              tail -160 "$CM_BUILD_DIR/build-logs/xcodebuild.log"
+            echo "════════════════════════════════════════════════════════════"
+            exit "$BUILD_STATUS"
+          fi
           # Confirm a fresh archive was actually produced by this run
           FRESH_ARCHIVE=$(ls -1d build/ios/xcarchive/*.xcarchive 2>/dev/null | head -1 || true)
           if [ -z "$FRESH_ARCHIVE" ]; then
