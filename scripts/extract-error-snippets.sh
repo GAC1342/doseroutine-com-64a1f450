@@ -47,6 +47,12 @@ for f in "$LOG_DIR"/*.log; do
   if grep -q '^SIGNING_REPAIR_SUCCEEDED$' "$f" 2>/dev/null; then
     continue
   fi
+  # fetch-signing-files.log includes the output of the raw first attempt because
+  # the whole signing step is tee'd into it. If repair later succeeded, the
+  # aggregate log is also recovered and must not be classified as a failure.
+  if [ "$(basename "$f")" = "fetch-signing-files.log" ] && grep -q 'SIGNING_REPAIR_SUCCEEDED' "$f" 2>/dev/null; then
+    continue
+  fi
   base="$(basename "$f" .log)"
   out="$OUT_DIR/${base}.snippet.txt"
   match_line=""

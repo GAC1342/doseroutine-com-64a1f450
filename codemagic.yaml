@@ -1338,18 +1338,21 @@ workflows:
           headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
           base = "https://api.appstoreconnect.apple.com/v1"
 
-          certs = []
-          # App Store Connect labels modern certificates "Apple Distribution"
-          # in its UI, but the API filter values remain DISTRIBUTION and
-          # IOS_DISTRIBUTION. Unsupported filter values must not abort repair.
-          for cert_type in ("DISTRIBUTION", "IOS_DISTRIBUTION"):
-              url = f"{base}/certificates?filter[certificateType]={cert_type}&limit=200"
-              r = requests.get(url, headers=headers, timeout=30)
-              if r.status_code >= 400:
-                  print(f"WARNING: could not list {cert_type} certificates ({r.status_code}); continuing with supported certificate types.")
-                  print(r.text[:500])
-                  continue
-              certs.extend(r.json().get("data", []))
+          # Fetch without a certificateType filter. Apple has changed the accepted
+          # filter values over time, which previously allowed a failed/unsupported
+          # filter to leave the blocking certificate untouched.
+          r = requests.get(f"{base}/certificates?limit=200", headers=headers, timeout=30)
+          if r.status_code >= 400:
+              print(f"ERROR: could not list Apple certificates ({r.status_code}).")
+              print(r.text[:500])
+              sys.exit(1)
+
+          certs = [
+              cert
+              for cert in r.json().get("data", [])
+              if cert.get("attributes", {}).get("certificateType")
+              in {"DISTRIBUTION", "IOS_DISTRIBUTION"}
+          ]
 
           seen = set()
           unique = []
@@ -1377,6 +1380,33 @@ workflows:
                   print(r.text[:500])
                   sys.exit(1)
 
+          # Certificate deletion is eventually consistent. An immediate create can
+          # still see the deleted certificate and return the same key-mismatch error.
+          # Confirm every deleted certificate has disappeared before returning.
+          pending = {cert.get("id") for cert in unique if cert.get("id")}
+          for attempt in range(1, 13):
+              remaining = set()
+              for cert_id in pending:
+                  check = requests.get(f"{base}/certificates/{cert_id}", headers=headers, timeout=30)
+                  if check.status_code == 404:
+                      continue
+                  if check.status_code >= 400:
+                      print(f"WARNING: certificate deletion check returned {check.status_code} for {cert_id}.")
+                  remaining.add(cert_id)
+              if not remaining:
+                  print("Old Distribution certificates are confirmed removed.")
+                  break
+              pending = remaining
+              print(f"Waiting for Apple to finish removing {len(pending)} certificate(s) (check {attempt}/12)...")
+              time.sleep(10)
+          else:
+              print("ERROR: Apple did not finish removing the old Distribution certificate(s) within 2 minutes.")
+              print("Rerun this workflow once; it will reuse the same cached private key.")
+              sys.exit(1)
+
+          # Give Apple's profile service a short additional window to observe the
+          # certificate deletion before Codemagic requests its replacement.
+          time.sleep(10)
           print("Old Distribution certificates removed. A fresh matching certificate will be created now.")
           PY
           }
@@ -1407,22 +1437,28 @@ workflows:
               if [ "${AUTO_REPAIR_IOS_SIGNING:-true}" = "true" ]; then
                 repair_apple_distribution_certificates
                 reset_certificate_key
-                RETRY_OUTPUT="$CM_BUILD_DIR/build-logs/fetch-signing-files.retry.log"
-                echo "Retrying signing-file fetch after automatic certificate repair..."
-                if ! fetch_signing_files_once "$RETRY_OUTPUT"; then
+              RETRY_OUTPUT="$CM_BUILD_DIR/build-logs/fetch-signing-files.retry.log"
+              RETRY_SUCCEEDED=false
+              for RETRY_NUMBER in 1 2 3 4; do
+                echo "Retrying signing-file fetch after automatic certificate repair (attempt $RETRY_NUMBER/4)..."
+                : > "$RETRY_OUTPUT"
+                if fetch_signing_files_once "$RETRY_OUTPUT" && ! grep -qiE "Did not find any Signing Certificates for given private key|already have a current Distribution certificate|pending certificate request|returned 409" "$RETRY_OUTPUT"; then
                   cat "$RETRY_OUTPUT"
-                  echo ""
-                  echo "ERROR: automatic signing repair did not complete."
-                  echo "Only remaining manual fix: delete any pending Distribution certificate request in Apple Developer, then rerun once."
-                  echo "Do not replace the App Store Connect .p8 for this specific certificate/private-key error."
-                  exit 1
+                  RETRY_SUCCEEDED=true
+                  break
                 fi
                 cat "$RETRY_OUTPUT"
-                if grep -qiE "Did not find any Signing Certificates for given private key|already have a current Distribution certificate|pending certificate request|returned 409" "$RETRY_OUTPUT"; then
-                  echo "ERROR: the retry returned certificate/private-key mismatch text even though the command exited successfully."
-                  echo "The build is stopping before Xcode so it cannot archive with stale signing files."
-                  exit 1
+                if [ "$RETRY_NUMBER" -lt 4 ]; then
+                  echo "Apple has not propagated the certificate change yet; waiting 20 seconds before retrying with the same private key."
+                  sleep 20
                 fi
+              done
+              if [ "$RETRY_SUCCEEDED" != "true" ]; then
+                echo ""
+                echo "ERROR: Apple still did not create a certificate matching the repaired private key after four delayed attempts."
+                echo "Rerun this workflow once so it can reuse the same cached key; do not revoke another certificate or replace the App Store Connect .p8."
+                exit 1
+              fi
                 # The first fetch failure was successfully repaired. Mark its
                 # dedicated log so later failure triage does not misdiagnose an
                 # unrelated Xcode archive failure as the recovered mismatch.
