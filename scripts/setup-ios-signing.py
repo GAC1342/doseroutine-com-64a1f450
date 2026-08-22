@@ -49,28 +49,66 @@ def api_token() -> str:
     )
 
 
+def _preview(text: str, limit: int = 600) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= limit else f"{text[:limit]}…"
+
+
 class AppleApi:
     def __init__(self) -> None:
         self.headers = {
             "Authorization": f"Bearer {api_token()}",
             "Content-Type": "application/json",
         }
+        self._call_count = 0
 
-    def request(self, method: str, path: str, **kwargs: object) -> requests.Response:
-        response = requests.request(
-            method,
-            f"{API_ROOT}{path}",
-            headers=self.headers,
-            timeout=45,
-            **kwargs,
+    def request(
+        self,
+        method: str,
+        path: str,
+        allow_status: tuple[int, ...] = (),
+        **kwargs: object,
+    ) -> requests.Response:
+        self._call_count += 1
+        call = self._call_count
+        params = kwargs.get("params")
+        body = kwargs.get("data")
+        print(f"[apple-api #{call}] --> {method} {path}" + (f" params={params}" if params else ""))
+        if isinstance(body, str):
+            print(f"[apple-api #{call}]     body={_preview(body, 400)}")
+        started = time.monotonic()
+        try:
+            response = requests.request(
+                method,
+                f"{API_ROOT}{path}",
+                headers=self.headers,
+                timeout=45,
+                **kwargs,
+            )
+        except requests.RequestException as exc:
+            elapsed = (time.monotonic() - started) * 1000
+            print(f"[apple-api #{call}] <-- NETWORK ERROR after {elapsed:.0f}ms: {exc}")
+            raise
+        elapsed = (time.monotonic() - started) * 1000
+        request_id = response.headers.get("x-request-id", "-")
+        print(
+            f"[apple-api #{call}] <-- {response.status_code} {method} {path} "
+            f"in {elapsed:.0f}ms (apple-request-id={request_id})"
         )
         if response.status_code >= 400:
             detail = response.text[:1000]
+            if response.status_code in allow_status:
+                print(f"[apple-api #{call}]     tolerated error body: {_preview(detail)}")
+                return response
+            print(f"[apple-api #{call}]     ERROR body: {_preview(detail, 1000)}")
             raise RuntimeError(f"Apple API {method} {path} returned {response.status_code}: {detail}")
         return response
 
     def list_data(self, path: str, params: dict[str, str] | None = None) -> list[dict]:
-        return self.request("GET", path, params=params).json().get("data", [])
+        data = self.request("GET", path, params=params).json().get("data", [])
+        print(f"[apple-api]     {path} returned {len(data)} item(s)")
+        return data
+
 
 
 def load_or_create_key(path: Path) -> rsa.RSAPrivateKey:
@@ -132,10 +170,8 @@ def delete_distribution_certificates(api: AppleApi) -> None:
         certificate_id = item.get("id")
         if not certificate_id:
             continue
-        response = requests.delete(
-            f"{API_ROOT}/certificates/{certificate_id}",
-            headers=api.headers,
-            timeout=45,
+        response = api.request(
+            "DELETE", f"/certificates/{certificate_id}", allow_status=(404,)
         )
         if response.status_code not in (200, 202, 204, 404):
             raise RuntimeError(
@@ -202,9 +238,10 @@ def enable_required_capabilities(api: AppleApi, bundle_id: str) -> None:
     """
     enabled = {
         str(item.get("attributes", {}).get("capabilityType"))
-        for item in api.list_data(
-            f"/bundleIds/{bundle_id}/bundleIdCapabilities", {"limit": "200"}
-        )
+        # Apple's bundleIdCapabilities relationship rejects pagination query
+        # parameters with PARAMETER_ERROR.ILLEGAL. This relationship returns
+        # the complete capability collection without an explicit limit.
+        for item in api.list_data(f"/bundleIds/{bundle_id}/bundleIdCapabilities")
     }
     for capability_type in sorted(REQUIRED_CAPABILITIES):
         if capability_type in enabled:
@@ -226,13 +263,16 @@ def enable_required_capabilities(api: AppleApi, bundle_id: str) -> None:
 def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: str) -> bytes:
     # Apple does not accept filter[bundleId] on GET /profiles. Use the
     # bundle ID relationship endpoint, then filter profile type locally.
-    for profile in api.list_data(f"/bundleIds/{bundle_id}/profiles", {"limit": "200"}):
+    # As with bundleIdCapabilities, Apple relationship endpoints can reject
+    # collection pagination parameters. A bundle has a small profile set, so
+    # use the relationship's unparameterized response and filter it locally.
+    for profile in api.list_data(f"/bundleIds/{bundle_id}/profiles"):
         if profile.get("attributes", {}).get("profileType") != "IOS_APP_STORE":
             continue
         profile_id = profile.get("id")
         if profile_id:
-            response = requests.delete(
-                f"{API_ROOT}/profiles/{profile_id}", headers=api.headers, timeout=45
+            response = api.request(
+                "DELETE", f"/profiles/{profile_id}", allow_status=(404,)
             )
             if response.status_code not in (200, 202, 204, 404):
                 raise RuntimeError(
