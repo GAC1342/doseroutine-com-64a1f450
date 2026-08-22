@@ -26,12 +26,11 @@ jobs:
           node-version: "20"
           cache: npm
 
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
       - name: Unit rules
         run: npx vitest run src/lib/__tests__/head-budget-ci.test.ts
-
-      - name: Install
-        if: ${{ inputs.base_url == '' }}
-        run: npm ci
 
       - name: Build
         if: ${{ inputs.base_url == '' }}
