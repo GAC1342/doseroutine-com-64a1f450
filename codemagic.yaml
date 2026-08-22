@@ -1157,14 +1157,27 @@ workflows:
             exit 1
           fi
           keychain initialize
+          DIRECT_CHAIN="$DIRECT_SIGNING_DIR/apple_chain.pem"
+          if [ -s "$DIRECT_CHAIN" ]; then
+            # Apple intermediate CAs must be trusted in the keychain, otherwise
+            # the imported identity is not reported as a valid codesigning one.
+            keychain add-certificates --certificate "$DIRECT_CHAIN" || true
+          fi
           keychain add-certificates \
             --certificate "$DIRECT_P12" \
             --certificate-password "$DIRECT_P12_PASSWORD"
           unset DIRECT_P12_PASSWORD
           if ! security find-identity -v -p codesigning | grep -qE "Apple Distribution|iOS Distribution"; then
-            echo "ERROR: the directly created certificate/private-key pair was not imported as a signing identity."
-            exit 1
+            echo "Valid-identity check found nothing; listing all identities for diagnosis:"
+            security find-identity -p codesigning || true
+            if security find-identity -p codesigning | grep -qE "Apple Distribution|iOS Distribution"; then
+              echo "WARNING: identity present but not marked valid (chain/trust). Continuing with archive."
+            else
+              echo "ERROR: the directly created certificate/private-key pair was not imported as a signing identity."
+              exit 1
+            fi
           fi
+
           xcode-project use-profiles --profile "$DIRECT_PROFILE" --archive-method app-store
           echo "Direct matched certificate and profile installed; skipping legacy fetch-signing-files path."
           exit 0

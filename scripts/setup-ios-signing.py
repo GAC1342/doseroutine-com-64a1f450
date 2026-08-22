@@ -222,6 +222,42 @@ def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: st
     return base64.b64decode(item["attributes"]["profileContent"])
 
 
+APPLE_CHAIN_URLS = (
+    "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer",
+    "https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer",
+    "https://www.apple.com/certificateauthority/AppleIncRootCertificate.cer",
+    "https://www.apple.com/certificateauthority/AppleRootCA-G3.cer",
+)
+
+
+def download_apple_chain(output_dir: Path) -> Path | None:
+    """Apple's intermediate CAs must be inside the .p12, otherwise macOS
+    imports the key/cert but `security find-identity -v` reports no valid
+    codesigning identity because the chain cannot be built."""
+    pems: list[bytes] = []
+    for url in APPLE_CHAIN_URLS:
+        try:
+            response = requests.get(url, timeout=30)
+            if response.status_code >= 400:
+                print(f"WARNING: could not download {url} ({response.status_code}).")
+                continue
+            data = response.content
+            try:
+                cert = x509.load_der_x509_certificate(data)
+            except Exception:
+                cert = x509.load_pem_x509_certificate(data)
+            pems.append(cert.public_bytes(serialization.Encoding.PEM))
+        except Exception as exc:  # pragma: no cover - network only
+            print(f"WARNING: could not download {url}: {exc}")
+    if not pems:
+        print("WARNING: no Apple intermediate certificates were downloaded.")
+        return None
+    chain_path = output_dir / "apple_chain.pem"
+    chain_path.write_bytes(b"".join(pems))
+    print(f"Bundled {len(pems)} Apple CA certificate(s) into the .p12 chain.")
+    return chain_path
+
+
 def write_signing_files(
     key_path: Path,
     certificate_item: dict,
@@ -234,28 +270,34 @@ def write_signing_files(
     certificate = x509.load_der_x509_certificate(certificate_der)
     certificate_pem = output_dir / "doseroutine_distribution.cer.pem"
     certificate_pem.write_bytes(certificate.public_bytes(serialization.Encoding.PEM))
+    chain_path = download_apple_chain(output_dir)
     p12_path = output_dir / "doseroutine_distribution.p12"
-    subprocess.run(
-        [
-            "openssl",
-            "pkcs12",
-            "-export",
-            "-inkey",
-            str(key_path),
-            "-in",
-            str(certificate_pem),
-            "-out",
-            str(p12_path),
-            "-passout",
-            f"pass:{p12_password}",
-        ],
-        check=True,
-    )
+    command = [
+        "openssl",
+        "pkcs12",
+        "-export",
+        "-inkey",
+        str(key_path),
+        "-in",
+        str(certificate_pem),
+        "-name",
+        certificate.subject.rfc4514_string(),
+        "-out",
+        str(p12_path),
+        "-passout",
+        f"pass:{p12_password}",
+    ]
+    if chain_path is not None:
+        command.extend(["-certfile", str(chain_path)])
+    subprocess.run(command, check=True)
     profile_path = output_dir / "doseroutine_app_store.mobileprovision"
     profile_path.write_bytes(profile)
     p12_path.chmod(0o600)
     profile_path.chmod(0o600)
+    if chain_path is not None:
+        print(f"CHAIN_PATH={chain_path}")
     return p12_path, profile_path
+
 
 
 def main() -> int:
