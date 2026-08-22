@@ -223,7 +223,11 @@ def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: st
 
 
 def write_signing_files(
-    key_path: Path, certificate_item: dict, profile: bytes, output_dir: Path
+    key_path: Path,
+    certificate_item: dict,
+    profile: bytes,
+    output_dir: Path,
+    p12_password: str,
 ) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     certificate_der = base64.b64decode(certificate_item["attributes"]["certificateContent"])
@@ -243,7 +247,7 @@ def write_signing_files(
             "-out",
             str(p12_path),
             "-passout",
-            "pass:",
+            f"pass:{p12_password}",
         ],
         check=True,
     )
@@ -260,6 +264,10 @@ def main() -> int:
     parser.add_argument("--key-file", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
+
+    p12_password = os.environ.get("DIRECT_P12_PASSWORD")
+    if not p12_password:
+        raise RuntimeError("DIRECT_P12_PASSWORD is required")
 
     api = AppleApi()
     key = load_or_create_key(args.key_file)
@@ -278,7 +286,7 @@ def main() -> int:
         f"DoseRoutine App Store {timestamp}",
     )
     p12_path, profile_path = write_signing_files(
-        args.key_file, certificate, profile, args.output_dir
+        args.key_file, certificate, profile, args.output_dir, p12_password
     )
     print(f"P12_PATH={p12_path}")
     print(f"PROFILE_PATH={profile_path}")

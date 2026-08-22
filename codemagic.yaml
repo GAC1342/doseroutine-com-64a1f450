@@ -1140,6 +1140,8 @@ workflows:
           # for given private key" even after stale certificates were revoked.
           DIRECT_SIGNING_DIR="$CM_BUILD_DIR/.codemagic-code-signing/direct"
           DIRECT_KEY_FILE="$CM_BUILD_DIR/.codemagic-code-signing/ios_distribution_private_key.pem"
+          DIRECT_P12_PASSWORD="$(openssl rand -hex 32)"
+          export DIRECT_P12_PASSWORD
           rm -rf "$DIRECT_SIGNING_DIR"
           mkdir -p "$DIRECT_SIGNING_DIR" "$(dirname "$DIRECT_KEY_FILE")"
           python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography requests >/dev/null
@@ -1155,7 +1157,10 @@ workflows:
             exit 1
           fi
           keychain initialize
-          keychain add-certificates --certificate "$DIRECT_P12"
+          keychain add-certificates \
+            --certificate "$DIRECT_P12" \
+            --certificate-password "$DIRECT_P12_PASSWORD"
+          unset DIRECT_P12_PASSWORD
           if ! security find-identity -v -p codesigning | grep -qE "Apple Distribution|iOS Distribution"; then
             echo "ERROR: the directly created certificate/private-key pair was not imported as a signing identity."
             exit 1
