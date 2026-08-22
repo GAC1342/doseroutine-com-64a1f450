@@ -2097,12 +2097,17 @@ workflows:
             exit 1
           fi
           echo "Archiving with profile: $PROFILE_NAME ($PROFILE_UUID)"
+          echo "Archive configuration: Release"
+          echo "Signing team: $PROFILE_TEAM"
           set +e
           xcode-project build-ipa \
             "${XP_ARG[@]}" \
             --scheme "$XCODE_SCHEME" \
+            --config Release \
+            --no-show-build-settings \
+            --disable-xcpretty \
             --verbose \
-            --archive-xcargs "COMPILER_INDEX_STORE_ENABLE=NO CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=$PROFILE_TEAM PROVISIONING_PROFILE_SPECIFIER=$PROFILE_UUID" \
+            --archive-xcargs "COMPILER_INDEX_STORE_ENABLE=NO CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"iPhone Distribution\" DEVELOPMENT_TEAM=$PROFILE_TEAM PROVISIONING_PROFILE_SPECIFIER=\"$PROFILE_NAME\"" \
             2>&1 | tee "$CM_BUILD_DIR/build-logs/xcodebuild.log"
 
           BUILD_STATUS=${PIPESTATUS[0]}
@@ -2112,7 +2117,7 @@ workflows:
             echo "════════════════════════════════════════════════════════════"
             echo " ACTUAL XCODE ARCHIVE ERRORS"
             echo "════════════════════════════════════════════════════════════"
-            grep -Ein -B 4 -A 12 '(^|[[:space:]])error:|ARCHIVE FAILED|CodeSign|Provisioning profile|requires a development team|No signing certificate' \
+            grep -Ein -B 8 -A 20 '(^|[[:space:]])error:|ARCHIVE FAILED|BUILD FAILED|CodeSign|Provisioning profile|requires a development team|No signing certificate|exit code 65' \
               "$CM_BUILD_DIR/build-logs/xcodebuild.log" | tail -160 || \
               tail -160 "$CM_BUILD_DIR/build-logs/xcodebuild.log"
             for RAW in "$CM_BUILD_DIR/xcodebuild.log" "$CM_BUILD_DIR/ios/App/xcodebuild.log"; do
