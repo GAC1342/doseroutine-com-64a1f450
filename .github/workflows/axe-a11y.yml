@@ -53,7 +53,7 @@ jobs:
 
       - name: Comment axe summary on the pull request
         if: always() && github.event_name == 'pull_request' && hashFiles('axe-report/summary.md') != ''
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: axe-a11y
           path: axe-report/summary.md

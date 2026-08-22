@@ -131,7 +131,7 @@ jobs:
 
       - name: Comment QA summary on PR
         if: always() && github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: doseroutine-seo-qa
           path: /tmp/seo-pr-comment.md
