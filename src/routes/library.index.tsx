@@ -28,12 +28,15 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { AeoFaq } from "@/components/aeo-faq";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { aeoFaqScript, aeoPageFields } from "@/lib/aeo";
 import { LIBRARY_FAQ, LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { mergeLdScripts } from "@/lib/head-budget";
 
 // Keep every param optional so the bare /library URL (the one in the sitemap)
 // renders a 200 instead of redirecting to /library?q=&cat=all&goal=&sort=relevance.
-const searchSchema = z.object({
+export const searchSchema = z.object({
   q: fallback(z.string(), "").optional(),
   cat: fallback(z.string(), "all").optional(),
   goal: fallback(z.string(), "").optional(),
@@ -99,7 +102,7 @@ export const Route = createFileRoute("/library/")({
         { rel: "canonical", href: "https://doseroutine.com/library" },
         ...hreflangLinks("/library"),
       ],
-      scripts: [
+      scripts: mergeLdScripts([
         aeoFaqScript("https://doseroutine.com/library", LIBRARY_FAQ),
 
         {
@@ -130,7 +133,10 @@ export const Route = createFileRoute("/library/")({
               { "@type": "MedicalAudience", audienceType: "Consumer" },
             ],
             isPartOf: { "@id": "https://doseroutine.com/#website" },
-            publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+            publisher: {
+              "@type": "Organization",
+              "@id": "https://doseroutine.com/#organization",
+              name: "DoseRoutine",
               url: "https://doseroutine.com",
               logo: {
                 "@type": "ImageObject",
@@ -175,7 +181,7 @@ export const Route = createFileRoute("/library/")({
               })),
           }),
         },
-      ],
+      ]),
     };
   },
   component: LibraryIndex,
@@ -375,29 +381,6 @@ function LibraryIndex() {
     }
   };
 
-  // Keep enough page space for the iOS keyboard without moving the focused
-  // field. Automatic scrolling from this event creates a Safari feedback loop
-  // as predictive text changes the visible viewport height.
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-
-    const syncKeyboardInset = () => {
-      const keyboardInset = Math.round(
-        Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop),
-      );
-      document.documentElement.style.setProperty("--keyboard-inset", `${keyboardInset}px`);
-    };
-
-    viewport.addEventListener("resize", syncKeyboardInset);
-    syncKeyboardInset();
-
-    return () => {
-      viewport.removeEventListener("resize", syncKeyboardInset);
-      document.documentElement.style.removeProperty("--keyboard-inset");
-    };
-  }, []);
-
   // Filtering 475+ compounds on every keystroke was the main source of blocking
   // time on this route. The input stays controlled by `qInput` (identical UX)
   // while the expensive list work runs against a deferred copy.
@@ -534,6 +517,16 @@ function LibraryIndex() {
             mechanism and trial phase.
           </p>
         </Link>
+        <Link
+          to="/articles"
+          className="rounded-xl border border-border bg-card p-4 transition hover:border-primary"
+        >
+          <div className="text-sm font-semibold">Articles</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Practical guides on medication reminders, adherence habits, longevity peptides and
+            choosing a health tracking app.
+          </p>
+        </Link>
       </nav>
 
       <div className="library-keyboard-safe mb-6 space-y-3">
@@ -550,7 +543,6 @@ function LibraryIndex() {
               id="library-search-input"
               ref={searchInputRef}
               value={qInput}
-
               onChange={(e) => {
                 typingRef.current = true;
                 setActiveIndex(-1);
@@ -783,6 +775,7 @@ function LibraryIndex() {
               </p>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {ranked.direct.map((c) => (
+                  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
                   <CompoundCard
                     key={c.id}
                     c={c}
@@ -807,6 +800,7 @@ function LibraryIndex() {
               </p>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {ranked.supportive.map((c) => (
+                  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
                   <CompoundCard
                     key={c.id}
                     c={c}
@@ -828,6 +822,7 @@ function LibraryIndex() {
               </h2>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {items.map((c) => (
+                  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
                   <CompoundCard key={c.id} c={c} />
                 ))}
               </ul>
@@ -835,6 +830,10 @@ function LibraryIndex() {
           ))}
         </div>
       )}
+      <ProseContainer>
+        <PageProse id="library-index" />
+      </ProseContainer>
+
       <AeoFaq pairs={LIBRARY_FAQ} heading="Library FAQ" />
 
       <AttributionFooter sourceUrl="https://doseroutine.com/library" />

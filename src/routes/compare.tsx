@@ -1,3 +1,6 @@
+import { PageProse } from "@/components/page-prose";
+import { canonicalLinks } from "@/lib/hreflang";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -8,6 +11,9 @@ import { z } from "zod";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
 import { Card } from "@/components/ui/card";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { COMPARE_FAQ } from "@/lib/aeo-faqs-hubs";
 
 const searchSchema = z.object({
   a: z.string().optional(),
@@ -58,8 +64,9 @@ export const Route = createFileRoute("/compare")({
         { name: "twitter:image", content: "https://doseroutine.com/og/compare-default.jpg" },
         { name: "twitter:image:alt", content: "DoseRoutine compound comparison" },
       ],
-      links: [{ rel: "canonical", href: url }],
+      links: [...canonicalLinks(url)],
       scripts: [
+        aeoFaqScript(url, COMPARE_FAQ),
         breadcrumbScript(
           url,
           hasBoth
@@ -89,7 +96,10 @@ export const Route = createFileRoute("/compare")({
             description:
               "Side-by-side comparison tool for peptides, hormones, vitamins and supplements — mechanism, half-life, timing, food rules and interactions.",
             offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-            publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+            publisher: {
+              "@type": "Organization",
+              "@id": "https://doseroutine.com/#organization",
+              name: "DoseRoutine",
               url: "https://doseroutine.com",
             },
           }),
@@ -168,6 +178,12 @@ function ComparePage() {
             Choose two compounds above to see the side-by-side breakdown.
           </div>
         )}
+
+        <ProseContainer>
+          <PageProse id="compare" />
+        </ProseContainer>
+
+        <AeoFaq pairs={COMPARE_FAQ} />
 
         <div className="mt-10 text-xs text-muted-foreground">
           Educational summary only. Not medical advice.{" "}

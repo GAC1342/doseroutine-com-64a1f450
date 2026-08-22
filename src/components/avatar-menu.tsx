@@ -141,12 +141,13 @@ export function AvatarMenu() {
         onClick={() => inputRef.current?.click()}
         aria-label="Change profile photo"
         title="Change profile photo"
-        className="tap-target relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-sm font-semibold text-primary ring-1 ring-border transition hover:ring-primary/50"
+        className="tap-target relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-sm font-semibold text-[color:var(--primary-hover)] ring-1 ring-border transition hover:ring-primary/50"
       >
         {signedUrl ? (
           <img
             src={signedUrl}
             alt=""
+            aria-hidden="true"
             width={44}
             height={44}
             decoding="async"

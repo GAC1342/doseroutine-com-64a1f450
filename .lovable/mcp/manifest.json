@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://fhivjzhcnwftyfuwkhej.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "doseroutine",
+      "version": "0.1.0",
+      "title": "DoseRoutine"
+    },
+    "tools": [
+      {
+        "name": "list_stack",
+        "title": "List my stack",
+        "description": "List the compounds, peptides, and supplements in the signed-in user's DoseRoutine stack, with dose, unit, frequency, and timing.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "include_inactive": {
+              "description": "Include items that have been paused or ended. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_doses",
+        "title": "List scheduled doses",
+        "description": "List the signed-in user's scheduled DoseRoutine doses in a date range, including whether each one was taken, skipped, or is still pending.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "from": {
+              "description": "Start of the range as an ISO date or datetime. Defaults to the start of today (UTC).",
+              "type": "string"
+            },
+            "to": {
+              "description": "End of the range as an ISO date or datetime. Defaults to 24 hours after `from`.",
+              "type": "string"
+            },
+            "status": {
+              "description": "Only return doses with this status.",
+              "type": "string",
+              "enum": [
+                "pending",
+                "taken",
+                "skipped",
+                "missed"
+              ]
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_dose",
+        "title": "Mark a dose taken or skipped",
+        "description": "Update a scheduled DoseRoutine dose for the signed-in user: mark it taken, skipped, or back to pending. Use `list_doses` first to get the dose id.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "dose_id": {
+              "type": "string",
+              "description": "The id of the scheduled dose, from `list_doses`."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "taken",
+                "skipped",
+                "pending"
+              ],
+              "description": "New status for the dose."
+            },
+            "taken_at": {
+              "description": "ISO timestamp the dose was taken. Defaults to now when status is `taken`.",
+              "type": "string"
+            },
+            "note": {
+              "description": "Optional note to store with the dose.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "dose_id",
+            "status"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_meals",
+        "title": "List logged meals",
+        "description": "List the signed-in user's logged DoseRoutine meals in a date range with calories and macros, plus daily totals.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "from": {
+              "description": "Start of the range as an ISO date or datetime. Defaults to the start of today (UTC).",
+              "type": "string"
+            },
+            "to": {
+              "description": "End of the range as an ISO date or datetime. Defaults to 24 hours after `from`.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_meal",
+        "title": "Log a meal",
+        "description": "Log a meal for the signed-in user in DoseRoutine with calories and macros. Use this for text-described meals; photo scans happen in the app.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "description": "Short description of the meal, e.g. 'Chicken bowl with rice'."
+            },
+            "meal_slot": {
+              "type": "string",
+              "enum": [
+                "breakfast",
+                "lunch",
+                "dinner",
+                "snack"
+              ],
+              "description": "Which part of the day this meal belongs to."
+            },
+            "calories": {
+              "description": "Estimated calories for the whole meal.",
+              "type": "number"
+            },
+            "protein_g": {
+              "description": "Grams of protein.",
+              "type": "number"
+            },
+            "carbs_g": {
+              "description": "Grams of carbohydrate.",
+              "type": "number"
+            },
+            "fat_g": {
+              "description": "Grams of fat.",
+              "type": "number"
+            },
+            "logged_at": {
+              "description": "ISO timestamp for the meal. Defaults to now.",
+              "type": "string"
+            },
+            "notes": {
+              "description": "Optional free-text note.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "label",
+            "meal_slot"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_body_metric",
+        "title": "Log a body measurement",
+        "description": "Record a body check-in for the signed-in user in DoseRoutine: weight, body fat, and tape measurements. All fields are optional except the date.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "measured_at": {
+              "description": "ISO date for the measurement. Defaults to today.",
+              "type": "string"
+            },
+            "weight_kg": {
+              "description": "Body weight in kilograms.",
+              "type": "number"
+            },
+            "body_fat_pct": {
+              "description": "Body fat percentage.",
+              "type": "number"
+            },
+            "waist_cm": {
+              "description": "Waist measurement in centimetres.",
+              "type": "number"
+            },
+            "chest_cm": {
+              "description": "Chest measurement in centimetres.",
+              "type": "number"
+            },
+            "arm_cm": {
+              "description": "Arm measurement in centimetres.",
+              "type": "number"
+            },
+            "thigh_cm": {
+              "description": "Thigh measurement in centimetres.",
+              "type": "number"
+            },
+            "notes": {
+              "description": "Optional note about this check-in.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_compounds",
+        "title": "Search the compound library",
+        "description": "Search DoseRoutine's library of peptides, hormones, GLP-1s, medications, vitamins and supplements by name, returning timing, food rules, and typical dose range.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Name or partial name to search for, e.g. 'tirzepatide' or 'magnesium'."
+            },
+            "limit": {
+              "description": "Maximum number of results. Defaults to 10, capped at 25.",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

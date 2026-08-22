@@ -50,7 +50,6 @@ describe("sectionCitations", () => {
     expect(sectionCitations("interactions", thin)).toEqual([]);
   });
 
-
   it("never returns anything when no document sources exist", () => {
     expect(sectionCitations("warnings", [])).toEqual([]);
   });

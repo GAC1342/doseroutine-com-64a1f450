@@ -12,14 +12,19 @@ export const EDITORIAL_AUTHOR = {
   url: "https://doseroutine.com/about",
   /** One-line summary used under the headline and in the about card. */
   role: "Maintainers of the DoseRoutine compound library and interaction rule set",
-  who: "The DoseRoutine Editorial Team maintains the compound library and the interaction rule set behind doseroutine.com.",
-  what: "We summarise published trials, regulatory documents (FDA, EMA) and company announcements into plain-English updates. Every factual claim on a post is tied to a linked source below.",
+  who: "The DoseRoutine Editorial Team maintains the compound library and the interaction rule set behind DoseRoutine.",
+  what: "We summarize published trials, regulatory documents (FDA, EMA) and company announcements into plain-English updates. Every factual claim on a post is tied to a linked source below.",
   limits:
     "Posts are written and reviewed by the editorial team, not by a licensed clinician. This is educational reference content — it never recommends an amount for you to take.",
   contactEmail: "support@doseroutine.com",
 } as const;
 
-export type SourceKind = "Peer-reviewed" | "Regulatory" | "Trial registry" | "Announcement" | "Reference";
+export type SourceKind =
+  | "Peer-reviewed"
+  | "Regulatory"
+  | "Trial registry"
+  | "Announcement"
+  | "Reference";
 
 /** Classifies a source by its host so each entry carries a visible label. */
 export function sourceKind(url: string): SourceKind {
@@ -50,7 +55,8 @@ export function sourceKind(url: string): SourceKind {
     host.endsWith("who.int")
   )
     return "Regulatory";
-  if (host.includes("investor") || host.includes("press") || host.includes("news")) return "Announcement";
+  if (host.includes("investor") || host.includes("press") || host.includes("news"))
+    return "Announcement";
   return "Reference";
 }
 

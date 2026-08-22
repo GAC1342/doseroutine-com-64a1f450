@@ -1,5 +1,4 @@
-import { expect } from "@playwright/test";
-import type { Locator, TestInfo } from "@playwright/test";
+import { expect, type Locator, type TestInfo } from "@playwright/test";
 import { existsSync } from "node:fs";
 
 /**
@@ -50,7 +49,6 @@ export async function expectVisualSnapshot(
     console.warn(`[visual] ${note}`);
     return "missing-baseline";
   }
-
 
   await expect(target).toHaveScreenshot(name, options);
   return "compared";

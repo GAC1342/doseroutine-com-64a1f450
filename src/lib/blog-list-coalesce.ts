@@ -1,5 +1,4 @@
-import type { BlogListSearch } from "./blog-list-canonical";
-import { normalizeBlogPageSize } from "./blog-list-canonical";
+import { type BlogListSearch, normalizeBlogPageSize } from "./blog-list-canonical";
 
 /**
  * How long the blog list waits before committing a control change to the URL.

@@ -59,7 +59,7 @@ function RatingRow({
               className={`tap-target flex-1 rounded-xl border py-2 text-xs font-medium transition-colors ${
                 active
                   ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:bg-muted"
+                  : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
               }`}
             >
               {rating}

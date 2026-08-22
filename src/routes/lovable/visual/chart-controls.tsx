@@ -40,7 +40,9 @@ function ChartControlsHarness() {
           series={SERIES}
           hiddenKeys={hidden}
           onToggle={(key) =>
-            setHidden((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
+            setHidden((prev) =>
+              prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+            )
           }
         />
       </section>
@@ -54,10 +56,7 @@ function ChartControlsHarness() {
 
 export const Route = createFileRoute("/lovable/visual/chart-controls")({
   head: () => ({
-    meta: [
-      { title: "Chart controls harness" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "Chart controls harness" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   component: ChartControlsHarness,
 });

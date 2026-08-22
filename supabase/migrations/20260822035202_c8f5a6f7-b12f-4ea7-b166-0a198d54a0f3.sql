@@ -1,0 +1,1 @@
+delete from public.outrank_articles where slug = 'sample-article-title-for-testing';

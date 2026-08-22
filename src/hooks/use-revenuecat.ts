@@ -19,20 +19,30 @@ export function useRevenueCatIdentity() {
     let cancelled = false;
 
     (async () => {
-      const { data } = await supabase.auth.getUser();
-      const userId = data.user?.id ?? null;
-      if (cancelled) return;
-      await initRevenueCat(userId);
+      try {
+        const { data } = await supabase.auth.getUser();
+        const userId = data.user?.id ?? null;
+        if (cancelled) return;
+        await initRevenueCat(userId);
+      } catch (e) {
+        console.warn("[revenuecat] identity bootstrap failed", e);
+      }
     })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user?.id) {
-        await identifyRevenueCatUser(session.user.id);
-        queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      }
-      if (event === "SIGNED_OUT") {
-        await logOutRevenueCat();
-      }
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      void (async () => {
+        try {
+          if (event === "SIGNED_IN" && session?.user?.id) {
+            await identifyRevenueCatUser(session.user.id);
+            queryClient.invalidateQueries({ queryKey: ["subscription"] });
+          }
+          if (event === "SIGNED_OUT") {
+            await logOutRevenueCat();
+          }
+        } catch (e) {
+          console.warn("[revenuecat] auth state sync failed", e);
+        }
+      })();
     });
 
     return () => {

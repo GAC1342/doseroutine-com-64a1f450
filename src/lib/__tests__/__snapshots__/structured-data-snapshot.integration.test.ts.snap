@@ -1,0 +1,892 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`structured-data schema snapshot > keeps the intended schema fields on / 1`] = `
+"microdata:
+  https://schema.org/Answer
+    - name
+    - text
+  https://schema.org/FAQPage
+    - mainEntity
+  https://schema.org/Offer
+    - price
+    - priceCurrency
+  https://schema.org/Organization
+    - alternateName
+    - logo
+    - name
+    - url
+  https://schema.org/Person
+    - name
+    - reviewBody
+  https://schema.org/Question
+    - acceptedAnswer
+    - name
+  https://schema.org/Review
+    - author
+    - reviewBody
+  https://schema.org/SoftwareApplication
+    - applicationCategory
+    - description
+    - name
+    - offers
+    - operatingSystem
+  https://schema.org/WebPage
+    - description
+    - headline
+    - isPartOf
+    - name
+    - url
+  https://schema.org/WebSite
+    - name
+    - publisher
+    - url
+json-ld:
+  (untyped)
+    @context = https://schema.org
+    - @context
+  CreativeWork
+    @id = {origin}/#attribution-policy
+    url = {origin}/llms.txt
+    name = DoseRoutine attribution policy
+    - @id
+    - @type
+    - copyrightHolder
+    - creator
+    - license
+    - name
+    - text
+    - url
+  DefinedTermSet
+    @id = {origin}/#glossary
+    url = {origin}/library
+    name = DoseRoutine brand and compound glossary
+    - @id
+    - @type
+    - description
+    - name
+    - url
+  FAQPage
+    @context = https://schema.org
+    - @context
+    - @type
+    - mainEntity
+  Organization
+    @id = {origin}/#organization
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - brand
+    - copyrightHolder
+    - copyrightNotice
+    - description
+    - disambiguatingDescription
+    - email
+    - image
+    - knowsAbout
+    - legalName
+    - license
+    - logo
+    - name
+    - publishingPrinciples
+    - sameAs
+    - url
+  SoftwareApplication
+    url = {origin}/
+    name = DoseRoutine
+    @context = https://schema.org
+    - @context
+    - @type
+    - alternateName
+    - applicationCategory
+    - brand
+    - description
+    - disambiguatingDescription
+    - image
+    - name
+    - offers
+    - operatingSystem
+    - publisher
+    - speakable
+    - url
+  SoftwareApplication
+    @id = {origin}/#software
+    url = {origin}/
+    name = DoseRoutine
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @id
+    - @type
+    - alternateName
+    - applicationCategory
+    - applicationSubCategory
+    - author
+    - brand
+    - description
+    - featureList
+    - image
+    - inLanguage
+    - isAccessibleForFree
+    - isPartOf
+    - logo
+    - mainEntityOfPage
+    - name
+    - offers
+    - operatingSystem
+    - publisher
+    - sameAs
+    - screenshot
+    - softwareVersion
+    - url
+  WebPage
+    @id = {origin}/#webpage
+    url = {origin}/
+    name = DoseRoutine — Peptide, TRT & Supplement Tracker App
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - about
+    - abstract
+    - author
+    - copyrightHolder
+    - dateModified
+    - datePublished
+    - description
+    - inLanguage
+    - isPartOf
+    - name
+    - publisher
+    - publishingPrinciples
+    - reviewedBy
+    - speakable
+    - url
+  WebSite
+    @id = {origin}/#website
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - copyrightHolder
+    - copyrightNotice
+    - image
+    - license
+    - name
+    - potentialAction
+    - publisher
+    - publishingPrinciples
+    - sameAs
+    - url
+    - usageInfo"
+`;
+
+exports[`structured-data schema snapshot > keeps the intended schema fields on /articles 1`] = `
+"microdata:
+  https://schema.org/Organization
+    - alternateName
+    - logo
+    - mainContentOfPage
+    - name
+    - url
+  https://schema.org/WebPage
+    - description
+    - headline
+    - isPartOf
+    - name
+    - url
+  https://schema.org/WebPageElement
+    - text
+  https://schema.org/WebSite
+    - name
+    - publisher
+    - url
+json-ld:
+  (untyped)
+    @context = https://schema.org
+    - @context
+  BreadcrumbList
+    @id = {origin}/articles#breadcrumb
+    @context = https://schema.org
+    - @context
+    - @id
+    - @type
+    - itemListElement
+  CollectionPage
+    url = {origin}/articles
+    name = DoseRoutine Articles
+    @context = https://schema.org
+    - @context
+    - @type
+    - description
+    - mainEntity
+    - name
+    - url
+  CreativeWork
+    @id = {origin}/#attribution-policy
+    url = {origin}/llms.txt
+    name = DoseRoutine attribution policy
+    - @id
+    - @type
+    - copyrightHolder
+    - creator
+    - license
+    - name
+    - text
+    - url
+  DefinedTermSet
+    @id = {origin}/#glossary
+    url = {origin}/library
+    name = DoseRoutine brand and compound glossary
+    - @id
+    - @type
+    - description
+    - name
+    - url
+  FAQPage
+    @id = {origin}/articles#faq
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - inLanguage
+    - isPartOf
+    - mainEntity
+    - publisher
+  Organization
+    @id = {origin}/#organization
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - brand
+    - copyrightHolder
+    - copyrightNotice
+    - description
+    - disambiguatingDescription
+    - email
+    - image
+    - knowsAbout
+    - legalName
+    - license
+    - logo
+    - name
+    - publishingPrinciples
+    - sameAs
+    - url
+  SoftwareApplication
+    @id = {origin}/#software
+    url = {origin}/
+    name = DoseRoutine
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @id
+    - @type
+    - alternateName
+    - applicationCategory
+    - applicationSubCategory
+    - author
+    - brand
+    - description
+    - featureList
+    - image
+    - inLanguage
+    - isAccessibleForFree
+    - isPartOf
+    - logo
+    - mainEntityOfPage
+    - name
+    - offers
+    - operatingSystem
+    - publisher
+    - sameAs
+    - screenshot
+    - softwareVersion
+    - url
+  WebSite
+    @id = {origin}/#website
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - copyrightHolder
+    - copyrightNotice
+    - image
+    - license
+    - name
+    - potentialAction
+    - publisher
+    - publishingPrinciples
+    - sameAs
+    - url
+    - usageInfo"
+`;
+
+exports[`structured-data schema snapshot > keeps the intended schema fields on /blog 1`] = `
+"microdata:
+  https://schema.org/Organization
+    - alternateName
+    - logo
+    - mainContentOfPage
+    - name
+    - url
+  https://schema.org/WebPage
+    - description
+    - headline
+    - isPartOf
+    - name
+    - url
+  https://schema.org/WebPageElement
+    - text
+  https://schema.org/WebSite
+    - name
+    - publisher
+    - url
+json-ld:
+  (untyped)
+    @context = https://schema.org
+    - @context
+  (untyped)
+    @context = https://schema.org
+    - @context
+  Blog
+    url = {origin}/blog
+    name = DoseRoutine Research & Updates
+    @context = https://schema.org
+    inLanguage = en
+    - @context
+    - @type
+    - blogPost
+    - description
+    - inLanguage
+    - name
+    - publisher
+    - url
+  BreadcrumbList
+    @context = https://schema.org
+    - @context
+    - @type
+    - itemListElement
+  CreativeWork
+    @id = {origin}/#attribution-policy
+    url = {origin}/llms.txt
+    name = DoseRoutine attribution policy
+    - @id
+    - @type
+    - copyrightHolder
+    - creator
+    - license
+    - name
+    - text
+    - url
+  DefinedTermSet
+    @id = {origin}/#glossary
+    url = {origin}/library
+    name = DoseRoutine brand and compound glossary
+    - @id
+    - @type
+    - description
+    - name
+    - url
+  FAQPage
+    @id = {origin}/blog#faq
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - inLanguage
+    - isPartOf
+    - mainEntity
+    - publisher
+  Organization
+    @id = {origin}/#organization
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - brand
+    - copyrightHolder
+    - copyrightNotice
+    - description
+    - disambiguatingDescription
+    - email
+    - image
+    - knowsAbout
+    - legalName
+    - license
+    - logo
+    - name
+    - publishingPrinciples
+    - sameAs
+    - url
+  SoftwareApplication
+    @id = {origin}/#software
+    url = {origin}/
+    name = DoseRoutine
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @id
+    - @type
+    - alternateName
+    - applicationCategory
+    - applicationSubCategory
+    - author
+    - brand
+    - description
+    - featureList
+    - image
+    - inLanguage
+    - isAccessibleForFree
+    - isPartOf
+    - logo
+    - mainEntityOfPage
+    - name
+    - offers
+    - operatingSystem
+    - publisher
+    - sameAs
+    - screenshot
+    - softwareVersion
+    - url
+  WebSite
+    @id = {origin}/#website
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - copyrightHolder
+    - copyrightNotice
+    - image
+    - license
+    - name
+    - potentialAction
+    - publisher
+    - publishingPrinciples
+    - sameAs
+    - url
+    - usageInfo"
+`;
+
+exports[`structured-data schema snapshot > keeps the intended schema fields on /for 1`] = `
+"microdata:
+  https://schema.org/Organization
+    - alternateName
+    - logo
+    - mainContentOfPage
+    - name
+    - url
+  https://schema.org/WebPage
+    - description
+    - headline
+    - isPartOf
+    - name
+    - url
+  https://schema.org/WebPageElement
+    - text
+  https://schema.org/WebSite
+    - name
+    - publisher
+    - url
+json-ld:
+  (untyped)
+    @context = https://schema.org
+    - @context
+  BreadcrumbList
+    @id = {origin}/for#breadcrumb
+    @context = https://schema.org
+    - @context
+    - @id
+    - @type
+    - itemListElement
+  CollectionPage
+    @id = {origin}/for#webpage
+    url = {origin}/for
+    name = DoseRoutine Use Cases — TRT, Peptides, GLP-1
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - abstract
+    - author
+    - copyrightHolder
+    - dateModified
+    - datePublished
+    - description
+    - inLanguage
+    - isPartOf
+    - name
+    - publisher
+    - publishingPrinciples
+    - reviewedBy
+    - speakable
+    - url
+  CreativeWork
+    @id = {origin}/#attribution-policy
+    url = {origin}/llms.txt
+    name = DoseRoutine attribution policy
+    - @id
+    - @type
+    - copyrightHolder
+    - creator
+    - license
+    - name
+    - text
+    - url
+  DefinedTermSet
+    @id = {origin}/#glossary
+    url = {origin}/library
+    name = DoseRoutine brand and compound glossary
+    - @id
+    - @type
+    - description
+    - name
+    - url
+  FAQPage
+    @id = {origin}/for#faq
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - inLanguage
+    - isPartOf
+    - mainEntity
+    - publisher
+  Organization
+    @id = {origin}/#organization
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - brand
+    - copyrightHolder
+    - copyrightNotice
+    - description
+    - disambiguatingDescription
+    - email
+    - image
+    - knowsAbout
+    - legalName
+    - license
+    - logo
+    - name
+    - publishingPrinciples
+    - sameAs
+    - url
+  SoftwareApplication
+    @id = {origin}/#software
+    url = {origin}/
+    name = DoseRoutine
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @id
+    - @type
+    - alternateName
+    - applicationCategory
+    - applicationSubCategory
+    - author
+    - brand
+    - description
+    - featureList
+    - image
+    - inLanguage
+    - isAccessibleForFree
+    - isPartOf
+    - logo
+    - mainEntityOfPage
+    - name
+    - offers
+    - operatingSystem
+    - publisher
+    - sameAs
+    - screenshot
+    - softwareVersion
+    - url
+  WebSite
+    @id = {origin}/#website
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - copyrightHolder
+    - copyrightNotice
+    - image
+    - license
+    - name
+    - potentialAction
+    - publisher
+    - publishingPrinciples
+    - sameAs
+    - url
+    - usageInfo"
+`;
+
+exports[`structured-data schema snapshot > keeps the intended schema fields on /library/creatine 1`] = `
+"microdata:
+  https://schema.org/Organization
+    - alternateName
+    - logo
+    - mainContentOfPage
+    - name
+    - url
+  https://schema.org/WebPage
+    - description
+    - headline
+    - isPartOf
+    - name
+    - url
+  https://schema.org/WebPageElement
+  https://schema.org/WebSite
+    - name
+    - publisher
+    - url
+json-ld:
+  (untyped)
+    @context = https://schema.org
+    - @context
+  (untyped)
+    @context = https://schema.org
+    - @context
+  Article
+    @id = {origin}/library/creatine#article
+    url = {origin}/library/creatine
+    @context = https://schema.org
+    inLanguage = en
+    - @context
+    - @id
+    - @type
+    - about
+    - abstract
+    - articleSection
+    - author
+    - citation
+    - copyrightHolder
+    - copyrightYear
+    - dateModified
+    - datePublished
+    - description
+    - headline
+    - image
+    - inLanguage
+    - isBasedOn
+    - keywords
+    - license
+    - mainEntityOfPage
+    - publisher
+    - publishingPrinciples
+    - reviewedBy
+    - sameAs
+    - url
+    - wordCount
+  Article+WebPage
+    @id = {origin}/library/creatine
+    url = {origin}/library/creatine
+    name = Creatine Monohydrate: Benefits, Usage, and… | DoseRoutine
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - about
+    - abstract
+    - articleSection
+    - audience
+    - author
+    - breadcrumb
+    - dateModified
+    - datePublished
+    - description
+    - hasPart
+    - headline
+    - image
+    - inLanguage
+    - isPartOf
+    - keywords
+    - mainEntity
+    - mainEntityOfPage
+    - name
+    - potentialAction
+    - primaryImageOfPage
+    - publisher
+    - speakable
+    - url
+    - wordCount
+  BreadcrumbList
+    @id = {origin}/library/creatine#breadcrumb
+    @context = https://schema.org
+    - @context
+    - @id
+    - @type
+    - itemListElement
+  CreativeWork
+    @id = {origin}/#attribution-policy
+    url = {origin}/llms.txt
+    name = DoseRoutine attribution policy
+    - @id
+    - @type
+    - copyrightHolder
+    - creator
+    - license
+    - name
+    - text
+    - url
+  DefinedTermSet
+    @id = {origin}/#glossary
+    url = {origin}/library
+    name = DoseRoutine brand and compound glossary
+    - @id
+    - @type
+    - description
+    - name
+    - url
+  DietarySupplement
+    @id = {origin}/library/creatine#substance
+    url = {origin}/library/creatine
+    name = Creatine Monohydrate
+    @context = https://schema.org
+    isPartOf = {origin}/#website
+    - @context
+    - @id
+    - @type
+    - description
+    - identifier
+    - image
+    - isPartOf
+    - name
+    - sameAs
+    - url
+  FAQPage
+    @id = {origin}/library/creatine#faq
+    @context = https://schema.org
+    - @context
+    - @id
+    - @type
+    - mainEntity
+  HowTo
+    @id = {origin}/library/creatine#how-to-track
+    name = How to track Creatine Monohydrate doses
+    @context = https://schema.org
+    - @context
+    - @id
+    - @type
+    - description
+    - name
+    - step
+    - totalTime
+  MedicalWebPage
+    @id = {origin}/library/creatine#medicalwebpage
+    url = {origin}/library/creatine
+    name = Creatine Monohydrate: Benefits, Usage, and… | DoseRoutine
+    @context = https://schema.org
+    inLanguage = en
+    isPartOf = {origin}/library/creatine
+    - @context
+    - @id
+    - @type
+    - about
+    - abstract
+    - aspect
+    - audience
+    - citation
+    - dateModified
+    - datePublished
+    - description
+    - hasPart
+    - inLanguage
+    - isPartOf
+    - keywords
+    - lastReviewed
+    - mainContentOfPage
+    - medicalAudience
+    - name
+    - publisher
+    - reviewedBy
+    - url
+    - wordCount
+  Organization
+    @id = {origin}/#organization
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - brand
+    - copyrightHolder
+    - copyrightNotice
+    - description
+    - disambiguatingDescription
+    - email
+    - image
+    - knowsAbout
+    - legalName
+    - license
+    - logo
+    - name
+    - publishingPrinciples
+    - sameAs
+    - url
+  SoftwareApplication
+    @id = {origin}/#software
+    url = {origin}/
+    name = DoseRoutine
+    inLanguage = en
+    isPartOf = {origin}/#website
+    - @id
+    - @type
+    - alternateName
+    - applicationCategory
+    - applicationSubCategory
+    - author
+    - brand
+    - description
+    - featureList
+    - image
+    - inLanguage
+    - isAccessibleForFree
+    - isPartOf
+    - logo
+    - mainEntityOfPage
+    - name
+    - offers
+    - operatingSystem
+    - publisher
+    - sameAs
+    - screenshot
+    - softwareVersion
+    - url
+  WebSite
+    @id = {origin}/#website
+    url = {origin}/
+    name = DoseRoutine
+    - @id
+    - @type
+    - alternateName
+    - copyrightHolder
+    - copyrightNotice
+    - image
+    - license
+    - name
+    - potentialAction
+    - publisher
+    - publishingPrinciples
+    - sameAs
+    - url
+    - usageInfo"
+`;

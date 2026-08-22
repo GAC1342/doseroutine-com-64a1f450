@@ -12,7 +12,7 @@ export type TrustFaqPair = { q: string; a: string };
 export const TRUST_FAQ: readonly TrustFaqPair[] = [
   {
     q: "Does DoseRoutine give medical advice?",
-    a: "No. DoseRoutine compiles publicly available reference information from sources such as NIH/MedlinePlus, FDA labelling, Mayo Clinic and PubChem, and shows you where interactions have been documented. It does not diagnose, prescribe or replace a clinician or pharmacist.",
+    a: "No. DoseRoutine compiles publicly available reference information from sources such as NIH/MedlinePlus, FDA labeling, Mayo Clinic and PubChem, and shows you where interactions have been documented. It does not diagnose, prescribe or replace a clinician or pharmacist.",
   },
   {
     q: "Is my health data private — who can see it?",
@@ -28,7 +28,7 @@ export const TRUST_FAQ: readonly TrustFaqPair[] = [
   },
   {
     q: "Where does the interaction and compound data come from?",
-    a: "Interaction entries are compiled from public pharmacology and clinical literature, drug labelling and NIH resources, with PMIDs or DOIs attached where a specific study supports the entry. Every reference page links its sources so you can read the original.",
+    a: "Interaction entries are compiled from public pharmacology and clinical literature, drug labeling and NIH resources, with PubMed IDs or DOI links attached where a specific study supports the entry. Every reference page links its sources so you can read the original.",
   },
   {
     q: "Who builds DoseRoutine?",

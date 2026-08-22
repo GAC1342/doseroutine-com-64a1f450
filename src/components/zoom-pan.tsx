@@ -1,7 +1,7 @@
 /**
  * ZoomPan — a reusable pinch / wheel zoom + drag pan surface.
  *
- * Handles the usual traps: wheel zoom is scaled by the normalised delta
+ * Handles the usual traps: wheel zoom is scaled by the normalized delta
  * (never a fixed factor per event, which compounds on trackpads), the point
  * under the cursor stays put, the native wheel listener is non-passive so the
  * page doesn't scroll behind it, and touch pinch is done with Pointer Events.

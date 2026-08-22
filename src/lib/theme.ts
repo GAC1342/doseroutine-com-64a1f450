@@ -14,6 +14,10 @@ export const COLOR_THEMES = [
   { id: "green", label: "Green", swatch: "oklch(0.500 0.115 150)", pro: true },
   { id: "violet", label: "Violet", swatch: "oklch(0.495 0.190 305)", pro: true },
   { id: "mint", label: "Neon Mint", swatch: "oklch(0.700 0.160 168)", pro: true },
+  { id: "neon-blue", label: "Neon Blue", swatch: "oklch(0.620 0.200 255)", pro: true },
+  { id: "neon-pink", label: "Neon Pink", swatch: "oklch(0.655 0.266 352)", pro: true },
+  { id: "neon-green", label: "Neon Green", swatch: "oklch(0.865 0.260 146)", pro: true },
+  { id: "neon-yellow", label: "Neon Yellow", swatch: "oklch(0.880 0.176 95)", pro: true },
   { id: "graphite", label: "Graphite", swatch: "oklch(0.420 0.014 250)", pro: true },
 ] as const;
 
@@ -57,7 +61,6 @@ export function applyTheme(theme: ColorTheme, scheme: ColorScheme) {
   root.classList.toggle("dark", dark);
   root.style.colorScheme = dark ? "dark" : "light";
 }
-
 
 /**
  * Cookies mirror the localStorage choice. They exist so the very first paint

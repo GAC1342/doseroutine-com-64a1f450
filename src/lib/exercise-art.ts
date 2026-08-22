@@ -8,6 +8,7 @@
 
 import { MUSCLE_LABELS } from "@/components/muscle-map";
 import { MUSCLE_GROUPS } from "@/lib/muscle-groups";
+import { versionedArtUrl } from "@/lib/exercise-art-version";
 
 import assaultBikeArt from "@/assets/exercises/assault-bike.jpg.asset.json";
 import backSquatArt from "@/assets/exercises/back-squat.jpg.asset.json";
@@ -187,10 +188,31 @@ import hangboardArt from "@/assets/exercises/hangboard.jpg";
 import danceArt from "@/assets/exercises/dance.jpg";
 import tennisArt from "@/assets/exercises/tennis.jpg";
 
+// Expanded upper-body strength illustrations.
+import dumbbellBenchPressArt from "@/assets/exercises/dumbbell-bench-press.jpg.asset.json";
+import machineChestPressArt from "@/assets/exercises/machine-chest-press.jpg.asset.json";
+import declinePushUpArt from "@/assets/exercises/decline-push-up.jpg.asset.json";
+import dumbbellFloorPressArt from "@/assets/exercises/dumbbell-floor-press.jpg.asset.json";
+import chestSupportedRowArt from "@/assets/exercises/chest-supported-row.jpg.asset.json";
+import singleArmDumbbellRowArt from "@/assets/exercises/single-arm-dumbbell-row.jpg.asset.json";
+import tBarRowArt from "@/assets/exercises/t-bar-row.jpg.asset.json";
+import straightArmPulldownArt from "@/assets/exercises/straight-arm-pulldown.jpg.asset.json";
+import rackPullArt from "@/assets/exercises/rack-pull.jpg.asset.json";
+import dumbbellShoulderPressArt from "@/assets/exercises/dumbbell-shoulder-press.jpg.asset.json";
+import arnoldPressArt from "@/assets/exercises/arnold-press.jpg.asset.json";
+import cableLateralRaiseArt from "@/assets/exercises/cable-lateral-raise.jpg.asset.json";
+import rearDeltFlyArt from "@/assets/exercises/rear-delt-fly.jpg.asset.json";
+import uprightRowArt from "@/assets/exercises/upright-row.jpg.asset.json";
+import barbellShrugArt from "@/assets/exercises/barbell-shrug.jpg.asset.json";
+import hammerCurlArt from "@/assets/exercises/hammer-curl.jpg.asset.json";
+import inclineDumbbellCurlArt from "@/assets/exercises/incline-dumbbell-curl.jpg.asset.json";
+import preacherCurlArt from "@/assets/exercises/preacher-curl.jpg.asset.json";
+import skullCrusherArt from "@/assets/exercises/skull-crusher.jpg.asset.json";
+import overheadCableExtensionArt from "@/assets/exercises/overhead-cable-extension.jpg.asset.json";
+import closeGripBenchPressArt from "@/assets/exercises/close-grip-bench-press.jpg.asset.json";
+import reverseCurlArt from "@/assets/exercises/reverse-curl.jpg.asset.json";
 
-
-
-export const EXERCISE_ART: Record<string, string> = {
+const ART_SOURCES: Record<string, string> = {
   "Assault bike": assaultBikeArt.url,
   "Back squat": backSquatArt.url,
   "Barbell row": barbellRowArt.url,
@@ -384,8 +406,31 @@ export const EXERCISE_ART: Record<string, string> = {
   Windmill: windmillArt,
   Halo: haloArt,
   Skating: skatingArt,
-};
 
+  // Expanded upper-body strength library.
+  "Dumbbell bench press": dumbbellBenchPressArt.url,
+  "Machine chest press": machineChestPressArt.url,
+  "Decline push-up": declinePushUpArt.url,
+  "Dumbbell floor press": dumbbellFloorPressArt.url,
+  "Chest-supported row": chestSupportedRowArt.url,
+  "Single-arm dumbbell row": singleArmDumbbellRowArt.url,
+  "T-bar row": tBarRowArt.url,
+  "Straight-arm pulldown": straightArmPulldownArt.url,
+  "Rack pull": rackPullArt.url,
+  "Dumbbell shoulder press": dumbbellShoulderPressArt.url,
+  "Arnold press": arnoldPressArt.url,
+  "Cable lateral raise": cableLateralRaiseArt.url,
+  "Rear delt fly": rearDeltFlyArt.url,
+  "Upright row": uprightRowArt.url,
+  "Barbell shrug": barbellShrugArt.url,
+  "Hammer curl": hammerCurlArt.url,
+  "Incline dumbbell curl": inclineDumbbellCurlArt.url,
+  "Preacher curl": preacherCurlArt.url,
+  "Skull crusher": skullCrusherArt.url,
+  "Overhead cable extension": overheadCableExtensionArt.url,
+  "Close-grip bench press": closeGripBenchPressArt.url,
+  "Reverse curl": reverseCurlArt.url,
+};
 
 /** "Barbell Bench Press!" -> "barbell bench press" */
 function normalize(name: string): string {
@@ -470,7 +515,7 @@ const ALIASES: Record<string, string> = {
   crossfit: "CrossFit / WOD",
   "cross fit": "CrossFit / WOD",
   wod: "CrossFit / WOD",
-  "metcon": "CrossFit / WOD",
+  metcon: "CrossFit / WOD",
   thruster: "CrossFit / WOD",
   boxing: "Boxing",
   "heavy bag": "Boxing",
@@ -501,12 +546,12 @@ const ALIASES: Record<string, string> = {
   "warrior 2": "Warrior II",
   "warrior two": "Warrior II",
   "warrior ii pose": "Warrior II",
-  "vrksasana": "Tree pose",
-  "balasana": "Child's pose",
+  vrksasana: "Tree pose",
+  balasana: "Child's pose",
   "childs pose": "Child's pose",
-  "bhujangasana": "Cobra pose",
+  bhujangasana: "Cobra pose",
   cobra: "Cobra pose",
-  "utkatasana": "Chair pose",
+  utkatasana: "Chair pose",
   "cat cow": "Cat-cow",
   "cat camel": "Cat-cow",
   "sun salutations": "Yoga",
@@ -519,7 +564,7 @@ const ALIASES: Record<string, string> = {
   "hip openers": "Pigeon pose",
   // Pilates
   "the hundred": "Hundred",
-  "hundreds": "Hundred",
+  hundreds: "Hundred",
   "roll up": "Roll-up",
   "core series": "Hundred",
   "single leg stretch": "Single leg stretch",
@@ -538,7 +583,7 @@ const ALIASES: Record<string, string> = {
   uppercuts: "Uppercut",
   "bag rounds": "Heavy bag",
   "mitt work": "Pad work",
-  "pads": "Pad work",
+  pads: "Pad work",
   "speed bag": "Heavy bag",
   footwork: "Footwork drills",
   // Swimming
@@ -624,7 +669,7 @@ const ALIASES: Record<string, string> = {
   crane: "Crow pose",
   "urdhva dhanurasana": "Wheel pose",
   "upward bow": "Wheel pose",
-  "wheel": "Wheel pose",
+  wheel: "Wheel pose",
   sirsasana: "Headstand",
   "head stand": "Headstand",
   // Cardio
@@ -772,25 +817,25 @@ const ALIASES: Record<string, string> = {
   "full body stretch": "Stretching",
   // Core & flexibility
   "dead bugs": "Dead bug",
-  "deadbug": "Dead bug",
+  deadbug: "Dead bug",
   "bird dogs": "Bird dog",
-  "birddog": "Bird dog",
+  birddog: "Bird dog",
   "bicycle crunches": "Bicycle crunch",
-  "bicycles": "Bicycle crunch",
+  bicycles: "Bicycle crunch",
   "russian twists": "Russian twist",
   "reverse crunches": "Reverse crunch",
   "scissor kicks": "Flutter kicks",
-  "pallof": "Pallof press",
+  pallof: "Pallof press",
   "anti rotation press": "Pallof press",
   "ab rollout": "Ab wheel rollout",
   "ab wheel": "Ab wheel rollout",
   "wheel rollout": "Ab wheel rollout",
-  "superman": "Superman hold",
-  "supermans": "Superman hold",
+  superman: "Superman hold",
+  supermans: "Superman hold",
   "back extension hold": "Superman hold",
   "v ups": "V-up",
   "v up": "V-up",
-  "jackknife": "V-up",
+  jackknife: "V-up",
   "bear crawl": "Bear crawl hold",
   "bear crawls": "Bear crawl hold",
   "figure 4 stretch": "Figure-four stretch",
@@ -808,7 +853,6 @@ const ALIASES: Record<string, string> = {
   "worlds greatest stretch": "World's greatest stretch",
   "greatest stretch": "World's greatest stretch",
   "core finisher circuit": "Dead bug",
-
 };
 
 /**
@@ -819,6 +863,14 @@ const ALIASES: Record<string, string> = {
  * modal paints.
  */
 export const EXERCISE_ART_SIZE = 816;
+
+/**
+ * Public illustration registry. Every URL carries the current art version so
+ * a redrawn illustration replaces a cached one without a hard refresh.
+ */
+export const EXERCISE_ART: Record<string, string> = Object.fromEntries(
+  Object.entries(ART_SOURCES).map(([name, url]) => [name, versionedArtUrl(url)]),
+);
 
 const NORMALIZED_ART: Record<string, string> = Object.fromEntries(
   Object.entries(EXERCISE_ART).map(([name, url]) => [normalize(name), url]),

@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import { MUSCLE_GROUPS } from "@/lib/muscle-groups";
 import { exerciseHowTo } from "@/lib/exercise-howto";
 
-const names = Array.from(
-  new Set(MUSCLE_GROUPS.flatMap((g) => g.exercises.map((e) => e.name))),
-);
+const names = Array.from(new Set(MUSCLE_GROUPS.flatMap((g) => g.exercises.map((e) => e.name))));
 
 describe("exercise how-to coverage", () => {
   it("documents every picker exercise", () => {

@@ -14,8 +14,10 @@ import {
 } from "@/lib/tester-admin.functions";
 import { issueCompCodes } from "@/lib/comp-access.functions";
 import { getAppLaunchWaitlistCount } from "@/lib/app-launch.functions";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/testers")({
+  errorComponent: routeErrorComponent("admin-testers"),
   head: () => ({
     meta: [
       { title: "Closed testing signups — DoseRoutine admin" },

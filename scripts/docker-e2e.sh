@@ -11,6 +11,8 @@
 #   PLAYWRIGHT_BASE_URL   test an existing server (use host.docker.internal for
 #                         a dev server running on your machine)
 #   TEST_USER_EMAIL / TEST_USER_PASSWORD  forwarded for auth'd specs
+#   VISUAL_DIFF_PROFILE   strict|default|staging|lenient pixel-diff tolerance
+#   VISUAL_MAX_DIFF_PIXEL_RATIO / VISUAL_MAX_DIFF_PIXELS / VISUAL_PIXEL_THRESHOLD
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

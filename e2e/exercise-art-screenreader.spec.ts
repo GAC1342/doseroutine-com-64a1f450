@@ -46,9 +46,7 @@ async function accInfo(page: import("@playwright/test").Page, selector: string) 
       spoken: Array.from(el.querySelectorAll("*"))
         .filter(
           (n) =>
-            !n.closest('[aria-hidden="true"]') &&
-            n.children.length === 0 &&
-            text(n).length > 0,
+            !n.closest('[aria-hidden="true"]') && n.children.length === 0 && text(n).length > 0,
         )
         .map((n) => text(n)),
     };
@@ -130,9 +128,7 @@ test.describe("illustration modal screen-reader announcements", () => {
     expect(info.description).toBe(captionText);
 
     // No sentence may appear twice in the readable text of the dialog.
-    const duplicates = info.spoken.filter(
-      (t, i) => t.length > 12 && info.spoken.indexOf(t) !== i,
-    );
+    const duplicates = info.spoken.filter((t, i) => t.length > 12 && info.spoken.indexOf(t) !== i);
     expect(duplicates).toEqual([]);
 
     // The label line is present and distinct from the description.
@@ -191,7 +187,7 @@ test.describe("illustration modal screen-reader announcements", () => {
     if (exposedOutside.length > 0) {
       expect(declaresModal).toBe("true");
       // Whatever is still exposed must not be the sheet the modal came from.
-      expect(exposedOutside.join(" ")).not.toContain("role=\"dialog\"");
+      expect(exposedOutside.join(" ")).not.toContain('role="dialog"');
     } else {
       expect(exposedOutside).toEqual([]);
     }

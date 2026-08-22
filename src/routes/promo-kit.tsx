@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { useState } from "react";
 import { Check, Copy, Download } from "lucide-react";
 import { PublicBackHeader } from "@/components/public-back-header";
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/promo-kit")({
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
   }),
   component: PromoKitPage,
 });
@@ -73,7 +74,7 @@ ${SIGNUP}
     note: "Short version. Attach the landscape image.",
     text: `Android testers wanted 📱
 
-I'm launching DoseRoutine — a tracker for supplements, peptides, TRT/HRT and GLP-1s. Coming soon to Google Play.
+I'm launching DoseRoutine — a tracker for supplements, peptides, TRT/HRT and GLP-1s. Now in Android testing on Google Play.
 
 Test it before launch and get 3 months of Pro free.
 Phones + tablets. ~10 min to join.
@@ -262,7 +263,7 @@ function DownloadAllButton() {
 
 function PromoKitPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-16">
+    <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-3xl px-4 pb-16">
       <PublicBackHeader />
 
       <header className="mt-4">
@@ -366,6 +367,6 @@ function PromoKitPage() {
       <p className="mt-10 text-xs text-muted-foreground">
         © {new Date().getFullYear()} DoseRoutine · doseroutine.com
       </p>
-    </div>
+    </main>
   );
 }

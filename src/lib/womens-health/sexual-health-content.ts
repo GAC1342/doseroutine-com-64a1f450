@@ -220,7 +220,7 @@ export const MACA_LIBIDO: WomensCompoundContent = {
     },
     {
       heading: "Colour phenotypes — thin differentiating evidence",
-      body: "Gonzales-Arimborgo et al. (Pharmaceuticals 2016) compared black and red maca vs placebo in perimenopausal women and reported small differences in mood and sexual desire favouring black maca, but the trial was underpowered to establish colour-specific superiority. Marketing separates yellow, red, and black maca more aggressively than the evidence supports.",
+      body: "Gonzales-Arimborgo et al. (Pharmaceuticals 2016) compared black and red maca vs placebo in perimenopausal women and reported small differences in mood and sexual desire favoring black maca, but the trial was underpowered to establish color-specific superiority. Marketing separates yellow, red, and black maca more aggressively than the evidence supports.",
     },
     {
       heading: "Bone-density signal (limited)",
@@ -685,7 +685,7 @@ export const VAGINAL_PROBIOTICS: WomensCompoundContent = {
     },
     {
       heading: "Candida (yeast) — weaker signal",
-      body: "Xie et al. (Cochrane 2017) meta-analysed probiotics for recurrent vulvovaginal candidiasis and found modest short-term benefit as an adjunct to conventional antifungals, but low-quality evidence overall. Probiotics should not replace fluconazole for acute candida; the case for prevention is real but weaker than for BV.",
+      body: "Xie et al. (Cochrane 2017) meta-analyzed probiotics for recurrent vulvovaginal candidiasis and found modest short-term benefit as an adjunct to conventional antifungals, but low-quality evidence overall. Probiotics should not replace fluconazole for acute candida; the case for prevention is real but weaker than for BV.",
     },
     {
       heading: "Safety and immunocompromised populations",

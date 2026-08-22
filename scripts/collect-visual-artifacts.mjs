@@ -79,7 +79,9 @@ const walk = (dir, base = dir) => {
 
 const matchesProject = (file) =>
   projectFilter.length === 0 ||
-  projectFilter.some((p) => file.includes(`-${p}-`) || file.includes(`--${p}`) || file.includes(`${p}/`));
+  projectFilter.some(
+    (p) => file.includes(`-${p}-`) || file.includes(`--${p}`) || file.includes(`${p}/`),
+  );
 
 rmSync(OUT_DIR, { recursive: true, force: true });
 mkdirSync(OUT_DIR, { recursive: true });
@@ -154,7 +156,10 @@ if (existsSync(RESULTS_DIR)) {
       mkdirSync(join(OUT_DIR, "diffs", dir), { recursive: true });
       cpSync(join(src, "error-context.md"), join(OUT_DIR, "diffs", dir, "error-context.md"));
     }
-    diffCases.push({ dir, shots: [...groups.values()].sort((a, b) => a.name.localeCompare(b.name)) });
+    diffCases.push({
+      dir,
+      shots: [...groups.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    });
   }
 }
 

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
-// Public server function for the closed-testing signup page.
+// Public server function for the closed-testing sign-up page.
 // Stores emails in a table only service_role can read, with basic rate
 // limiting and bot filtering to keep the list clean.
 
@@ -119,7 +119,7 @@ export const joinClosedTesting = createServerFn({ method: "POST" })
       }
 
       // Notify the team so testers can be added to the Play Console list
-      // promptly. Never let a mail failure break the signup itself.
+      // promptly. Never let a mail failure break the sign-up itself.
       try {
         const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
         const notifyTo =

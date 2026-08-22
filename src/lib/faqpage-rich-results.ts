@@ -49,12 +49,19 @@ export function validateFaqPageNode(node: unknown, source = "faq"): FaqRichResul
   const add = (path: string, message: string) => issues.push({ path, message });
 
   if (!isPlainObject(node)) {
-    return { source, valid: false, questionCount: 0, issues: [{ path: "$", message: "FAQ schema is not a JSON object" }] };
+    return {
+      source,
+      valid: false,
+      questionCount: 0,
+      issues: [{ path: "$", message: "FAQ schema is not a JSON object" }],
+    };
   }
 
   const context = str(node["@context"]);
-  if (!/schema\.org/.test(context)) add("@context", `expected schema.org, got "${context || "none"}"`);
-  if (!typeMatches(node, "FAQPage")) add("@type", `expected FAQPage, got "${String(node["@type"] ?? "none")}"`);
+  if (!/schema\.org/.test(context))
+    add("@context", `expected schema.org, got "${context || "none"}"`);
+  if (!typeMatches(node, "FAQPage"))
+    add("@type", `expected FAQPage, got "${String(node["@type"] ?? "none")}"`);
 
   for (const key of ["@id", "url"]) {
     const v = str(node[key]);
@@ -103,7 +110,8 @@ export function validateFaqPageNode(node: unknown, source = "faq"): FaqRichResul
       add(`${p}.acceptedAnswer.text`, "answer contains script/form/interactive markup");
 
     const url = str(answer.url);
-    if (url && !url.startsWith("https://")) add(`${p}.acceptedAnswer.url`, "url must be absolute https");
+    if (url && !url.startsWith("https://"))
+      add(`${p}.acceptedAnswer.url`, "url must be absolute https");
   });
 
   return { source, valid: issues.length === 0, questionCount: mainEntity.length, issues };
@@ -139,7 +147,8 @@ export function extractFaqPageNodes(head: {
       nodes.push({ __invalid: true });
       continue;
     }
-    const graph = isPlainObject(parsed) && Array.isArray(parsed["@graph"]) ? parsed["@graph"] : null;
+    const graph =
+      isPlainObject(parsed) && Array.isArray(parsed["@graph"]) ? parsed["@graph"] : null;
     const list = graph ?? (Array.isArray(parsed) ? parsed : [parsed]);
     for (const n of list) if (isPlainObject(n) && typeMatches(n, "FAQPage")) nodes.push(n);
   }

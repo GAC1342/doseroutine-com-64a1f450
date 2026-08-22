@@ -1,6 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { MEDICAL_DISCLAIMER_FAQ } from "@/lib/aeo-faqs-legal";
 import { articleScript } from "@/lib/article-schema";
 
 const pageUrl = "https://doseroutine.com/medical-disclaimer";
@@ -17,12 +23,13 @@ export const Route = createFileRoute("/medical-disclaimer")({
       { property: "og:description", content: pageDescription },
       { property: "og:url", content: pageUrl },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, MEDICAL_DISCLAIMER_FAQ),
       breadcrumbScript("https://doseroutine.com/medical-disclaimer", [
         { name: "Legal", path: "/legal" },
         { name: "Medical Disclaimer", path: "/medical-disclaimer" },
@@ -57,7 +64,7 @@ export const Route = createFileRoute("/medical-disclaimer")({
 function MedicalDisclaimerPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-2xl px-4 pb-24 pt-8">
+      <main id="main-content" className="mx-auto max-w-2xl px-4 pb-24 pt-8">
         <Link
           to="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -144,7 +151,12 @@ function MedicalDisclaimerPage() {
           </Link>
           .
         </p>
-      </div>
+        <AeoFaq pairs={MEDICAL_DISCLAIMER_FAQ} />
+
+        <ProseContainer>
+          <PageProse id="medical-disclaimer" />
+        </ProseContainer>
+      </main>
     </div>
   );
 }

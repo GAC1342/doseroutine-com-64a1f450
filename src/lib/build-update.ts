@@ -62,7 +62,8 @@ async function fetchLatestBuildId(signal?: AbortSignal): Promise<string | null> 
     const res = await fetch(`${ENDPOINT}?t=${Date.now()}`, {
       cache: "no-store",
       credentials: "same-origin",
-      signal,
+      // Bound the wait so a stalled connection can't keep the check pending.
+      signal: signal ?? AbortSignal.timeout(8_000),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { id?: unknown };

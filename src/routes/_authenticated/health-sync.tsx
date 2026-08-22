@@ -2,9 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Activity, ArrowLeft, CheckCircle2, Clock, Watch } from "lucide-react";
 import { isNative } from "@/lib/platform";
+import { HealthSyncStatus } from "@/components/health-sync-status";
+
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/health-sync")({
+  errorComponent: routeErrorComponent("health-sync"),
   head: () => ({
     meta: [
       { title: "Health Sync — DoseRoutine" },
@@ -64,7 +68,10 @@ function HealthSyncPage() {
         </div>
       </div>
 
+      <HealthSyncStatus className="mb-6" />
+
       {/* Status */}
+
       <Card className="mb-6 rounded-2xl border-border p-5">
         <div className="mb-2 flex items-center gap-2">
           <Clock className="h-4 w-4 text-amber-500" />

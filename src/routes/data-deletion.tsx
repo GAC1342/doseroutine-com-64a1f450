@@ -1,6 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { DATA_DELETION_FAQ } from "@/lib/aeo-faqs-legal";
 
 const pageUrl = "https://doseroutine.com/data-deletion";
 const pageTitle = "Delete Your Account & Data — DoseRoutine";
@@ -16,12 +22,13 @@ export const Route = createFileRoute("/data-deletion")({
       { property: "og:description", content: pageDescription },
       { property: "og:url", content: pageUrl },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, DATA_DELETION_FAQ),
       breadcrumbScript("https://doseroutine.com/data-deletion", [
         { name: "Legal", path: "/legal" },
         { name: "Data Deletion", path: "/data-deletion" },
@@ -48,7 +55,7 @@ export const Route = createFileRoute("/data-deletion")({
 function DataDeletionPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-2xl px-4 pb-24 pt-8">
+      <div id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-4 pb-24 pt-8">
         <Link
           to="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -71,9 +78,9 @@ function DataDeletionPage() {
           <ol className="list-decimal space-y-1 pl-5">
             <li>
               Sign in at{" "}
-              <a href="https://doseroutine.com" className="text-primary underline">
+              <Link to="/" className="text-primary underline">
                 doseroutine.com
-              </a>
+              </Link>
             </li>
             <li>
               Open <strong>More → Account</strong>
@@ -163,6 +170,11 @@ function DataDeletionPage() {
           </Link>
           .
         </p>
+        <AeoFaq pairs={DATA_DELETION_FAQ} />
+
+        <ProseContainer>
+          <PageProse id="data-deletion" />
+        </ProseContainer>
       </div>
     </div>
   );

@@ -17,11 +17,11 @@ export const LAST_REVIEWED = "2026-08-03";
 export const INTERACTION_CHECKER_FAQ: AeoFaqPair[] = [
   {
     q: "Is the DoseRoutine interaction checker free?",
-    a: "Yes. The interaction checker at doseroutine.com/interaction-checker is free and needs no account. Add any two or more items — supplements, peptides, hormones including TRT, GLP-1s, or anything else you take daily — and you get the caution level, the mechanism behind it, and cited sources. Signing up free adds saving your routine, dose scheduling and reminders.",
+    a: "Yes. The DoseRoutine interaction checker is free and needs no account. Add any two or more items — supplements, peptides, hormones including TRT, GLP-1s, or anything else you take daily — and you get the caution level, the mechanism behind it, and cited sources. Signing up free adds saving your routine, dose scheduling and reminders.",
   },
   {
     q: "How many compounds does it cover?",
-    a: "475+ compounds across supplements, vitamins and minerals, peptides, hormones and TRT, GLP-1 medications, and common daily prescriptions, plus category-level rules that catch combinations without a named pair entry. Every named pair also has its own plain-English page under doseroutine.com/interactions.",
+    a: "475+ compounds across supplements, vitamins and minerals, peptides, hormones and TRT, GLP-1 medications, and common daily prescriptions, plus category-level rules that catch combinations without a named pair entry. Every named pair also has its own plain-English page in the DoseRoutine interactions section.",
   },
   {
     q: "Can I check supplements against prescription medication?",
@@ -44,7 +44,7 @@ export const INTERACTION_CHECKER_FAQ: AeoFaqPair[] = [
 export const CALCULATORS_FAQ: AeoFaqPair[] = [
   {
     q: "What do the DoseRoutine calculators do?",
-    a: "They convert between units. Given the amount of peptide in a vial and how much bacteriostatic water you added, they convert a prescribed amount in milligrams or micrograms into syringe units and millilitres. They do not tell you what amount to take — that comes from your clinician or your protocol.",
+    a: "They convert between units. Given the amount of peptide in a vial and how much bacteriostatic water you added, they convert a prescribed amount in milligrams or micrograms into syringe units and milliliters. They do not tell you what amount to take — that comes from your clinician or your protocol.",
   },
   {
     q: "How do you calculate peptide reconstitution?",
@@ -98,7 +98,7 @@ export const LIBRARY_FAQ: AeoFaqPair[] = [
   },
   {
     q: "Where does the information come from?",
-    a: "Compound data is compiled from public sources including the NIH Office of Dietary Supplements, DailyMed, PubChem and peer-reviewed literature, with the specific citation shown on each page. Our review standards are published at doseroutine.com/editorial-policy.",
+    a: "Compound data is compiled from public sources including the NIH Office of Dietary Supplements, DailyMed, PubChem and peer-reviewed literature, with the specific citation shown on each page. Our review standards are published on the DoseRoutine editorial policy page.",
   },
   {
     q: "How do I find what works for a specific goal?",
@@ -106,7 +106,7 @@ export const LIBRARY_FAQ: AeoFaqPair[] = [
   },
   {
     q: "Can I check two compounds against each other?",
-    a: "Yes. Use the interaction checker at doseroutine.com/interaction-checker for any combination, or open a named pair page under doseroutine.com/interactions for a written verdict on that specific combination.",
+    a: "Yes. Use the DoseRoutine interaction checker for any combination, or open a named pair page in the interactions section for a written verdict on that specific combination.",
   },
 ];
 
@@ -129,7 +129,7 @@ export const HELP_FAQ: AeoFaqPair[] = [
   },
   {
     q: "How do I delete my account and data?",
-    a: "Settings, then Delete account, or visit doseroutine.com/data-deletion. Deletion removes your routine, logs and profile permanently.",
+    a: "Settings, then Delete account, or open the DoseRoutine data deletion page. Deletion removes your routine, logs and profile permanently.",
   },
 ];
 
@@ -152,6 +152,6 @@ export const ABOUT_FAQ: AeoFaqPair[] = [
   },
   {
     q: "How is DoseRoutine's content reviewed?",
-    a: "Compound and interaction data is compiled from public sources including the NIH Office of Dietary Supplements, DailyMed, PubChem and peer-reviewed literature, with citations on the page. The full review, correction and sourcing process is published at doseroutine.com/editorial-policy.",
+    a: "Compound and interaction data is compiled from public sources including the NIH Office of Dietary Supplements, DailyMed, PubChem and peer-reviewed literature, with citations on the page. The full review, correction and sourcing process is published on the DoseRoutine editorial policy page.",
   },
 ];

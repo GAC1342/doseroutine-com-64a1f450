@@ -1,0 +1,44 @@
+{
+  "fdcId": 171077,
+  "description": "Chicken, broilers or fryers, breast, meat only, raw",
+  "dataType": "Foundation",
+  "newFutureField": {
+    "nested": [1, 2, 3]
+  },
+  "foodNutrients": [
+    {
+      "nutrientId": 1008,
+      "value": 120
+    },
+    {
+      "nutrientId": 1003,
+      "value": 22.5
+    },
+    {
+      "nutrientId": 1005,
+      "value": 0
+    },
+    {
+      "nutrientId": 1004,
+      "value": 2.6
+    },
+    {
+      "nutrientId": 9999999,
+      "value": 42,
+      "unitName": "??"
+    }
+  ],
+  "foodPortions": [
+    {
+      "gramWeight": 174,
+      "portionDescription": "1 breast"
+    },
+    {
+      "gramWeight": 85,
+      "amount": 3,
+      "measureUnit": {
+        "name": "oz"
+      }
+    }
+  ]
+}

@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Circle,
-  Phone,
   Stethoscope,
   ClipboardList,
   ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react";
 
 type FlaggedPair = { a: string; b: string; severity: string };
@@ -34,6 +35,7 @@ export function TalkToPharmacistChecklist({
 }) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [open, setOpen] = useState(true);
+  const [shared, setShared] = useState(false);
 
   useEffect(() => {
     try {
@@ -70,6 +72,37 @@ export function TalkToPharmacistChecklist({
 
   if (majorCount === 0) return null;
 
+  // Replaces the old empty `tel:` button: an in-app action that hands the
+  // flagged pairs and question list to the OS share sheet on iOS/Android, and
+  // falls back to the clipboard when sharing isn't available.
+  async function shareChecklist() {
+    const lines = [
+      "Questions for my pharmacist (from DoseRoutine):",
+      "",
+      ...pairs.map((p) => `- Flagged interaction: ${p.a} + ${p.b} (${p.severity})`),
+      "",
+      ...ITEMS.map((i) => `- ${i.label}`),
+    ];
+    const text = lines.join("\n");
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await (navigator as Navigator).share({ title: "Pharmacist checklist", text });
+        setShared(true);
+      } else {
+        await (navigator as Navigator).clipboard.writeText(text);
+        setShared(true);
+      }
+    } catch {
+      try {
+        await (navigator as Navigator).clipboard.writeText(text);
+        setShared(true);
+      } catch {
+        /* user cancelled or clipboard blocked — button simply stays idle */
+      }
+    }
+    window.setTimeout(() => setShared(false), 2500);
+  }
+
   const toggle = (id: string) => setChecked((c) => ({ ...c, [id]: !c[id] }));
   const markAll = () => setChecked(Object.fromEntries(ITEMS.map((i) => [i.id, true])));
 
@@ -81,7 +114,7 @@ export function TalkToPharmacistChecklist({
         className="flex w-full items-start gap-3 text-left"
         aria-expanded={open}
       >
-        <Stethoscope className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden />
+        <Stethoscope className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--caution)]" aria-hidden />
         <div className="flex-1">
           <p className="font-display text-sm font-semibold text-foreground">
             Talk to your pharmacist or prescriber
@@ -108,7 +141,7 @@ export function TalkToPharmacistChecklist({
                   >
                     {isChecked ? (
                       <CheckCircle2
-                        className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"
+                        className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--severity-synergy)]"
                         aria-hidden
                       />
                     ) : (
@@ -129,12 +162,14 @@ export function TalkToPharmacistChecklist({
           </ul>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <a
-              href="tel:"
-              className="tap-target inline-flex h-10 items-center gap-1.5 rounded-lg bg-amber-600 px-3 text-xs font-semibold text-white hover:bg-amber-700"
+            <button
+              type="button"
+              onClick={() => void shareChecklist()}
+              className="tap-target inline-flex h-10 items-center gap-1.5 rounded-lg bg-[color:var(--caution)] px-3 text-xs font-semibold text-background hover:brightness-95"
             >
-              <Phone className="h-4 w-4" /> Call pharmacist
-            </a>
+              {shared ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {shared ? "Copied" : "Share with pharmacist"}
+            </button>
             <a
               href="https://www.pharmacy.ca.gov/consumers/ask_pharmacist.shtml"
               target="_blank"

@@ -220,7 +220,10 @@ export interface FaqParityOptions {
 }
 
 /** Verify every FAQ Question/Answer in the JSON-LD maps to its anchored block. */
-export function checkFaqAnchorParity(html: string, options: FaqParityOptions = {}): FaqParityResult {
+export function checkFaqAnchorParity(
+  html: string,
+  options: FaqParityOptions = {},
+): FaqParityResult {
   const requireAnchors = options.requireAnchors ?? true;
   const pairs = extractFaqSchemaPairs(html);
   const issues: FaqParityIssue[] = [];

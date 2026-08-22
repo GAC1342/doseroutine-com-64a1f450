@@ -34,9 +34,14 @@ function ResetPasswordPage() {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (data.session) setReady(true);
+      })
+      .catch(() => {
+        /* offline: wait for the recovery event instead */
+      });
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -58,7 +63,11 @@ function ResetPasswordPage() {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="flex min-h-dvh flex-col items-center bg-background px-6 pt-[10vh] text-foreground">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="flex min-h-dvh flex-col items-center bg-background px-6 pt-[10vh] text-foreground"
+    >
       <div className="w-full max-w-sm text-center">
         <BrandLogo
           size={64}

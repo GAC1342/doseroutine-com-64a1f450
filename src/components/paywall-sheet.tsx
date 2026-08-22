@@ -1,6 +1,7 @@
 import { X, Crown, Zap, Check, ShieldCheck } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useProfileFlags } from "@/hooks/use-access";
+import { useAccess } from "@/hooks/use-access";
+import { trialCta } from "@/lib/trial-cta";
 import { Card } from "@/components/ui/card";
 
 interface PaywallSheetProps {
@@ -50,11 +51,12 @@ import { TrustBadges } from "@/components/trust-badges";
 
 export function PaywallSheet({ feature, onClose }: PaywallSheetProps) {
   const navigate = useNavigate();
-  const flags = useProfileFlags();
-  const hasUsedTrial = !!flags.data?.hasUsedTrial;
-  const { title, body } = copyFor(feature, hasUsedTrial);
-  const ctaLabel = hasUsedTrial ? "Reactivate Pro" : "Start 7-day free trial";
-  const destination = hasUsedTrial ? "/upgrade" : "/trial";
+  const access = useAccess();
+  const cta = trialCta(access);
+  const hasUsedTrial = !cta.eligible;
+  const { title, body } = copyFor(feature, access.hasUsedTrial);
+  const ctaLabel = cta.label;
+  const destination = cta.to;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">

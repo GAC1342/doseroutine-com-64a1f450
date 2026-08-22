@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { timingSafeEqual } from "node:crypto";
 import { supabase } from "@/integrations/supabase/client";
 import { GOALS } from "@/lib/goals";
 
@@ -44,15 +45,25 @@ async function submitBatch(urlList: string[]) {
   return { status: res.status, ok: res.ok };
 }
 
+/** Cron auth: shared secret travels in a header, never in the URL. */
+function verifyCronSecret(request: Request): boolean {
+  const expected = process.env.CRON_SECRET;
+  if (!expected) return false;
+  const provided = request.headers.get("x-cron-secret") ?? "";
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
 export const Route = createFileRoute("/api/public/indexnow-ping")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const provided = new URL(request.url).searchParams.get("secret");
-        const secret = process.env.CRON_SECRET;
-        if (!secret || provided !== secret) {
+        if (!verifyCronSecret(request)) {
           return new Response("Unauthorized", { status: 401 });
         }
+
         const urls = await collectUrls();
         const results: Array<{ status: number; ok: boolean; count: number }> = [];
         for (let i = 0; i < urls.length; i += 10000) {

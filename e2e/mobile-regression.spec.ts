@@ -1,5 +1,13 @@
-import { test as base, expect, devices, chromium, webkit } from "@playwright/test";
-import type { ConsoleMessage, Response, BrowserContext } from "@playwright/test";
+import {
+  test as base,
+  expect,
+  devices,
+  chromium,
+  webkit,
+  type ConsoleMessage,
+  type Response,
+  type BrowserContext,
+} from "@playwright/test";
 
 /**
  * Regression QA sweep — public routes rendered at iOS and Android viewports.

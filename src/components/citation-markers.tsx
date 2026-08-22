@@ -56,7 +56,11 @@ export function CitationMarkers({
   };
 
   return (
-    <span role="group" aria-label={label} className={`inline-flex items-center gap-0.5 ${className}`}>
+    <span
+      role="group"
+      aria-label={label}
+      className={`inline-flex items-center gap-0.5 ${className}`}
+    >
       <span className="sr-only">{label}: </span>
       <span id={`${uid}-hint`} className="sr-only">
         Jumps to this entry in the sources and references list at the end of the page.

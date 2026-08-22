@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { COOKIES_FAQ } from "@/lib/aeo-faqs-legal";
 
 const pageUrl = "https://doseroutine.com/cookies";
-const pageTitle = "Cookie Policy — DoseRoutine";
+const pageTitle = "Cookie Policy — How DoseRoutine Uses Cookies";
 const pageDescription =
   "Which cookies and similar technologies DoseRoutine uses, why we use them, and… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
 
@@ -16,12 +22,13 @@ export const Route = createFileRoute("/cookies")({
       { property: "og:description", content: pageDescription },
       { property: "og:url", content: pageUrl },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, COOKIES_FAQ),
       breadcrumbScript("https://doseroutine.com/cookies", [
         { name: "Legal", path: "/legal" },
         { name: "Cookies", path: "/cookies" },
@@ -142,6 +149,11 @@ function CookiePolicyPage() {
           </Link>
           .
         </p>
+        <AeoFaq pairs={COOKIES_FAQ} />
+
+        <ProseContainer>
+          <PageProse id="cookies" />
+        </ProseContainer>
       </main>
     </div>
   );

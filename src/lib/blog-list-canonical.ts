@@ -35,6 +35,7 @@ export function buildBlogListPageUrl(
   if (sort && sort !== "newest") url.searchParams.set("sort", sort);
   if (opts?.pageSize !== undefined && opts.pageSize !== null) {
     const size = normalizeBlogPageSize(opts.pageSize);
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
     if (size !== DEFAULT_BLOG_PAGE_SIZE) url.searchParams.set("pageSize", String(size));
   }
   return url.toString();

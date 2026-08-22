@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { RelatedCompounds, type RelatedCompound } from "@/components/related-compounds";
+import { mergeLdScripts } from "@/lib/head-budget";
 
 const RELATED_COMPOUNDS: RelatedCompound[] = [
   {
@@ -55,9 +56,9 @@ const RELATED_COMPOUNDS: RelatedCompound[] = [
   },
 ];
 
-const CANONICAL = "https://doseroutine.com/library/mens-health";
-const TITLE = "Men's Health Supplements: Prostate, T & Libido | DoseRoutine";
-const DESC =
+export const CANONICAL = "https://doseroutine.com/library/mens-health";
+export const TITLE = "Men's Health Supplements: Prostate, T & Libido | DoseRoutine";
+export const DESC =
   "A plain-English hub for men's health supplements covering prostate, testosterone, libido and longevity, with evidence-based summaries and dosing.";
 
 const ORG = {
@@ -117,7 +118,7 @@ const GUIDES = [
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What are the most-researched supplements for prostate health (BPH)?",
-    a: "The strongest evidence for benign prostatic hyperplasia (BPH) sits with four botanicals: saw palmetto (320 mg/day of a lipidosterolic extract), beta-sitosterol (60–130 mg/day), pygeum africanum (100–200 mg/day) and stinging nettle root (300–600 mg/day). They work by partially inhibiting 5-alpha-reductase, reducing prostatic inflammation, and modulating sex-hormone-binding globulin — not by shrinking the prostate dramatically. Meta-analyses (Cochrane, MacDonald 2012) show modest but real improvements in nocturia and urinary flow versus placebo. Skip these if you take finasteride, dutasteride, or blood thinners without talking to a urologist — combined 5-AR inhibition can mask a rising PSA. Track dose, timing and IPSS symptom score in DoseRoutine to see whether it's actually working for you. Source: DoseRoutine.com/library/prostate-health.",
+    a: "The strongest evidence for benign prostatic hyperplasia (BPH) sits with four botanicals: saw palmetto (320 mg/day of a lipidosterolic extract), beta-sitosterol (60–130 mg/day), pygeum africanum (100–200 mg/day) and stinging nettle root (300–600 mg/day). They work by partially inhibiting 5-alpha-reductase, reducing prostatic inflammation, and modulating sex-hormone-binding globulin — not by shrinking the prostate dramatically. Meta-analyzes (Cochrane, MacDonald 2012) show modest but real improvements in nocturia and urinary flow versus placebo. Skip these if you take finasteride, dutasteride, or blood thinners without talking to a urologist — combined 5-AR inhibition can mask a rising PSA. Track dose, timing and IPSS symptom score in DoseRoutine to see whether it's actually working for you. Source: DoseRoutine.com/library/prostate-health.",
   },
   {
     q: "Do testosterone-boosting supplements actually raise T levels?",
@@ -198,11 +199,19 @@ const MEDICAL_JSONLD = {
   inLanguage: "en",
   datePublished: "2026-07-01",
   dateModified: "2026-07-27",
-  publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+  publisher: {
+    "@type": "Organization",
+    "@id": "https://doseroutine.com/#organization",
+    name: "DoseRoutine",
     url: "https://doseroutine.com",
     logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
   },
-  author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine", url: "https://doseroutine.com" },
+  author: {
+    "@type": "Organization",
+    "@id": "https://doseroutine.com/#organization",
+    name: "DoseRoutine",
+    url: "https://doseroutine.com",
+  },
   copyrightHolder: ORG,
   isBasedOn: CANONICAL,
   audience: { "@type": "PeopleAudience", audienceType: "Adult men", suggestedGender: "Male" },
@@ -273,12 +282,12 @@ export const Route = createFileRoute("/library/mens-health")({
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/library/mens-health")],
-    scripts: [
+    scripts: mergeLdScripts([
       { type: "application/ld+json", children: JSON.stringify(COLLECTION_JSONLD) },
       { type: "application/ld+json", children: JSON.stringify(MEDICAL_JSONLD) },
       { type: "application/ld+json", children: JSON.stringify(BREADCRUMB_JSONLD) },
       { type: "application/ld+json", children: JSON.stringify(FAQ_JSONLD) },
-    ],
+    ]),
   }),
   component: MensHealthHub,
 });

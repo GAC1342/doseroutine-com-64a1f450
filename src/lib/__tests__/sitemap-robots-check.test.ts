@@ -125,9 +125,7 @@ describe("validateSitemapUrls", () => {
   });
 
   it("keeps the public workout crawlable", () => {
-    expect(
-      validateSitemapUrls([`${BASE}/booty-workout`], { baseUrl: BASE, robots }),
-    ).toEqual([]);
+    expect(validateSitemapUrls([`${BASE}/booty-workout`], { baseUrl: BASE, robots })).toEqual([]);
   });
 
   it("fails an empty sitemap", () => {

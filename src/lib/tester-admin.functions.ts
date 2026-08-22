@@ -33,7 +33,7 @@ export const listTesterSignups = createServerFn({ method: "POST" })
     return { rows: rows ?? [], total: count ?? rows?.length ?? 0 };
   });
 
-/** Admin-only: mark a signup as invited to the Play Console tester list. */
+/** Admin-only: mark a sign-up as invited to the Play Console tester list. */
 export const markTesterInvited = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
@@ -54,7 +54,7 @@ export const markTesterInvited = createServerFn({ method: "POST" })
 
 /**
  * Admin-only: send (or resend) the "the test is set to begin" email with the
- * Play Store opt-in link. Marks the signup as invited on first success and
+ * Play Store opt-in link. Marks the sign-up as invited on first success and
  * uses a unique idempotency key per send so resends actually go out.
  */
 export const sendTesterInviteEmail = createServerFn({ method: "POST" })
@@ -101,7 +101,7 @@ export const sendTesterInviteEmail = createServerFn({ method: "POST" })
   });
 
 /**
- * Admin-only: signup → invite → install → 14-day retention funnel grouped by
+ * Admin-only: sign-up → invite → install → 14-day retention funnel grouped by
  * UTM source/medium/campaign, plus page-view counts per source pulled from
  * analytics_events so a conversion rate can be shown.
  */

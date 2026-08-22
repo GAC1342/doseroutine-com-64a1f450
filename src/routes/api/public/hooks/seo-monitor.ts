@@ -53,7 +53,9 @@ function extractJsonLdTypes(html: string): string[] {
   while ((m = re.exec(html)) !== null) {
     try {
       const parsed = JSON.parse(m[1].trim());
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       const nodes: any[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       const push = (n: any) => {
         if (!n) return;
         if (Array.isArray(n)) n.forEach(push);
@@ -124,6 +126,7 @@ async function inspectViaGsc(
       },
     );
     if (!r.ok) return { verdict: null, coverage: null };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const data = (await r.json()) as any;
     const idx = data?.inspectionResult?.indexStatusResult ?? {};
     return {
@@ -195,6 +198,7 @@ export const Route = createFileRoute("/api/public/hooks/seo-monitor")({
           )
           .in("url", targetUrls);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const priorMap = new Map<string, any>();
         for (const row of prior ?? []) priorMap.set(row.url, row);
 

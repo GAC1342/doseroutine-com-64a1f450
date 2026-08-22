@@ -5,7 +5,7 @@ import { trackCitationSourceOpen } from "@/lib/citation-analytics";
 /**
  * Renders resolved authority sources as a numbered reference list with real
  * outbound links, showing publisher, title (when the record has one) and the
- * direct URL. Search-scoped links are labelled so readers know they land on
+ * direct URL. Search-scoped links are labeled so readers know they land on
  * the publisher's results page for this substance rather than one document.
  *
  * External links use rel="nofollow noopener" and open in a new tab. Entries

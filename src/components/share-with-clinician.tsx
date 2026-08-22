@@ -44,7 +44,9 @@ function loadContact(): Contact {
 function saveContact(c: Contact) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
-  } catch {}
+  } catch {
+    // Non-critical: safe to ignore.
+  }
 }
 
 const SEV_LABEL: Record<Severity, string> = {
@@ -178,7 +180,9 @@ function ShareSheet({
       await navigator.clipboard.writeText(text);
       setCopied(kind);
       setTimeout(() => setCopied(null), 1500);
-    } catch {}
+    } catch {
+      // Non-critical: safe to ignore.
+    }
   }
 
   return (

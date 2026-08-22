@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
           db
             .from("workout_sessions")
             .select(
-              "id, user_id, label, kind, planned_time, days_of_week, active, at_time_alert_on, pre_alert_on, pre_lead_min",
+              "id, user_id, label, kind, planned_time, days_of_week, active, at_time_alert_on, pre_alert_on, pre_lead_min, interval_weeks, anchor_date, skipped_dates, time_overrides",
             )
             .eq("active", true)
             .not("planned_time", "is", null),
@@ -86,6 +86,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
           .from("profiles")
           .select("id, timezone, quiet_hours_start, quiet_hours_end, daily_alert_limit")
           .in("id", userIds);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
 
         const workoutsByUser = new Map<string, RoutineWorkoutRow[]>();
@@ -145,6 +146,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
             pending.map((p) => p.routineId),
           );
         const already = new Set(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
           (alreadyRows ?? []).map((r: any) => `${r.routine_id}|${r.day_key}|${r.channel}`),
         );
 
@@ -171,11 +173,14 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
           Array<{ key: string; channel: string; status: string }>
         >();
         for (const row of [
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
           ...(doseLogRes.data ?? []).map((r: any) => ({
             ...r,
             key: `dose:${r.schedule_event_id}`,
           })),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
           ...(routineLogRes.data ?? []).map((r: any) => ({ ...r, key: `routine:${r.routine_id}` })),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         ] as any[]) {
           if (!row.user_id) continue;
           const list = rowsByUser.get(row.user_id) ?? [];
@@ -209,6 +214,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
         const vapidPriv = process.env.VAPID_PRIVATE_KEY;
         const vapidSub = process.env.VAPID_SUBJECT || "mailto:support@doseroutine.com";
         const pushReady = Boolean(vapidPub && vapidPriv);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const subsByUser = new Map<string, any[]>();
         if (pushReady) {
           webpush.setVapidDetails(vapidSub, vapidPub!, vapidPriv!);
@@ -223,7 +229,9 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
           }
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const logInserts: any[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const inboxInserts: any[] = [];
         let sent = 0;
 
@@ -280,6 +288,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
           let pushOk = false;
           const deadIds: string[] = [];
           await Promise.all(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
             subs.map(async (s: any) => {
               try {
                 await webpush.sendNotification(
@@ -287,6 +296,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
                   payload,
                 );
                 pushOk = true;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
               } catch (err: any) {
                 const status = err?.statusCode;
                 if (status === 404 || status === 410) deadIds.push(s.id);
@@ -298,6 +308,7 @@ export const Route = createFileRoute("/api/public/hooks/send-routine-reminders")
             await db.from("push_subscriptions").delete().in("id", deadIds);
             subsByUser.set(
               row.userId,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
               subs.filter((s: any) => !deadIds.includes(s.id)),
             );
           }

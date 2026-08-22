@@ -34,6 +34,7 @@ describe("isTrimmed", () => {
     [" abc", false],
     ["abc ", false],
     ["", true],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     [42 as any, false],
   ])("isTrimmed(%j) === %j", (input, expected) => {
     expect(isTrimmed(input)).toBe(expected);

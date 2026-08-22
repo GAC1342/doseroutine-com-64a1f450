@@ -10,8 +10,10 @@ import { BLOG_LAST_UPDATED, BLOG_POSTS_NEWEST_FIRST, BLOG_TAG_ARCHIVES } from "@
 import { blogListSitemapPaths } from "@/lib/blog-list-canonical";
 import { BLOG_FALLBACK_IMAGE, blogPostImageUrl } from "@/lib/blog-seo";
 import { blogUrlHints, sitemapCachePolicy } from "@/lib/blog-freshness";
+import { LOCAL_ARTICLES } from "@/lib/local-articles";
+import { getOutrankArticles } from "@/lib/outrank-articles.server";
 import { sitemapImageFor } from "@/lib/sitemap-images";
-
+import { safeTimestamp } from "@/lib/sitemap-lastmod";
 
 const BASE_URL = "https://doseroutine.com";
 
@@ -64,7 +66,6 @@ function hreflangLinks(path: string) {
 let sitemapCache: { xml: string; etag: string; expiresAt: number; cacheControl: string } | null =
   null;
 
-
 /** Small, stable, dependency-free hash (FNV-1a) for the ETag. */
 function weakEtag(input: string): string {
   let hash = 0x811c9dc5;
@@ -107,11 +108,11 @@ export const Route = createFileRoute("/sitemap.xml")({
           return sitemapResponse(cached.xml, cached.etag, request, cached.cacheControl);
         }
 
-
-        const [{ data: compounds }, pairPages] = await Promise.all([
+        const [{ data: compounds }, pairPages, outrankArticles] = await Promise.all([
           supabase.from("compounds").select("slug").order("slug"),
           // "Can you take X with Y?" pages — one per specific compound pair rule.
           fetchPairPages().catch(() => []),
+          getOutrankArticles().catch(() => []),
         ]);
 
         const staticEntries = [
@@ -124,6 +125,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/peptide-interaction-checker", changefreq: "monthly", priority: "0.9" },
           { path: "/trt-supplement-interactions", changefreq: "monthly", priority: "0.9" },
           { path: "/reconstitution-calculator", changefreq: "monthly", priority: "0.8" },
+          { path: "/peptide-calculator", changefreq: "monthly", priority: "0.8" },
           { path: "/calculator", changefreq: "monthly", priority: "0.85" },
           { path: "/calculators", changefreq: "monthly", priority: "0.85" },
           { path: "/peptide-dosage-calculator", changefreq: "monthly", priority: "0.85" },
@@ -157,6 +159,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/vs-supplement-planner", changefreq: "monthly", priority: "0.7" },
           { path: "/help", changefreq: "weekly", priority: "0.6" },
           { path: "/manual", changefreq: "monthly", priority: "0.7" },
+          { path: "/articles", changefreq: "weekly", priority: "0.8" },
           { path: "/library/compare/bpc-157-vs-tb-500", changefreq: "monthly", priority: "0.7" },
           // /library/peptide-stacks is an alias that canonicalises to the
           // muscle-growth page — only the canonical URL belongs in the sitemap.
@@ -167,6 +170,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           },
           // "Best app for X" roundups + /for use-case pages (AEO).
           { path: "/alternatives", changefreq: "monthly", priority: "0.85" },
+          { path: "/best-medication-reminder-app", changefreq: "monthly", priority: "0.9" },
           { path: "/best-supplement-tracker-app", changefreq: "monthly", priority: "0.9" },
           { path: "/best-trt-tracking-app", changefreq: "monthly", priority: "0.9" },
           { path: "/best-peptide-tracking-app", changefreq: "monthly", priority: "0.9" },
@@ -176,6 +180,8 @@ export const Route = createFileRoute("/sitemap.xml")({
             priority: "0.9",
           },
           { path: "/best-hormone-therapy-app-for-men", changefreq: "monthly", priority: "0.9" },
+          { path: "/best-hrt-tracking-app-for-women", changefreq: "monthly", priority: "0.9" },
+
           { path: "/best-biohacking-tracker-app", changefreq: "monthly", priority: "0.9" },
           { path: "/best-health-stack-insights-app", changefreq: "monthly", priority: "0.9" },
           { path: "/best-glp-1-tracking-app", changefreq: "monthly", priority: "0.9" },
@@ -189,6 +195,40 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/vs/cronometer", changefreq: "monthly", priority: "0.8" },
           { path: "/vs/round-health", changefreq: "monthly", priority: "0.8" },
           { path: "/vs/pill-reminder", changefreq: "monthly", priority: "0.8" },
+          { path: "/best-dose-tracking-apps", changefreq: "monthly", priority: "0.9" },
+          { path: "/vs/peptide-tracker", changefreq: "monthly", priority: "0.85" },
+          { path: "/vs/optipin", changefreq: "monthly", priority: "0.8" },
+          { path: "/vs/bearable", changefreq: "monthly", priority: "0.8" },
+          { path: "/vs/dosecast", changefreq: "monthly", priority: "0.8" },
+          { path: "/vs/myfitnesspal", changefreq: "monthly", priority: "0.8" },
+          { path: "/vs/spreadsheet", changefreq: "monthly", priority: "0.8" },
+          { path: "/peptides", changefreq: "monthly", priority: "0.9" },
+          { path: "/peptides/bpc-157", changefreq: "monthly", priority: "0.9" },
+          { path: "/peptides/tb-500", changefreq: "monthly", priority: "0.9" },
+          { path: "/peptides/semax", changefreq: "monthly", priority: "0.85" },
+          { path: "/peptides/bacteriostatic-water", changefreq: "monthly", priority: "0.9" },
+          {
+            path: "/peptides/how-to-reconstitute-peptides",
+            changefreq: "monthly",
+            priority: "0.9",
+          },
+          { path: "/peptides/peptide-dosage-chart", changefreq: "monthly", priority: "0.85" },
+          { path: "/peptides/cjc-1295-ipamorelin", changefreq: "monthly", priority: "0.85" },
+          { path: "/peptides/retatrutide-dosing", changefreq: "monthly", priority: "0.85" },
+          { path: "/peptides-calculator", changefreq: "monthly", priority: "0.9" },
+          { path: "/peptides/collagen-peptides", changefreq: "monthly", priority: "0.85" },
+          { path: "/peptides/peptide-bond", changefreq: "monthly", priority: "0.8" },
+          {
+            path: "/peptides/cell-penetrating-peptides",
+            changefreq: "monthly",
+            priority: "0.8",
+          },
+          {
+            path: "/peptides/how-to-vet-a-peptide-supplier",
+            changefreq: "monthly",
+            priority: "0.8",
+          },
+
           {
             path: "/library/compare/semaglutide-vs-tirzepatide",
             changefreq: "monthly",
@@ -402,6 +442,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             priority: "0.9",
           },
         ];
+        staticEntries.push({ path: "/goals", changefreq: "weekly", priority: "0.8" });
         const goalEntries = GOALS.map((g) => ({
           path: `/goals/${g.slug}`,
           changefreq: "weekly",
@@ -417,6 +458,22 @@ export const Route = createFileRoute("/sitemap.xml")({
           changefreq: "monthly",
           priority: "0.75",
         }));
+        // Every /articles post is first-party markdown in the repo, merged
+        // with published outrank.so articles from the database.
+        const articleEntries = [
+          ...LOCAL_ARTICLES.map((a) => ({
+            path: `/articles/${a.slug}`,
+            lastmod: a.modifiedAt,
+            changefreq: "weekly",
+            priority: "0.8",
+          })),
+          ...outrankArticles.map((a) => ({
+            path: `/articles/${a.slug}`,
+            lastmod: a.modified_at ?? a.published_at ?? a.updated_at ?? a.created_at,
+            changefreq: "weekly",
+            priority: "0.8",
+          })),
+        ];
         const helpEntries = HELP_LIST.map((h) => ({
           path: `/help/${h.slug}`,
           changefreq: "monthly",
@@ -429,14 +486,17 @@ export const Route = createFileRoute("/sitemap.xml")({
           ...compoundEntries,
           ...pairEntries,
           ...helpEntries,
+          ...articleEntries,
         ];
 
         const urls = all
           .map((e) => {
             // lastmod is only emitted when the entry carries a real,
             // content-derived timestamp (e.g. a post's `updated` date).
-            // Never fall back to build/generation time.
-            const lastmod = (e as { lastmod?: string }).lastmod;
+            // Never fall back to build/generation time, and never publish a
+            // future date — Google discards the whole sitemap's lastmod
+            // signal when it sees one (scheduled articles used to do this).
+            const lastmod = safeTimestamp((e as { lastmod?: string }).lastmod);
             // Entry-supplied images win (blog posts carry their own card);
             // otherwise fall back to the branded card mapped for this path.
             const own = (e as { images?: SitemapImage[] }).images;
@@ -474,7 +534,6 @@ ${urls}
         };
 
         return sitemapResponse(xml, etag, request, policy.cacheControl);
-
       },
     },
   },

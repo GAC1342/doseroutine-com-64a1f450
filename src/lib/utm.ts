@@ -4,7 +4,7 @@
  * First touch is persisted in localStorage for 90 days so a visitor who lands
  * from a Reddit post, leaves, and signs up two days later is still credited to
  * Reddit. Last touch is kept per session. Both travel with the closed-testing
- * signup so the funnel can be measured by source.
+ * sign-up so the funnel can be measured by source.
  */
 
 export const UTM_KEYS = [

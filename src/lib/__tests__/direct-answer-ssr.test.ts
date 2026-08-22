@@ -14,7 +14,6 @@ import {
   compoundSlugsFromSitemap,
 } from "../../../scripts/check-direct-answers.mjs";
 
-
 const FORTY_FOUR_WORDS =
   "Zinc bisglycinate is a chelated form of zinc bound to two glycine molecules, chosen for absorption and gastrointestinal tolerability. Research on zinc bisglycinate focuses on immune function, tissue recovery, and cognition. It is typically taken with a meal, and doses above forty milligrams daily can reduce copper status.";
 

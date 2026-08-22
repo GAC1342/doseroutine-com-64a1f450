@@ -4,13 +4,14 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/compare/ashwagandha-vs-tongkat-ali";
+export const CANONICAL = "https://doseroutine.com/library/compare/ashwagandha-vs-tongkat-ali";
 const TITLE = "Ashwagandha vs Tongkat Ali Comparison | DoseRoutine";
 const DESC =
   "Ashwagandha vs tongkat ali compared: cortisol lowering, testosterone effect, sleep, dosing and how to stack them for stressed men.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "Can I take both together?",
     a: "Yes — they're commonly stacked. Ashwagandha handles cortisol/sleep, tongkat ali handles free testosterone and libido. Start each alone first.",
@@ -70,7 +71,7 @@ export const Route = createFileRoute("/library/compare/ashwagandha-vs-tongkat-al
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/compare/ashwagandha-vs-tongkat-ali"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -85,8 +86,15 @@ export const Route = createFileRoute("/library/compare/ashwagandha-vs-tongkat-al
           url: CANONICAL,
           image: ["https://doseroutine.com/og/compare-ashwagandha-tongkat.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -133,7 +141,7 @@ export const Route = createFileRoute("/library/compare/ashwagandha-vs-tongkat-al
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });

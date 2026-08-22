@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowRight, HelpCircle, Info, ShieldAlert, BookOpen, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { breadcrumbSchema } from "@/lib/breadcrumb-schema";
-
 
 export type WomensCompoundContent = {
   slug: string; // e.g. "black-cohosh"
@@ -188,7 +188,6 @@ export function womensCompoundHead(c: WomensCompoundMeta) {
     { name: c.compoundName, path: url },
   ]);
 
-
   return {
     meta: [
       { title },
@@ -215,7 +214,7 @@ export function womensCompoundHead(c: WomensCompoundMeta) {
       { name: "twitter:image", content: ogImage },
       { name: "twitter:image:alt", content: `${c.compoundName} for women — DoseRoutine` },
     ],
-    links: [{ rel: "canonical", href: url }],
+    links: [...canonicalLinks(url)],
     scripts: [{ type: "application/ld+json" as const, children: JSON.stringify(breadcrumbLD) }],
   };
 }

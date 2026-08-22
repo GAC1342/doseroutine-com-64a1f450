@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { createMemoryHistory, createRouter, createRootRoute, createRoute, RouterProvider } from "@tanstack/react-router";
+import {
+  createMemoryHistory,
+  createRouter,
+  createRootRoute,
+  createRoute,
+  RouterProvider,
+} from "@tanstack/react-router";
 import { BlogSources } from "@/components/blog-sources";
 import { sourceKind } from "@/lib/editorial-author";
 import { blogPostHead } from "@/lib/blog-seo";

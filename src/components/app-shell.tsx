@@ -5,8 +5,11 @@ import { NotificationBell } from "@/components/notification-bell";
 import {
   Home,
   Layers,
+  Dumbbell,
+  UtensilsCrossed,
   ShieldCheck,
   Clock,
+  LineChart,
   MoreHorizontal,
   Sparkles,
   Bell,
@@ -35,6 +38,7 @@ import { WelcomeTour } from "@/components/welcome-tour";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { supabase } from "@/integrations/supabase/client";
 import { prefetchTab, prefetchAllTabs, onConnectionChange } from "@/lib/tab-prefetch";
+import { trackEvent } from "@/lib/analytics";
 
 type NavItem = {
   to: string;
@@ -47,12 +51,15 @@ type NavItem = {
 const TABS: readonly NavItem[] = [
   { to: "/today", label: "Today", icon: Home },
   { to: "/stack", label: "Stack", icon: Layers },
-  { to: "/safety", label: "Safety", icon: ShieldCheck },
-  { to: "/timeline", label: "Timeline", icon: Clock },
+  { to: "/progress", label: "Progress", a11yLabel: "Progress and results", icon: LineChart },
+  { to: "/food", label: "Food", a11yLabel: "Food diary and macros", icon: UtensilsCrossed },
   { to: "/more", label: "More", a11yLabel: "More tools and settings", icon: MoreHorizontal },
 ] as const;
 
 const SECONDARY: readonly NavItem[] = [
+  { to: "/fitness", label: "Fitness", a11yLabel: "Fitness and body", icon: Dumbbell },
+  { to: "/safety", label: "Safety", a11yLabel: "Safety and interactions", icon: ShieldCheck },
+  { to: "/timeline", label: "Timeline", icon: Clock },
   { to: "/chat", label: "Ask AI", icon: Sparkles },
   { to: "/plan", label: "Plan", icon: Sparkles },
   { to: "/reminders", label: "Reminders", icon: Bell },
@@ -100,7 +107,7 @@ function SwipeHint({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div
       className={
-        "fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4 md:hidden " +
+        "keyboard-hide fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4 md:hidden " +
         (reducedMotion ? "" : "animate-fade-in")
       }
       role="status"
@@ -146,6 +153,7 @@ function NavLink({
       onPointerEnter={prefetch}
       onFocus={prefetch}
       onTouchStart={prefetch}
+      onClick={() => trackEvent("primary_nav_click", { section: item.label, destination: item.to })}
       className={
         "tap-target flex items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors " +
         (active
@@ -235,22 +243,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       return;
     }
     // Only show for signed-in users, on the first 2 visits.
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        setShowSwipeHint(false);
-        return;
-      }
-      const raw = localStorage.getItem(SWIPE_HINT_COUNT_KEY);
-      const count = raw ? parseInt(raw, 10) : 0;
-      if (Number.isNaN(count)) {
-        setShowSwipeHint(false);
-        return;
-      }
-      if (count < 2) {
-        setShowSwipeHint(true);
-        localStorage.setItem(SWIPE_HINT_COUNT_KEY, String(count + 1));
-      }
-    });
+    void supabase.auth
+      .getUser()
+      .then(({ data: { user } }) => {
+        if (!user) {
+          setShowSwipeHint(false);
+          return;
+        }
+        const raw = localStorage.getItem(SWIPE_HINT_COUNT_KEY);
+        const count = raw ? parseInt(raw, 10) : 0;
+        if (Number.isNaN(count)) {
+          setShowSwipeHint(false);
+          return;
+        }
+        if (count < 2) {
+          setShowSwipeHint(true);
+          localStorage.setItem(SWIPE_HINT_COUNT_KEY, String(count + 1));
+        }
+      })
+      .catch(() => setShowSwipeHint(false));
   }, [pathname]);
 
   const dismissSwipeHint = () => {
@@ -328,7 +339,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-background text-foreground md:flex">
       {/* Desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 border-r border-border md:sticky md:top-0 md:flex md:h-dvh md:flex-col md:overflow-y-auto">
+      <aside className="hidden w-60 shrink-0 border-r border-border bg-background md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:h-dvh md:flex-col md:overflow-y-auto">
         <div className="flex items-center gap-2 px-6 py-6">
           <BrandLogo size={32} alt="DoseRoutine app logo" className="h-8 w-8 rounded-lg" priority />
           <span className="font-display text-lg font-semibold tracking-tight">DoseRoutine</span>
@@ -372,7 +383,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main
         id="main-content"
         tabIndex={-1}
-        className="min-w-0 flex-1 pb-24 focus:outline-none md:pb-6"
+        className="min-w-0 flex-1 pb-24 focus:outline-none md:ml-60 md:pb-6"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -392,7 +403,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom tab bar */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur md:hidden"
+        className="keyboard-hide fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur md:hidden"
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between px-2 pb-[env(safe-area-inset-bottom)]">
@@ -409,6 +420,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onPointerEnter={() => doPrefetch(tab.to)}
                   onTouchStart={() => doPrefetch(tab.to)}
                   onFocus={() => doPrefetch(tab.to)}
+                  onClick={() =>
+                    trackEvent("primary_nav_click", { section: tab.label, destination: tab.to })
+                  }
                   className={
                     "tap-target flex flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors " +
                     (active ? "text-primary" : "text-muted-foreground")

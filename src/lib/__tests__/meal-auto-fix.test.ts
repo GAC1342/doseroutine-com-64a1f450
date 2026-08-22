@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { autoFixItems, autoFixTotals, describeAutoFix, validateMealTotals } from "@/lib/meal-nutrition";
+import {
+  autoFixItems,
+  autoFixTotals,
+  describeAutoFix,
+  validateMealTotals,
+} from "@/lib/meal-nutrition";
 
 describe("autoFixTotals", () => {
   it("clamps negatives to zero", () => {
-    const { value, changes } = autoFixTotals({ calories: -50, protein_g: 10, carbs_g: 5, fat_g: 2 });
+    const { value, changes } = autoFixTotals({
+      calories: -50,
+      protein_g: 10,
+      carbs_g: 5,
+      fat_g: 2,
+    });
     expect(value.calories).toBe(0);
     expect(value.protein_g).toBe(10);
     expect(changes).toHaveLength(1);
@@ -11,7 +21,12 @@ describe("autoFixTotals", () => {
   });
 
   it("caps extreme values and leaves sane ones untouched", () => {
-    const { value, changes } = autoFixTotals({ calories: 99999, protein_g: 30, carbs_g: 40, fat_g: 10 });
+    const { value, changes } = autoFixTotals({
+      calories: 99999,
+      protein_g: 30,
+      carbs_g: 40,
+      fat_g: 10,
+    });
     expect(value.calories).toBe(10_000);
     expect(changes[0]?.reason).toBe("too_high");
     expect(validateMealTotals(value).filter((i) => i.kind === "error")).toHaveLength(0);

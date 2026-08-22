@@ -1,5 +1,12 @@
-import { test, expect, devices, chromium, webkit } from "@playwright/test";
-import type { BrowserContext, Page } from "@playwright/test";
+import {
+  test,
+  expect,
+  devices,
+  chromium,
+  webkit,
+  type BrowserContext,
+  type Page,
+} from "@playwright/test";
 
 /**
  * Landing page bottom-layer collision guard.
@@ -43,11 +50,22 @@ const DEVICE_MATRIX = [
   { label: "Android (Pixel 7, Chromium)", device: devices["Pixel 7"], engine: chromium },
   { label: "iPad portrait (WebKit)", device: iPadPortrait, engine: webkit },
   { label: "iPad landscape (WebKit)", device: iPadLandscape, engine: webkit },
-  { label: "Small desktop 1024x768 (Chromium)", device: desktopViewport(1024, 768), engine: chromium },
-  { label: "Small desktop 1280x720 (Chromium)", device: desktopViewport(1280, 720), engine: chromium },
-  { label: "Narrow desktop 900x900 (Chromium)", device: desktopViewport(900, 900), engine: chromium },
+  {
+    label: "Small desktop 1024x768 (Chromium)",
+    device: desktopViewport(1024, 768),
+    engine: chromium,
+  },
+  {
+    label: "Small desktop 1280x720 (Chromium)",
+    device: desktopViewport(1280, 720),
+    engine: chromium,
+  },
+  {
+    label: "Narrow desktop 900x900 (Chromium)",
+    device: desktopViewport(900, 900),
+    engine: chromium,
+  },
 ];
-
 
 type Rect = { x: number; y: number; width: number; height: number };
 
@@ -115,20 +133,23 @@ async function waitForPageReady(page: Page): Promise<void> {
 /** Bounding boxes of the bottom-fixed layers that are actually on screen. */
 async function visibleLayerRects(page: Page): Promise<Record<string, Rect>> {
   await waitForStableLayout(page);
-  return page.evaluate((ids) => {
-    const out: Record<string, Rect> = {};
-    for (const id of ids) {
-      const el = document.querySelector(`[data-testid="${id}"]`);
-      if (!el) continue;
-      const s = getComputedStyle(el);
-      if (s.visibility === "hidden" || s.display === "none" || Number(s.opacity) === 0) continue;
-      const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) {
-        out[id] = { x: r.x, y: r.y, width: r.width, height: r.height };
+  return page.evaluate(
+    (ids) => {
+      const out: Record<string, Rect> = {};
+      for (const id of ids) {
+        const el = document.querySelector(`[data-testid="${id}"]`);
+        if (!el) continue;
+        const s = getComputedStyle(el);
+        if (s.visibility === "hidden" || s.display === "none" || Number(s.opacity) === 0) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          out[id] = { x: r.x, y: r.y, width: r.width, height: r.height };
+        }
       }
-    }
-    return out;
-  }, LAYERS as unknown as string[]);
+      return out;
+    },
+    LAYERS as unknown as string[],
+  );
 }
 
 /** Count of "Sign up free"-style primary CTAs currently inside the viewport. */
@@ -245,35 +266,38 @@ const SECTION_ANCHORS: { name: string; pattern: string }[] = [
  * Returns false when the landmark isn't on the page (copy changed) so the
  * caller can account for coverage instead of silently passing.
  */
-async function scrollToAnchor(page: Page, anchor: { name: string; pattern: string }): Promise<boolean> {
-  const top = await page.evaluate(
-    ({ name, pattern }) => {
-      let el: Element | null = null;
-      if (name === "final-cta") {
-        el = document.querySelector('[data-testid="primary-cta"]');
-      }
-      if (!el && pattern) {
-        const re = new RegExp(pattern, "i");
-        const candidates = Array.from(
-          document.querySelectorAll("h1, h2, h3, p, a, span, li, button"),
-        );
-        el =
-          candidates.find((node) => {
-            const text = (node.textContent ?? "").trim();
-            if (!text || text.length > 300) return false;
-            if (!re.test(text)) return false;
-            const r = node.getBoundingClientRect();
-            return r.width > 0 && r.height > 0;
-          }) ?? null;
-      }
-      if (!el) return null;
-      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-      const target = Math.min(max, Math.max(0, Math.round(window.scrollY + el.getBoundingClientRect().top - 8)));
-      window.scrollTo(0, target);
-      return target;
-    },
-    anchor,
-  );
+async function scrollToAnchor(
+  page: Page,
+  anchor: { name: string; pattern: string },
+): Promise<boolean> {
+  const top = await page.evaluate(({ name, pattern }) => {
+    let el: Element | null = null;
+    if (name === "final-cta") {
+      el = document.querySelector('[data-testid="primary-cta"]');
+    }
+    if (!el && pattern) {
+      const re = new RegExp(pattern, "i");
+      const candidates = Array.from(
+        document.querySelectorAll("h1, h2, h3, p, a, span, li, button"),
+      );
+      el =
+        candidates.find((node) => {
+          const text = (node.textContent ?? "").trim();
+          if (!text || text.length > 300) return false;
+          if (!re.test(text)) return false;
+          const r = node.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        }) ?? null;
+    }
+    if (!el) return null;
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const target = Math.min(
+      max,
+      Math.max(0, Math.round(window.scrollY + el.getBoundingClientRect().top - 8)),
+    );
+    window.scrollTo(0, target);
+    return target;
+  }, anchor);
   if (top === null) return false;
   await settleScroll(page, top);
   return true;
@@ -334,7 +358,10 @@ for (const { label, device, engine } of DEVICE_MATRIX) {
       for (const anchor of SECTION_ANCHORS) {
         if (!(await scrollToAnchor(page, anchor))) continue;
         anchorsHit += 1;
-        seenLayers = Math.max(seenLayers, await expectNoOverlapHere(page, `section "${anchor.name}"`));
+        seenLayers = Math.max(
+          seenLayers,
+          await expectNoOverlapHere(page, `section "${anchor.name}"`),
+        );
       }
 
       // Guard against a vacuous pass: at least one bottom layer must render,

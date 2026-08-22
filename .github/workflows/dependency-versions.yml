@@ -1,0 +1,94 @@
+name: dependency-versions
+
+# Version-staleness audit (complements dependency-audit.yml, which covers CVEs).
+# Compares installed versions of key packages against their latest release and
+# fails when a `critical`-tier package breaches scripts/dependency-policy.json.
+# Runs weekly plus on any dependency change, and posts a table to the job summary.
+
+on:
+  workflow_dispatch:
+    inputs:
+      warn_only:
+        description: "Report drift without failing the build"
+        required: false
+        default: false
+        type: boolean
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/dependency-policy.json
+      - scripts/check-dependency-versions.mjs
+  schedule:
+    - cron: "17 8 * * 1"
+
+concurrency:
+  group: dependency-versions-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Collect outdated packages
+        run: npm outdated --json > outdated.json || true
+
+      - name: Check versions against policy
+        id: policy
+        run: node scripts/check-dependency-versions.mjs --json outdated.json --emit-plan dependency-plan.json ${{ inputs.warn_only && '--warn-only' || '--warn-only' }}
+
+      - name: Apply blocking updates
+        if: steps.policy.outputs.has_blocking == 'true' && github.event_name != 'pull_request'
+        run: |
+          echo "Running: ${{ steps.policy.outputs.install_command }}"
+          ${{ steps.policy.outputs.install_command }}
+
+      - name: Open PR with the exact install changes
+        if: steps.policy.outputs.has_blocking == 'true' && github.event_name != 'pull_request'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/dependency-drift
+          base: main
+          commit-message: "chore(deps): bump blocking packages to latest allowed versions"
+          title: "chore(deps): resolve blocking dependency drift"
+          body: |
+            Automated by `.github/workflows/dependency-versions.yml`.
+
+            Exact command applied in this PR:
+
+            ```sh
+            ${{ steps.policy.outputs.install_command }}
+            ```
+
+            Full audit table is in the workflow job summary.
+          labels: dependencies, automated
+          delete-branch: true
+
+      - name: Fail if drift is still blocking (PR checks only)
+        if: steps.policy.outputs.has_blocking == 'true' && github.event_name == 'pull_request' && !inputs.warn_only
+        run: |
+          echo "Blocking dependency drift: ${{ steps.policy.outputs.install_command }}"
+          exit 1
+
+      - name: Upload raw outdated report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-outdated-report
+          path: |
+            outdated.json
+            dependency-plan.json
+          if-no-files-found: ignore

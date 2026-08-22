@@ -63,7 +63,9 @@ describe("internal linking plan for /best-* and /for/*", () => {
   });
 
   it("uses most of the long-tail catalogue across the marketing set", () => {
-    const posts = new Set(PAGE_KEYS.flatMap((k) => resolveMarketingBlogLinks(k).map((l) => l.post)));
+    const posts = new Set(
+      PAGE_KEYS.flatMap((k) => resolveMarketingBlogLinks(k).map((l) => l.post)),
+    );
     expect(posts.size).toBeGreaterThanOrEqual(8);
   });
 });

@@ -1,4 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
+import { PublicBackHeader } from "@/components/public-back-header";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -38,6 +42,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { AttributionFooter } from "@/components/attribution-footer";
+import { useSessionState } from "@/hooks/use-session";
 import { BootyWorkoutChart } from "@/components/booty-workout-chart";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -80,14 +86,18 @@ import {
   type BootyWorkoutSettings,
 } from "@/lib/booty-workout-settings";
 
-
-
+import { versionedArtUrl } from "@/lib/exercise-art-version";
 import squatArt from "@/assets/routines/w-squat.jpg.asset.json";
 import gluteBridgeArt from "@/assets/routines/w-glute-bridge.jpg.asset.json";
 import donkeyKickArt from "@/assets/routines/w-donkey-kick.jpg.asset.json";
 import fireHydrantArt from "@/assets/routines/w-fire-hydrant.jpg.asset.json";
 import sumoSquatArt from "@/assets/routines/w-sumo-squat.jpg.asset.json";
 import standingKickbackArt from "@/assets/routines/w-standing-kickback.jpg.asset.json";
+import { ShareDoseRoutine } from "@/components/share-doseroutine";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { BOOTY_WORKOUT_FAQ } from "@/lib/aeo-faqs-hubs";
+import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 
 export const Route = createFileRoute("/booty-workout")({
   head: () => ({
@@ -106,16 +116,43 @@ export const Route = createFileRoute("/booty-workout")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://doseroutine.com/booty-workout" },
-      { name: "twitter:card", content: "summary" },
+      {
+        property: "og:image",
+        content: "https://doseroutine.com/og/booty-workout-card.jpg",
+      },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/jpeg" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine 10-Minute Booty Workout for Women — free guided timer with anatomy illustrations for every glute move.",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "10-Minute Booty Workout for Women" },
       {
         name: "twitter:description",
         content:
           "Eight at-home glute exercises, 45 seconds each, with illustrations showing the muscles you work.",
       },
+      {
+        name: "twitter:image",
+        content: "https://doseroutine.com/og/booty-workout-card.jpg",
+      },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine 10-Minute Booty Workout for Women — free guided timer with anatomy illustrations for every glute move.",
+      },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
     ],
-    links: [{ rel: "canonical", href: "https://doseroutine.com/booty-workout" }],
+    links: [...canonicalLinks("https://doseroutine.com/booty-workout")],
+    scripts: [
+      aeoFaqScript("https://doseroutine.com/booty-workout", BOOTY_WORKOUT_FAQ),
+      breadcrumbScript("https://doseroutine.com/booty-workout", [
+        { name: "Booty Workout", path: "/booty-workout" },
+      ]),
+    ],
   }),
   component: BootyWorkoutPage,
 });
@@ -123,63 +160,69 @@ export const Route = createFileRoute("/booty-workout")({
 type Move = {
   name: string;
   side?: string;
+  /** Flip the shared illustration horizontally so it matches the working side. */
+  mirror?: boolean;
   art: string;
   alt: string;
   cue: string;
 };
 
-
-
 const MOVES: Move[] = [
   {
     name: "Squats",
-    art: squatArt.url,
+    art: versionedArtUrl(squatArt.url),
     alt: "Anatomy illustration of a woman in a deep bodyweight squat with the gluteus maximus shaded red.",
     cue: "Feet hip-width, chest tall, sit back through the hips and drive up through your heels.",
   },
   {
     name: "Glute bridges",
-    art: gluteBridgeArt.url,
+    art: versionedArtUrl(gluteBridgeArt.url),
     alt: "Anatomy illustration of a woman performing a glute bridge with hips lifted and glutes shaded red.",
     cue: "Ribs down, squeeze the glutes at the top, lower without letting the hips crash.",
   },
   {
+    // Source art is a left-facing profile, so the near (working) leg reads as
+    // the left leg. Mirror it for the right-side set.
     name: "Donkey kicks",
     side: "Right",
-    art: donkeyKickArt.url,
-    alt: "Anatomy illustration of a woman on hands and knees kicking one bent leg back, glutes shaded red.",
+    mirror: true,
+    art: versionedArtUrl(donkeyKickArt.url),
+    alt: "Anatomy illustration of a woman on hands and knees kicking her right bent leg back, glutes shaded red.",
     cue: "Keep the knee bent to 90°, press the heel to the ceiling, don't arch the low back.",
   },
   {
     name: "Donkey kicks",
     side: "Left",
-    art: donkeyKickArt.url,
-    alt: "Anatomy illustration of a woman on hands and knees kicking one bent leg back, glutes shaded red.",
+    art: versionedArtUrl(donkeyKickArt.url),
+    alt: "Anatomy illustration of a woman on hands and knees kicking her left bent leg back, glutes shaded red.",
     cue: "Same on the other side — square hips, slow and controlled beats fast and sloppy.",
   },
   {
+    // Source art is a rear view with the right knee abducted, so the
+    // unmirrored image already matches the right-side set.
     name: "Fire hydrants",
     side: "Right",
-    art: fireHydrantArt.url,
-    alt: "Anatomy illustration of a woman on hands and knees lifting a bent leg out to the side, gluteus medius shaded red.",
+    art: versionedArtUrl(fireHydrantArt.url),
+    alt: "Anatomy illustration of a woman on hands and knees lifting her right bent leg out to the side, gluteus medius shaded red.",
     cue: "Lift the knee out to the side only as far as the hips stay level.",
   },
   {
     name: "Fire hydrants",
     side: "Left",
-    art: fireHydrantArt.url,
-    alt: "Anatomy illustration of a woman on hands and knees lifting a bent leg out to the side, gluteus medius shaded red.",
+    mirror: true,
+    art: versionedArtUrl(fireHydrantArt.url),
+    alt: "Anatomy illustration of a woman on hands and knees lifting her left bent leg out to the side, gluteus medius shaded red.",
     cue: "Brace the core so the torso doesn't rotate away from the working leg.",
   },
   {
     name: "Sumo squats",
-    art: sumoSquatArt.url,
+    art: versionedArtUrl(sumoSquatArt.url),
     alt: "Anatomy illustration of a woman in a wide-stance sumo squat with glutes and inner thighs shaded red.",
     cue: "Wide stance, toes turned out, knees track over the toes, squeeze at the top.",
   },
   {
     name: "Standing kickbacks",
-    art: standingKickbackArt.url,
+    art: versionedArtUrl(standingKickbackArt.url),
     alt: "Anatomy illustration of a woman standing and extending one leg straight behind, gluteus maximus shaded red.",
     cue: "Stand tall, extend the leg straight back from the hip, alternate sides as you go.",
   },
@@ -209,11 +252,9 @@ function mmss(total: number) {
 function elapsedAt(steps: Step[], index: number, remaining: number) {
   const safe = Math.min(index, steps.length - 1);
   return (
-    steps.slice(0, safe).reduce((sum, s) => sum + s.seconds, 0) +
-    (steps[safe].seconds - remaining)
+    steps.slice(0, safe).reduce((sum, s) => sum + s.seconds, 0) + (steps[safe].seconds - remaining)
   );
 }
-
 
 function Stepper({
   label,
@@ -274,6 +315,9 @@ function Stepper({
 }
 
 function BootyWorkoutPage() {
+  // Timer stays free for everyone; saving progress needs an account.
+  const sessionState = useSessionState();
+  const isGuest = sessionState === "signed-out";
   const [settings, setSettings] = useState<BootyWorkoutSettings>(defaultSettings);
   const [running, setRunning] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -302,20 +346,11 @@ function BootyWorkoutPage() {
     clearGoal();
   }, []);
 
-  const stats = useMemo(
-    () => (hydrated ? computeStats(history) : null),
-    [hydrated, history],
-  );
-  const monthLabel = useMemo(
-    () => (hydrated ? formatMonthLabel() : ""),
-    [hydrated],
-  );
+  const stats = useMemo(() => (hydrated ? computeStats(history) : null), [hydrated, history]);
+  const monthLabel = useMemo(() => (hydrated ? formatMonthLabel() : ""), [hydrated]);
 
   const steps = useMemo(() => buildSteps(settings), [settings]);
-  const totalSeconds = useMemo(
-    () => totalSecondsFor(MOVES.length, settings),
-    [settings],
-  );
+  const totalSeconds = useMemo(() => totalSecondsFor(MOVES.length, settings), [settings]);
 
   const step = steps[Math.min(stepIndex, steps.length - 1)];
 
@@ -373,7 +408,6 @@ function BootyWorkoutPage() {
       return nextState;
     });
   }, []);
-
 
   const persist = useCallback((patch: Partial<BootyWorkoutProgress>) => {
     setHistory((prev) => {
@@ -495,7 +529,6 @@ function BootyWorkoutPage() {
     saveProgress({ ...emptyProgress, remaining: steps[0].seconds });
   }, [steps]);
 
-
   const elapsed = useMemo(
     () => elapsedAt(steps, stepIndex, remaining),
     [steps, stepIndex, remaining],
@@ -516,563 +549,585 @@ function BootyWorkoutPage() {
     }
   };
 
-
-
-
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-4 p-4 pb-24">
-      <div className="flex items-center gap-2">
-        <Link
-          to="/fitness"
-          className="tap-target -ml-1 flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted"
-        >
-          <ArrowLeft className="h-4 w-4" /> Fitness
-        </Link>
-      </div>
-
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold leading-tight">10-Minute Booty Workout</h1>
-        <p className="text-sm text-muted-foreground">
-          Eight glute-focused moves for women, {settings.workSec} seconds each with{" "}
-          {settings.restSec} seconds rest. No equipment, at home. Tap any illustration to see
-          the working muscles full size.
-        </p>
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1">
-            <Clock className="h-3.5 w-3.5" /> {mmss(totalSeconds)} total
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1">
-            <Home className="h-3.5 w-3.5" /> No equipment
-          </span>
-          <span className="rounded-full border border-border px-2.5 py-1">
-            {MOVES.length} moves
-          </span>
-        </div>
-      </header>
-
-      {/* Guided timer */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {done ? "Finished" : step.rest ? "Rest — next up" : `Move ${
-                MOVES.indexOf(step.move) + 1
-              } of ${MOVES.length}`}
-            </p>
-            <p className="truncate text-lg font-semibold">
-              {done ? "Nice work" : moveLabel(step.move)}
-            </p>
-          </div>
-          <p
-            className="shrink-0 text-3xl font-bold tabular-nums"
-            aria-live="polite"
-            aria-label={`${remaining} seconds remaining`}
-          >
-            {mmss(remaining)}
-          </p>
-        </div>
-
-        <div
-          className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Workout progress"
-        >
-          <div
-            className="h-full rounded-full bg-primary transition-[width] duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (done) reset();
-              if (done || !running) startSession();
-              setRunning((r) => (done ? true : !r));
-            }}
-
-            className="tap-target inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {done ? "Start again" : running ? "Pause" : elapsed > 0 ? "Resume" : "Start workout"}
-          </button>
-          <button
-            type="button"
-            onClick={next}
-            disabled={done}
-            className="tap-target inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
-          >
-            <SkipForward className="h-4 w-4" /> Skip
-          </button>
-          <button
-            type="button"
-            onClick={reset}
-            className="tap-target inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
-          >
-            <RotateCcw className="h-4 w-4" /> Reset
-          </button>
-        </div>
-
-        {hydrated && restored && !done && (
-          <p className="mt-3 rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground">
-            Picked up where you left off — move {MOVES.indexOf(step.move) + 1} of{" "}
-            {MOVES.length}. Use Reset to start from the top.
-          </p>
-        )}
-
-        {hydrated && history.lastCompletedAt && (
-          <p className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-            <span>
-              Last finished {formatCompletedAt(history.lastCompletedAt)}
-              {history.completions > 1 ? ` · ${history.completions} sessions completed` : ""}
-            </span>
-            <time className="sr-only" dateTime={history.lastCompletedAt}>
-              {new Date(history.lastCompletedAt).toLocaleString()}
-            </time>
-          </p>
-        )}
-
-
-        {done && (
+    <div className="min-h-dvh bg-background">
+      <PublicBackHeader />
+      <main id="main-content" className="mx-auto w-full max-w-2xl space-y-4 p-4 pb-24">
+        <div className="flex items-center gap-2">
           <Link
             to="/fitness"
-            className="mt-3 block rounded-lg border border-border p-3 text-center text-sm font-medium hover:bg-muted"
+            className="tap-target -ml-1 flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted"
           >
-            Log this session in Fitness
+            <ArrowLeft className="h-4 w-4" /> Fitness
           </Link>
-        )}
-      </Card>
-
-
-      {/* Timing & intensity */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-base font-semibold">Timing &amp; intensity</h2>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Changing timing restarts the routine from the first move.
-        </p>
-
-        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {INTENSITY_PRESETS.map((preset) => {
-            const selected = settings.preset === preset.id;
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                aria-pressed={selected}
-                onClick={() =>
-                  applySettings({
-                    workSec: preset.workSec,
-                    restSec: preset.restSec,
-                    preset: preset.id,
-                  })
-                }
-                className={`tap-target rounded-lg border p-2.5 text-left ${
-                  selected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                    : "border-border hover:bg-muted"
-                }`}
-              >
-                <span className="block text-sm font-semibold">{preset.label}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {preset.workSec}s work · {preset.restSec}s rest
-                </span>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  {preset.description}
-                </span>
-              </button>
-            );
-          })}
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Stepper
-            label="Work seconds"
-            value={settings.workSec}
-            min={WORK_MIN}
-            max={WORK_MAX}
-            onChange={(workSec) => applySettings({ ...settings, workSec })}
-          />
-          <Stepper
-            label="Rest seconds"
-            value={settings.restSec}
-            min={REST_MIN}
-            max={REST_MAX}
-            onChange={(restSec) => applySettings({ ...settings, restSec })}
-          />
-        </div>
+        <header className="space-y-2">
+          <h1 className="text-2xl font-bold leading-tight">10-Minute Booty Workout</h1>
+          <p className="text-sm text-muted-foreground">
+            Eight glute-focused moves for women, {settings.workSec} seconds each with{" "}
+            {settings.restSec} seconds rest. No equipment, at home. Tap any illustration to see the
+            working muscles full size.
+          </p>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1">
+              <Clock className="h-3.5 w-3.5" /> {mmss(totalSeconds)} total
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1">
+              <Home className="h-3.5 w-3.5" /> No equipment
+            </span>
+            <span className="rounded-full border border-border px-2.5 py-1">
+              {MOVES.length} moves
+            </span>
+          </div>
+          <div className="pt-1">
+            <ShareDoseRoutine
+              path="/booty-workout"
+              campaign="booty_workout_share"
+              label="Share with friends"
+            />
+          </div>
+        </header>
 
-        <p className="mt-3 text-xs text-muted-foreground">
-          {settings.preset === "custom" ? "Custom" : "Preset"} · {MOVES.length} moves ·{" "}
-          {mmss(totalSeconds)} total
-        </p>
-      </Card>
-
-      {/* Streak & month summary */}
-      {hydrated && stats && (
+        {/* Guided timer */}
         <Card className="p-4">
-          <h2 className="text-base font-semibold">Your consistency</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-border bg-muted/40 p-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Flame className="h-4 w-4 text-primary" aria-hidden="true" />
-                <span className="text-xs font-medium">Weekly streak</span>
-              </div>
-              <p className="mt-1 text-2xl font-semibold tabular-nums">
-                {stats.weeklyStreak}
-                <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  {stats.weeklyStreak === 1 ? "week" : "weeks"}
-                </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {done
+                  ? "Finished"
+                  : step.rest
+                    ? "Rest — next up"
+                    : `Move ${MOVES.indexOf(step.move) + 1} of ${MOVES.length}`}
               </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {stats.weeklyStreak === 0
-                  ? "Finish a workout to start your streak"
-                  : stats.activeThisWeek
-                    ? "This week is already logged"
-                    : "Work out this week to keep it alive"}
+              <p className="truncate text-lg font-semibold">
+                {done ? "Nice work" : moveLabel(step.move)}
               </p>
             </div>
-            <div className="rounded-lg border border-border bg-muted/40 p-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CalendarCheck
-                  className="h-4 w-4 text-primary"
-                  aria-hidden="true"
-                />
-                <span className="text-xs font-medium">{monthLabel}</span>
-              </div>
-              <p className="mt-1 text-2xl font-semibold tabular-nums">
-                {stats.daysThisMonth}
-                <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  {stats.daysThisMonth === 1 ? "day" : "days"}
-                </span>
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Completed out of {stats.daysElapsedThisMonth} days so far
-              </p>
-            </div>
+            <p
+              className="shrink-0 text-3xl font-bold tabular-nums"
+              aria-live="polite"
+              aria-label={`${remaining} seconds remaining`}
+            >
+              {mmss(remaining)}
+            </p>
           </div>
 
-          {/* Monthly goal */}
-          <div className="mt-3 rounded-lg border border-border p-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Target className="h-4 w-4 text-primary" aria-hidden="true" />
-                <span className="text-xs font-medium">Monthly goal</span>
+          <div
+            className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Workout progress"
+          >
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (done) reset();
+                if (done || !running) startSession();
+                setRunning((r) => (done ? true : !r));
+              }}
+              className="tap-target inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {done ? "Start again" : running ? "Pause" : elapsed > 0 ? "Resume" : "Start workout"}
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              disabled={done}
+              className="tap-target inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+            >
+              <SkipForward className="h-4 w-4" /> Skip
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="tap-target inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+            >
+              <RotateCcw className="h-4 w-4" /> Reset
+            </button>
+          </div>
+
+          {hydrated && restored && !done && (
+            <p className="mt-3 rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground">
+              Picked up where you left off — move {MOVES.indexOf(step.move) + 1} of {MOVES.length}.
+              Use Reset to start from the top.
+            </p>
+          )}
+
+          {hydrated && history.lastCompletedAt && (
+            <p className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              <span>
+                Last finished {formatCompletedAt(history.lastCompletedAt)}
+                {history.completions > 1 ? ` · ${history.completions} sessions completed` : ""}
+              </span>
+              <time className="sr-only" dateTime={history.lastCompletedAt}>
+                {new Date(history.lastCompletedAt).toLocaleString()}
+              </time>
+            </p>
+          )}
+
+          {done &&
+            (isGuest ? (
+              <>
+                <Link
+                  to="/auth"
+                  search={{ redirect: "/booty-workout" }}
+                  className="mt-3 block rounded-lg border border-border p-3 text-center text-sm font-medium hover:bg-muted"
+                >
+                  Create a free account to log this session
+                </Link>
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  The timer is always free. An account syncs your workout history across devices.
+                </p>
+              </>
+            ) : (
+              <Link
+                to="/fitness"
+                className="mt-3 block rounded-lg border border-border p-3 text-center text-sm font-medium hover:bg-muted"
+              >
+                Log this session in Fitness
+              </Link>
+            ))}
+        </Card>
+
+        {/* Timing & intensity */}
+        <Card className="p-4">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="text-base font-semibold">Timing &amp; intensity</h2>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Changing timing restarts the routine from the first move.
+          </p>
+
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {INTENSITY_PRESETS.map((preset) => {
+              const selected = settings.preset === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() =>
+                    applySettings({
+                      workSec: preset.workSec,
+                      restSec: preset.restSec,
+                      preset: preset.id,
+                    })
+                  }
+                  className={`tap-target rounded-lg border p-2.5 text-left ${
+                    selected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border hover:bg-muted"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{preset.label}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {preset.workSec}s work · {preset.restSec}s rest
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    {preset.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Stepper
+              label="Work seconds"
+              value={settings.workSec}
+              min={WORK_MIN}
+              max={WORK_MAX}
+              onChange={(workSec) => applySettings({ ...settings, workSec })}
+            />
+            <Stepper
+              label="Rest seconds"
+              value={settings.restSec}
+              min={REST_MIN}
+              max={REST_MAX}
+              onChange={(restSec) => applySettings({ ...settings, restSec })}
+            />
+          </div>
+
+          <p className="mt-3 text-xs text-muted-foreground">
+            {settings.preset === "custom" ? "Custom" : "Preset"} · {MOVES.length} moves ·{" "}
+            {mmss(totalSeconds)} total
+          </p>
+        </Card>
+
+        {/* Streak & month summary */}
+        {hydrated && stats && (
+          <Card className="p-4">
+            <h2 className="text-base font-semibold">Your consistency</h2>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Flame className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <span className="text-xs font-medium">Weekly streak</span>
+                </div>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">
+                  {stats.weeklyStreak}
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    {stats.weeklyStreak === 1 ? "week" : "weeks"}
+                  </span>
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {stats.weeklyStreak === 0
+                    ? "Finish a workout to start your streak"
+                    : stats.activeThisWeek
+                      ? "This week is already logged"
+                      : "Work out this week to keep it alive"}
+                </p>
               </div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <span className="text-xs font-medium">{monthLabel}</span>
+                </div>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">
+                  {stats.daysThisMonth}
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    {stats.daysThisMonth === 1 ? "day" : "days"}
+                  </span>
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Completed out of {stats.daysElapsedThisMonth} days so far
+                </p>
+              </div>
+            </div>
+
+            {/* Monthly goal */}
+            <div className="mt-3 rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Target className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <span className="text-xs font-medium">Monthly goal</span>
+                </div>
+                {goal === null ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => {
+                      updateGoal(DEFAULT_GOAL);
+                      setEditingGoal(true);
+                    }}
+                  >
+                    Set a goal
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 px-3 text-xs"
+                    aria-expanded={editingGoal}
+                    onClick={() => setEditingGoal((v) => !v)}
+                  >
+                    {editingGoal ? "Done" : "Edit"}
+                  </Button>
+                )}
+              </div>
+
               {goal === null ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 px-3 text-xs"
-                  onClick={() => {
-                    updateGoal(DEFAULT_GOAL);
-                    setEditingGoal(true);
-                  }}
-                >
-                  Set a goal
-                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Pick how many days you want to complete this month and track your progress here.
+                </p>
               ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 px-3 text-xs"
-                  aria-expanded={editingGoal}
-                  onClick={() => setEditingGoal((v) => !v)}
-                >
-                  {editingGoal ? "Done" : "Edit"}
-                </Button>
+                (() => {
+                  const g = goalProgress(goal, stats.daysThisMonth);
+                  return (
+                    <>
+                      <p className="mt-2 text-sm font-medium tabular-nums">
+                        {g.done} of {g.goal} days
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          {g.percent}%
+                        </span>
+                      </p>
+                      <Progress
+                        value={g.percent}
+                        className="mt-2 h-2"
+                        aria-label={`Monthly goal progress: ${g.done} of ${g.goal} days completed in ${monthLabel}`}
+                      />
+                      <p className="mt-1.5 text-xs text-muted-foreground">
+                        {g.reached
+                          ? `Goal reached for ${monthLabel} — every extra day is a bonus.`
+                          : g.onTrack
+                            ? `${g.remaining} to go · ${g.daysLeftInMonth} ${g.daysLeftInMonth === 1 ? "day" : "days"} left in ${monthLabel}`
+                            : `${g.remaining} to go but only ${g.daysLeftInMonth} ${g.daysLeftInMonth === 1 ? "day" : "days"} left — consider easing the goal.`}
+                      </p>
+
+                      {editingGoal && (
+                        <div className="mt-3 border-t border-border pt-3">
+                          <label
+                            htmlFor="booty-monthly-goal"
+                            className="block text-xs font-medium text-muted-foreground"
+                          >
+                            Days per month
+                          </label>
+                          <div className="mt-1 flex items-center gap-2">
+                            <button
+                              type="button"
+                              aria-label="Decrease monthly goal"
+                              disabled={goal <= GOAL_MIN}
+                              onClick={() => updateGoal(goal - 1)}
+                              className="tap-target flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-40"
+                            >
+                              <Minus className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                            <input
+                              id="booty-monthly-goal"
+                              type="number"
+                              inputMode="numeric"
+                              min={GOAL_MIN}
+                              max={GOAL_MAX}
+                              value={goal}
+                              onChange={(e) => {
+                                const next = Number(e.target.value);
+                                if (!Number.isFinite(next)) return;
+                                updateGoal(next);
+                              }}
+                              className="h-9 w-full rounded-lg border border-border bg-background px-2 text-center text-sm tabular-nums"
+                            />
+                            <button
+                              type="button"
+                              aria-label="Increase monthly goal"
+                              disabled={goal >= GOAL_MAX}
+                              onClick={() => updateGoal(goal + 1)}
+                              className="tap-target flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-40"
+                            >
+                              <Plus className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="mt-2 h-8 px-2 text-xs text-muted-foreground"
+                            onClick={removeGoal}
+                          >
+                            Remove goal
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()
               )}
             </div>
 
-            {goal === null ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Pick how many days you want to complete this month and track your
-                progress here.
-              </p>
-            ) : (
-              (() => {
-                const g = goalProgress(goal, stats.daysThisMonth);
-                return (
-                  <>
-                    <p className="mt-2 text-sm font-medium tabular-nums">
-                      {g.done} of {g.goal} days
-                      <span className="ml-2 text-xs font-normal text-muted-foreground">
-                        {g.percent}%
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="mt-3 w-full gap-2">
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Reset progress
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset workout progress?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This clears your weekly streak, monthly completions and all saved sessions for
+                    the 10-Minute Booty Workout, and starts the routine over from the first move.
+                    Your timing settings stay as they are. This can't be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep my progress</AlertDialogCancel>
+                  <AlertDialogAction onClick={resetAllProgress}>Reset everything</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </Card>
+        )}
+
+        {/* Completion chart */}
+        <Card className="p-4">
+          <BootyWorkoutChart
+            progress={history}
+            status={hydrated ? historyStatus : "loading"}
+            onRetry={loadHistory}
+            scheduleTo={isGuest ? "/auth" : "/fitness"}
+            {...(isGuest
+              ? {
+                  scheduleSearch: { redirect: "/booty-workout" },
+                  scheduleLabel: "Sign up to schedule",
+                }
+              : {})}
+          />
+        </Card>
+
+        {/* Workout history */}
+        {hydrated && history.sessions.length > 0 && (
+          <Card className="p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className="text-base font-semibold">Workout history</h2>
+              <span className="text-xs text-muted-foreground">
+                {history.sessions.length} session
+                {history.sessions.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <ul className="mt-3 divide-y divide-border">
+              {history.sessions.map((session: BootyWorkoutSession) => (
+                <li key={session.id} className="flex items-start gap-3 py-2.5">
+                  <span
+                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                      session.completed
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {session.completed ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <Clock className="h-3.5 w-3.5" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">
+                      <time dateTime={session.endedAt}>{formatSessionDate(session.endedAt)}</time>
+                      <span className="ml-2 font-normal text-muted-foreground">
+                        {formatDuration(session.durationSec)}
                       </span>
                     </p>
-                    <Progress
-                      value={g.percent}
-                      className="mt-2 h-2"
-                      aria-label={`Monthly goal progress: ${g.done} of ${g.goal} days completed in ${monthLabel}`}
-                    />
-                    <p className="mt-1.5 text-xs text-muted-foreground">
-                      {g.reached
-                        ? `Goal reached for ${monthLabel} — every extra day is a bonus.`
-                        : g.onTrack
-                          ? `${g.remaining} to go · ${g.daysLeftInMonth} ${g.daysLeftInMonth === 1 ? "day" : "days"} left in ${monthLabel}`
-                          : `${g.remaining} to go but only ${g.daysLeftInMonth} ${g.daysLeftInMonth === 1 ? "day" : "days"} left — consider easing the goal.`}
+                    <p className="text-xs text-muted-foreground">
+                      {session.completed
+                        ? `Completed all ${session.totalMoves} moves`
+                        : `Stopped on ${session.lastMove} — move ${session.lastMoveIndex} of ${session.totalMoves}`}
                     </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
-                    {editingGoal && (
-                      <div className="mt-3 border-t border-border pt-3">
-                        <label
-                          htmlFor="booty-monthly-goal"
-                          className="block text-xs font-medium text-muted-foreground"
-                        >
-                          Days per month
-                        </label>
-                        <div className="mt-1 flex items-center gap-2">
-                          <button
-                            type="button"
-                            aria-label="Decrease monthly goal"
-                            disabled={goal <= GOAL_MIN}
-                            onClick={() => updateGoal(goal - 1)}
-                            className="tap-target flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-40"
-                          >
-                            <Minus className="h-4 w-4" aria-hidden="true" />
-                          </button>
-                          <input
-                            id="booty-monthly-goal"
-                            type="number"
-                            inputMode="numeric"
-                            min={GOAL_MIN}
-                            max={GOAL_MAX}
-                            value={goal}
-                            onChange={(e) => {
-                              const next = Number(e.target.value);
-                              if (!Number.isFinite(next)) return;
-                              updateGoal(next);
-                            }}
-                            className="h-9 w-full rounded-lg border border-border bg-background px-2 text-center text-sm tabular-nums"
-                          />
-                          <button
-                            type="button"
-                            aria-label="Increase monthly goal"
-                            disabled={goal >= GOAL_MAX}
-                            onClick={() => updateGoal(goal + 1)}
-                            className="tap-target flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted disabled:opacity-40"
-                          >
-                            <Plus className="h-4 w-4" aria-hidden="true" />
-                          </button>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="mt-2 h-8 px-2 text-xs text-muted-foreground"
-                          onClick={removeGoal}
-                        >
-                          Remove goal
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                );
-              })()
-            )}
-          </div>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="mt-3 w-full gap-2">
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                Reset progress
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Reset workout progress?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This clears your weekly streak, monthly completions and all
-                  saved sessions for the 10-Minute Booty Workout, and starts the
-                  routine over from the first move. Your timing settings stay as
-                  they are. This can't be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep my progress</AlertDialogCancel>
-                <AlertDialogAction onClick={resetAllProgress}>
-                  Reset everything
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </Card>
-
-      )}
-
-      {/* Completion chart */}
-      <Card className="p-4">
-        <BootyWorkoutChart
-          progress={history}
-          status={hydrated ? historyStatus : "loading"}
-          onRetry={loadHistory}
-          scheduleTo="/fitness"
-        />
-      </Card>
-
-      {/* Workout history */}
-      {hydrated && history.sessions.length > 0 && (
-        <Card className="p-4">
-          <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-base font-semibold">Workout history</h2>
-            <span className="text-xs text-muted-foreground">
-              {history.sessions.length} session
-              {history.sessions.length === 1 ? "" : "s"}
-            </span>
-          </div>
-          <ul className="mt-3 divide-y divide-border">
-            {history.sessions.map((session: BootyWorkoutSession) => (
-              <li key={session.id} className="flex items-start gap-3 py-2.5">
-                <span
-                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                    session.completed
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                  aria-hidden="true"
+        {/* Exercise list */}
+        <ol className="space-y-3">
+          {MOVES.map((move, i) => {
+            const active = !done && step.move === move && !step.rest;
+            return (
+              <li key={`${move.name}-${move.side ?? ""}`}>
+                <Card
+                  className={`flex items-center gap-3 p-3 ${active ? "ring-2 ring-primary" : ""}`}
                 >
-                  {session.completed ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <Clock className="h-3.5 w-3.5" />
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">
-                    <time dateTime={session.endedAt}>
-                      {formatSessionDate(session.endedAt)}
-                    </time>
-                    <span className="ml-2 font-normal text-muted-foreground">
-                      {formatDuration(session.durationSec)}
-                    </span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {session.completed
-                      ? `Completed all ${session.totalMoves} moves`
-                      : `Stopped on ${session.lastMove} — move ${session.lastMoveIndex} of ${session.totalMoves}`}
-                  </p>
-                </div>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {i + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => openZoom(move, e.currentTarget)}
+                    onKeyDown={onZoomTriggerKeyDown(move)}
+                    aria-haspopup="dialog"
+                    aria-expanded={zoom === move}
+                    aria-keyshortcuts="Enter Space Z"
+                    title={`Enlarge ${moveLabel(move)} illustration (Z)`}
+                    aria-label={`Enlarge ${moveLabel(move)} illustration. ${move.alt}. Press Enter or Z to open, Escape to close.`}
+                    className="tap-target shrink-0 cursor-zoom-in rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    <img
+                      src={move.art}
+                      alt={`${moveLabel(move)} exercise illustration — ${move.alt}`}
+                      title={`${moveLabel(move)} — 10 minute booty workout`}
+                      width={64}
+                      height={64}
+                      loading="lazy"
+                      className={`h-16 w-16 rounded-md border border-border bg-background object-cover ${move.mirror ? "-scale-x-100" : ""}`}
+                    />
+                  </button>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{moveLabel(move)}</p>
+                    <p className="text-xs text-muted-foreground">{settings.workSec} sec</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{move.cue}</p>
+                  </div>
+                </Card>
               </li>
-            ))}
-          </ul>
-        </Card>
-      )}
+            );
+          })}
+        </ol>
 
+        <p className="text-xs text-muted-foreground">
+          Consistency is the key — run this every day or on alternating days, and stop if any
+          movement causes pain.
+        </p>
 
-      {/* Exercise list */}
-      <ol className="space-y-3">
-        {MOVES.map((move, i) => {
-          const active = !done && step.move === move && !step.rest;
-          return (
-            <li key={`${move.name}-${move.side ?? ""}`}>
-              <Card
-                className={`flex items-center gap-3 p-3 ${
-                  active ? "ring-2 ring-primary" : ""
-                }`}
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {i + 1}
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => openZoom(move, e.currentTarget)}
-                  onKeyDown={onZoomTriggerKeyDown(move)}
-                  aria-haspopup="dialog"
-                  aria-expanded={zoom === move}
-                  aria-keyshortcuts="Enter Space Z"
-                  title={`Enlarge ${moveLabel(move)} illustration (Z)`}
-                  aria-label={`Enlarge ${moveLabel(move)} illustration. ${move.alt}. Press Enter or Z to open, Escape to close.`}
-                  className="tap-target shrink-0 cursor-zoom-in rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                >
-                  <img
-                    src={move.art}
-                    alt=""
-                    aria-hidden="true"
-                    width={64}
-                    height={64}
-                    loading="lazy"
-                    className="h-16 w-16 rounded-md border border-border bg-background object-cover"
-                  />
-                </button>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">{moveLabel(move)}</p>
-                  <p className="text-xs text-muted-foreground">{settings.workSec} sec</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{move.cue}</p>
-                </div>
-              </Card>
-            </li>
-          );
-        })}
-      </ol>
-
-      <p className="text-xs text-muted-foreground">
-        Consistency is the key — run this every day or on alternating days, and stop if any
-        movement causes pain.
-      </p>
-
-      <Dialog
-        open={zoom !== null}
-        onOpenChange={(open) => {
-          if (!open) setZoom(null);
-        }}
-      >
-        <DialogContent
-          className="max-w-2xl p-0 sm:p-0"
-          aria-keyshortcuts="Escape Z"
-          onKeyDown={(event) => {
-            if (
-              event.key.toLowerCase() === "z" &&
-              !event.metaKey &&
-              !event.ctrlKey &&
-              !event.altKey
-            ) {
-              event.preventDefault();
-              setZoom(null);
-            }
-          }}
-          onCloseAutoFocus={(event) => {
-            const trigger = zoomTrigger.current;
-            if (trigger && trigger.isConnected) {
-              trigger.focus({ preventScroll: true });
-              event.preventDefault();
-            }
+        <Dialog
+          open={zoom !== null}
+          onOpenChange={(open) => {
+            if (!open) setZoom(null);
           }}
         >
-          <DialogHeader className="sr-only">
-            <DialogTitle>{zoom ? moveLabel(zoom) : "Exercise"} illustration</DialogTitle>
-            <DialogDescription>{zoom?.alt}</DialogDescription>
-          </DialogHeader>
-          {zoom && (
-            <figure className="flex flex-col items-center p-4 sm:p-6">
-              <img
-                src={zoom.art}
-                alt=""
-                aria-hidden="true"
-                width={816}
-                height={816}
-                className="max-h-[70vh] w-full rounded-lg object-contain"
-              />
-              <figcaption className="mt-4 text-center">
-                <span className="block text-sm font-medium">{moveLabel(zoom)}</span>
-                <span className="mt-1 block text-xs text-muted-foreground">{zoom.cue}</span>
-                <span className="mt-2 block text-xs text-muted-foreground">
-                  Press <kbd className="rounded border border-border px-1">Esc</kbd> or{" "}
-                  <kbd className="rounded border border-border px-1">Z</kbd> to close.
-                </span>
-              </figcaption>
-            </figure>
-          )}
-        </DialogContent>
-      </Dialog>
+          <DialogContent
+            className="max-w-2xl p-0 sm:p-0"
+            aria-keyshortcuts="Escape Z"
+            onKeyDown={(event) => {
+              if (
+                event.key.toLowerCase() === "z" &&
+                !event.metaKey &&
+                !event.ctrlKey &&
+                !event.altKey
+              ) {
+                event.preventDefault();
+                setZoom(null);
+              }
+            }}
+            onCloseAutoFocus={(event) => {
+              const trigger = zoomTrigger.current;
+              if (trigger && trigger.isConnected) {
+                trigger.focus({ preventScroll: true });
+                event.preventDefault();
+              }
+            }}
+          >
+            <DialogHeader className="sr-only">
+              <DialogTitle>{zoom ? moveLabel(zoom) : "Exercise"} illustration</DialogTitle>
+              <DialogDescription>{zoom?.alt}</DialogDescription>
+            </DialogHeader>
+            {zoom && (
+              <figure className="flex flex-col items-center p-4 sm:p-6">
+                <img
+                  src={zoom.art}
+                  alt={`${moveLabel(zoom)} exercise illustration — ${zoom.alt}`}
+                  title={`${moveLabel(zoom)} — 10 minute booty workout`}
+                  width={816}
+                  height={816}
+                  className={`max-h-[70vh] w-full rounded-lg object-contain ${zoom.mirror ? "-scale-x-100" : ""}`}
+                />
+                <figcaption className="mt-4 text-center">
+                  <span className="block text-sm font-medium">{moveLabel(zoom)}</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">{zoom.cue}</span>
+                  <span className="mt-2 block text-xs text-muted-foreground">
+                    Press <kbd className="rounded border border-border px-1">Esc</kbd> or{" "}
+                    <kbd className="rounded border border-border px-1">Z</kbd> to close.
+                  </span>
+                </figcaption>
+              </figure>
+            )}
+          </DialogContent>
+        </Dialog>
 
-      <DisclaimerFooter />
+        <ProseContainer>
+          <PageProse id="booty-workout" />
+        </ProseContainer>
+
+        <ProseContainer>
+          <AeoFaq pairs={BOOTY_WORKOUT_FAQ} />
+        </ProseContainer>
+
+        <AttributionFooter />
+        <DisclaimerFooter />
+      </main>
     </div>
   );
 }

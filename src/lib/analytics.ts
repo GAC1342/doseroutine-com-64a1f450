@@ -34,6 +34,23 @@ function detectBotOnce(): boolean {
 }
 
 /**
+ * Where anonymous events (including `client_error` crash reports) are POSTed.
+ *
+ * In the packaged Capacitor app the web assets are served from the app bundle
+ * (`capacitor://localhost`), so a relative `/api/public/analytics` has no
+ * server behind it and every anonymous crash report is silently dropped —
+ * exactly the reports we most need from App Store reviewers on a fresh
+ * install. Native builds therefore post to the canonical production origin.
+ */
+export function analyticsEndpoint(): string {
+  const path = "/api/public/analytics";
+  if (typeof window === "undefined") return path;
+  const proto = window.location.protocol;
+  const isBundledNative = proto === "capacitor:" || proto === "file:" || proto === "ionic:";
+  return isBundledNative ? `https://doseroutine.com${path}` : path;
+}
+
+/**
  * Fire-and-forget analytics event. Never throws, never blocks UI.
  *
  * Signed-in users insert directly via the browser client (RLS enforces
@@ -74,11 +91,12 @@ export function trackEvent(eventName: string, properties: Record<string, unknown
         /* fall through to public endpoint */
       }
       try {
-        await fetch("/api/public/analytics", {
+        await fetch(analyticsEndpoint(), {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(payload),
           keepalive: true,
+          signal: AbortSignal.timeout(8_000),
         });
       } catch {
         /* noop */

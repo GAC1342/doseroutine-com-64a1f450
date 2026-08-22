@@ -50,7 +50,6 @@ const REQUIRED_PATHS = [
   "/ai-policy",
 ];
 
-
 /** Fetch and parse the sitemap for extra routes to spot-check. */
 async function discoverSitemapPaths() {
   try {

@@ -5,7 +5,7 @@ import { AttributionFooter } from "@/components/attribution-footer";
 import { RelatedLinks } from "@/components/related-links";
 import { TRUST_FAQ } from "@/lib/trust-faq";
 
-const CANONICAL = "https://doseroutine.com/faq";
+export const CANONICAL = "https://doseroutine.com/faq";
 const TITLE = "DoseRoutine FAQ — Interactions, Peptides, TRT & Dosing";
 const DESC =
   "Answers to the most common questions about checking supplement, peptide, TRT and prescription interactions, dosing, timing and tracking with DoseRoutine.";
@@ -30,7 +30,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Does DoseRoutine give medical advice?",
-        a: "No. DoseRoutine compiles publicly available reference information from sources such as NIH/MedlinePlus, FDA labelling, Mayo Clinic and PubChem, and shows you where interactions have been documented. It does not diagnose, prescribe or replace a clinician or pharmacist.",
+        a: "No. DoseRoutine compiles publicly available reference information from sources such as NIH/MedlinePlus, FDA labeling, Mayo Clinic and PubChem, and shows you where interactions have been documented. It does not diagnose, prescribe or replace a clinician or pharmacist.",
       },
     ],
   },
@@ -51,7 +51,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Where does the interaction data come from?",
-        a: "Interaction entries are compiled from public pharmacology and clinical literature, drug labelling and NIH resources, with PMIDs or DOIs attached where a specific study supports the entry. Every reference page links its sources so you can read the original.",
+        a: "Interaction entries are compiled from public pharmacology and clinical literature, drug labeling and NIH resources, with PubMed IDs or DOI links attached where a specific study supports the entry. Every reference page links its sources so you can read the original.",
       },
     ],
   },
@@ -60,7 +60,7 @@ const SECTIONS: Section[] = [
     items: [
       {
         q: "How do I convert a peptide dose in mg to insulin-syringe units?",
-        a: "Work out your concentration in mg per mL — vial strength divided by the millilitres of bacteriostatic water you added — then divide your dose in mg by that concentration to get millilitres, and multiply by 100 for a U-100 syringe. The peptide dosage calculator does this for you and shows the syringe mark.",
+        a: "Work out your concentration in mg per mL — vial strength divided by the milliliters of bacteriostatic water you added — then divide your dose in mg by that concentration to get milliliters, and multiply by 100 for a U-100 syringe. The peptide dosage calculator does this for you and shows the syringe mark.",
       },
       {
         q: "How much bacteriostatic water should I add to a vial?",
@@ -134,7 +134,10 @@ export const Route = createFileRoute("/faq")({
               description: DESC,
               inLanguage: "en",
               isPartOf: { "@id": "https://doseroutine.com/#website" },
-              publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+              publisher: {
+                "@type": "Organization",
+                "@id": "https://doseroutine.com/#organization",
+                name: "DoseRoutine",
                 url: "https://doseroutine.com",
               },
               speakable: {
@@ -170,7 +173,7 @@ export const Route = createFileRoute("/faq")({
 
 function FaqHub() {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6">
+    <div id="main-content" tabIndex={-1} className="mx-auto w-full max-w-3xl px-4 py-6">
       <PublicBackHeader />
 
       <header className="mb-8">
@@ -231,7 +234,7 @@ function FaqHub() {
           </li>
           <li>
             <Link to="/help" className="text-primary underline-offset-2 hover:underline">
-              Help centre and how-tos
+              Help center and how-tos
             </Link>
           </li>
         </ul>

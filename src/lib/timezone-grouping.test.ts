@@ -136,7 +136,7 @@ describe("buildHeatmap — timezone matrix", () => {
           if (args.length === 0) super(anchor);
           else super(...(args as [string]));
         }
-        static now() {
+        static override now() {
           return new OriginalDate(anchor).getTime();
         }
       } as DateConstructor;
@@ -188,7 +188,7 @@ describe("buildHeatmap — timezone matrix", () => {
         if (args.length === 0) super(anchor);
         else super(...(args as [string]));
       }
-      static now() {
+      static override now() {
         return new OriginalDate(anchor).getTime();
       }
     } as DateConstructor;

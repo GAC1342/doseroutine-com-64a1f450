@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowRight, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
@@ -8,7 +9,6 @@ import { autoInternalLinks } from "@/lib/blog-internal-links";
 import { BlogMarketingLinks } from "@/components/blog-marketing-links";
 import { EditorialAboutCard, EditorialByline } from "@/components/editorial-byline";
 import { BlogSources } from "@/components/blog-sources";
-
 
 import { sectionAnchorId } from "@/lib/blog-section-anchors";
 import { faqAnchorId } from "@/lib/faq-snippet";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/blog/$slug")({
     return {
       ...head,
       links: [
-        { rel: "canonical", href: canonical },
+        ...canonicalLinks(canonical),
         ...(head.links ?? []).filter((link) => link.rel !== "canonical"),
       ],
     };
@@ -153,7 +153,6 @@ function BlogPostPage() {
 
         <BlogMarketingLinks post={post} />
 
-
         {(autoLinks.guides.length > 0 || autoLinks.calculators.length > 0) && (
           <section className="space-y-3">
             <h2 className="text-2xl font-bold">Related guides &amp; tools</h2>
@@ -237,7 +236,6 @@ function BlogPostPage() {
         <EditorialAboutCard />
 
         <BlogSources refs={post.refs} updated={post.updated} />
-
 
         <AttributionFooter sourceUrl={blogPostUrl(post.slug)} editorial={false} />
       </article>

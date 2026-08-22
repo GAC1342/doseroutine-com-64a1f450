@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listGscSnapshots } from "@/lib/gsc-monitor.functions";
 import { listIndexSubmissions, submitSitemapAndReindex } from "@/lib/reindex.functions";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/search-console")({
+  errorComponent: routeErrorComponent("admin-search-console", "Search Console data couldn't load"),
   head: () => ({
     meta: [
       { title: "Search Console monitor — DoseRoutine" },

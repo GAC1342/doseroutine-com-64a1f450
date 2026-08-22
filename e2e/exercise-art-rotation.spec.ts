@@ -74,8 +74,10 @@ async function assertContained(page: Page, label: string) {
   // Aspect ratio must survive the rotation: a squashed image is a crop in
   // disguise, and object-contain would letterbox rather than distort.
   const ratio = imageBox!.width / imageBox!.height;
-  expect(Math.abs(ratio - 1), `${label}: image aspect ratio drifted (${ratio.toFixed(3)})`)
-    .toBeLessThanOrEqual(0.02);
+  expect(
+    Math.abs(ratio - 1),
+    `${label}: image aspect ratio drifted (${ratio.toFixed(3)})`,
+  ).toBeLessThanOrEqual(0.02);
 
   // Rotation must not introduce a horizontal scrollbar on the page behind.
   const overflow = await page.evaluate(
@@ -90,8 +92,10 @@ async function assertContained(page: Page, label: string) {
     return vv ? { width: vv.width, height: vv.height } : null;
   });
   if (visual) {
-    expect(imageBox!.y + imageBox!.height, `${label}: image below the visual viewport`)
-      .toBeLessThanOrEqual(visual.height + SLACK + 1);
+    expect(
+      imageBox!.y + imageBox!.height,
+      `${label}: image below the visual viewport`,
+    ).toBeLessThanOrEqual(visual.height + SLACK + 1);
   }
 }
 

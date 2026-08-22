@@ -21,7 +21,7 @@ function flag(name, fallback) {
   return i !== -1 && args[i + 1] ? args[i + 1] : fallback;
 }
 
-const BASE = (flag("base", process.env.BASE_URL || "https://doseroutine.com")).replace(/\/+$/, "");
+const BASE = flag("base", process.env.BASE_URL || "https://doseroutine.com").replace(/\/+$/, "");
 
 /** Routes whose HTML must never be served stale after a deploy. */
 const STATIC_PATHS = ["/", "/library", "/blog", "/interactions", "/calculator", "/sources"];

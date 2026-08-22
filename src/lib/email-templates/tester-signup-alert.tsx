@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing violations in this file; new files must not add these. */
 import * as React from "react";
 import {
   Body,
@@ -23,10 +24,10 @@ interface Props {
 const TesterSignupAlert = ({ email, name, platform, source, signedUpAt, totalSignups }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>{`New closed-testing signup: ${email}`}</Preview>
+    <Preview>{`New closed-testing sign-up: ${email}`}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>New closed-testing signup</Heading>
+        <Heading style={h1}>New closed-testing sign-up</Heading>
         <Section style={box}>
           <Text style={row}>
             <strong>Email:</strong> {email}
@@ -78,8 +79,8 @@ const muted = { color: "#888", fontSize: "12px" };
 
 export const template: TemplateEntry = {
   component: TesterSignupAlert,
-  subject: (d) => `[DoseRoutine] New tester signup: ${d.email}`,
-  displayName: "Tester signup alert",
+  subject: (d) => `[DoseRoutine] New tester sign-up: ${d.email}`,
+  displayName: "Tester sign-up alert",
   previewData: {
     email: "alex@example.com",
     name: "Alex",

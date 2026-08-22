@@ -8,10 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useSubscription } from "@/hooks/use-subscription";
 import { PaywallSheet } from "@/components/paywall-sheet";
-import { DayFoodWorkouts } from "@/components/day-food-workouts";
+import { DayFoodWorkouts, useDayActivityCounts } from "@/components/day-food-workouts";
+import {
+  chipClass,
+  segmentedTrackClass,
+  segmentedTabClass,
+  SegmentedCount,
+} from "@/components/ui/segmented-tabs";
 import { MacroProgress } from "@/components/macro-progress";
 import { computeAdherence, fetchAdherenceEvents, type AdherenceStats } from "@/lib/adherence";
 import { setTabViewState, getTabViewState } from "@/lib/tab-view-state";
+import { trackCalendarTab, trackCalendarDayAction } from "@/lib/calendar-usage";
 import { getEffectiveDoseStatus } from "@/lib/dose-status";
 import {
   addMonthsToMonthKey,
@@ -32,15 +39,27 @@ import {
 } from "@/lib/local-calendar";
 import { Card } from "@/components/ui/card";
 import { historyWindow } from "@/lib/today-window";
+import { LoadingStatus } from "@/components/skeletons";
+import { routeErrorComponent } from "@/components/route-error-panel";
+
+type DayTab = "stack" | "workouts" | "food";
+
+const DAY_TABS: Array<{ id: DayTab; label: string }> = [
+  { id: "stack", label: "Stack" },
+  { id: "workouts", label: "Training" },
+  { id: "food", label: "Meals" },
+];
 
 type TimelineView = {
   monthKey: string;
   calFilter: "all" | "taken" | "missed" | "skipped";
   calMode?: "month" | "week";
   weekStart?: string;
+  dayTab?: DayTab;
 };
 
 export const Route = createFileRoute("/_authenticated/timeline")({
+  errorComponent: routeErrorComponent("timeline"),
   head: () => ({
     meta: [
       { title: "Timeline — DoseRoutine" },
@@ -66,12 +85,9 @@ const STATUS_LABELS: Record<Status, string> = {
 
 const STATUS_STYLES: Record<Status, string> = {
   pending: "bg-muted text-muted-foreground",
-  taken:
-    "bg-[color:var(--severity-synergy-bg))] text-[color:var(--severity-synergy)]",
-  skipped:
-    "bg-[color:var(--severity-note-bg))] text-[color:var(--severity-note)]",
-  missed:
-    "bg-[color:var(--severity-avoid-bg))] text-[color:var(--severity-avoid)]",
+  taken: "bg-[color:var(--severity-synergy-bg)] text-[color:var(--severity-synergy)]",
+  skipped: "bg-[color:var(--severity-note-bg)] text-[color:var(--severity-note)]",
+  missed: "bg-[color:var(--severity-avoid-bg)] text-[color:var(--severity-avoid)]",
 };
 
 function TimelinePage() {
@@ -177,7 +193,7 @@ function TimelinePage() {
 
   if (paywall) {
     return (
-      <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pt-10">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-6 md:pt-10 lg:max-w-5xl">
         <header className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">Timeline</h1>
         </header>
@@ -187,7 +203,7 @@ function TimelinePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:pt-10">
+    <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-6 md:pt-10 lg:max-w-5xl">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Timeline</h1>
         <p className="text-sm text-muted-foreground">
@@ -320,6 +336,11 @@ function MonthCalendar({
     return weekStartDayKey(todayKeyInZone(browserZone || "UTC"));
   });
   const [selected, setSelected] = useState<string | null>(null);
+  // Which day tab was last used is a preference, not a one-off: someone who
+  // lives in Meals shouldn't land on Stack every time they open a day.
+  const [dayTab, setDayTab] = useState<DayTab>(
+    () => getTabViewState<TimelineView | null>("/timeline", null)?.dayTab ?? "stack",
+  );
   const [calFilter, setCalFilter] = useState<TimelineView["calFilter"]>(
     () => getTabViewState<TimelineView | null>("/timeline", null)?.calFilter ?? "all",
   );
@@ -359,9 +380,7 @@ function MonthCalendar({
   const todayKey = todayKeyInZone(zone);
   const monthRange = useMemo(
     () =>
-      calMode === "week"
-        ? dayRangeInZone(weekStart, 7, zone)
-        : monthRangeInZone(monthKey, zone),
+      calMode === "week" ? dayRangeInZone(weekStart, 7, zone) : monthRangeInZone(monthKey, zone),
     [calMode, weekStart, monthKey, zone],
   );
   const periodLabel =
@@ -378,8 +397,14 @@ function MonthCalendar({
   // Persist the view whenever month or filter changes. The prefetcher reads
   // this on next tab entry to warm the exact variant.
   useEffect(() => {
-    setTabViewState<TimelineView>("/timeline", { monthKey, calFilter, calMode, weekStart });
-  }, [monthKey, calFilter, calMode, weekStart]);
+    setTabViewState<TimelineView>("/timeline", {
+      monthKey,
+      calFilter,
+      calMode,
+      weekStart,
+      dayTab,
+    });
+  }, [monthKey, calFilter, calMode, weekStart, dayTab]);
 
   const { data: rawEvents = [], isLoading: loading } = useQuery<DayEvent[]>({
     queryKey: timelineMonthQueryKey,
@@ -394,6 +419,7 @@ function MonthCalendar({
         .lt("scheduled_at", monthRange.end.toISOString())
         .order("scheduled_at", { ascending: true })
         .limit(2000);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       return ((data ?? []) as any[]).map((ev) => {
         const uc = ev.user_compound;
         const name = uc?.custom_name || uc?.compound?.name || "Compound";
@@ -474,12 +500,14 @@ function MonthCalendar({
     return "transparent";
   }
 
+  const dayCounts = useDayActivityCounts(selected ?? "");
   const selectedAgg = selected ? days.get(selected) : null;
   const selectedList = selected ? (dayEvents.get(selected) ?? []) : [];
 
   function startEdit(e: DayEvent) {
     setEditingId(e.id);
     setEditError(null);
+    trackCalendarDayAction("edit_open", dayTab);
     const d = new Date(e.scheduled_at);
     const hh = formatInTimeZone(d, zone, "HH");
     const mm = formatInTimeZone(d, zone, "mm");
@@ -490,6 +518,7 @@ function MonthCalendar({
   function cancelEdit() {
     setEditingId(null);
     setEditError(null);
+    trackCalendarDayAction("edit_cancel", dayTab);
   }
 
   async function saveEdit(e: DayEvent) {
@@ -523,7 +552,9 @@ function MonthCalendar({
         throw error;
       }
       setEditingId(null);
+      trackCalendarDayAction("edit_save", dayTab);
       qc.invalidateQueries({ queryKey: ["timeline-month"] });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     } catch (err: any) {
       setEditError(err?.message ?? "Could not save changes.");
     } finally {
@@ -622,11 +653,7 @@ function MonthCalendar({
                   setMonthKey(selected.slice(0, 7));
                 }
               }}
-              className={`inline-flex h-7 items-center rounded-full border px-3 text-xs font-medium transition ${
-                active
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted"
-              }`}
+              className={chipClass(active)}
             >
               {opt.label}
             </button>
@@ -651,11 +678,7 @@ function MonthCalendar({
               role="tab"
               aria-selected={active}
               onClick={() => setCalFilter(opt.k)}
-              className={`inline-flex h-7 items-center rounded-full border px-3 text-xs font-medium transition ${
-                active
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted"
-              }`}
+              className={chipClass(active)}
             >
               {opt.label}
             </button>
@@ -672,13 +695,19 @@ function MonthCalendar({
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-7 gap-1" aria-busy="true" aria-label="Loading calendar">
+        <div className="grid grid-cols-7 gap-1" aria-busy="true">
+          <LoadingStatus label="Loading calendar…" />
           {Array.from({ length: calMode === "week" ? 7 : 35 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-md" />
+            <Skeleton key={i} aria-hidden="true" className="aspect-square rounded-md" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-7 gap-1">
+        <div
+          className="grid grid-cols-7 gap-1"
+          // Offscreen weeks skip layout and paint; the reserved height keeps
+          // scrolling stable.
+          style={{ contentVisibility: "auto", containIntrinsicSize: "auto 240px" }}
+        >
           {cells.map((c, i) => {
             if (!c) return <div key={i} className="aspect-square" />;
             const a = days.get(c.key);
@@ -768,139 +797,173 @@ function MonthCalendar({
               </div>
             )}
           </div>
-          {selectedList.length === 0 ? (
-            <div className="py-6 text-center text-xs text-muted-foreground">
-              No doses scheduled for this day.{" "}
-              <a
-                href="/stack"
-                className="font-medium text-primary underline-offset-2 hover:underline"
-              >
-                Add a compound
-              </a>{" "}
-              to start tracking.
-            </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {selectedList.map((e) => {
-                const s = (e.status ?? "pending") as Status;
-                const time = formatInTimeZone(e.scheduled_at, zone, "h:mm a");
-                const isFuturePending =
-                  s === "pending" && new Date(e.scheduled_at).getTime() > Date.now();
-                const isEditing = editingId === e.id;
-                if (isEditing) {
-                  return (
-                    <li key={e.id} className="py-3">
-                      <div className="mb-2 text-xs font-medium text-muted-foreground">
-                        {e.name}
-                        {e.dose ? ` · ${e.dose}` : ""}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <label className="flex items-center gap-1.5 text-xs">
-                          <span className="text-muted-foreground">Time</span>
-                          <input
-                            type="time"
-                            value={editTime}
-                            onChange={(ev) => setEditTime(ev.target.value)}
-                            className="h-9 rounded-md border border-border bg-background px-2 text-sm tabular-nums"
-                          />
-                        </label>
-                        <label className="flex flex-1 items-center gap-1.5 text-xs min-w-[160px]">
-                          <span className="text-muted-foreground">Label</span>
-                          <input
-                            type="text"
-                            value={editLabel}
-                            onChange={(ev) => setEditLabel(ev.target.value)}
-                            maxLength={200}
-                            placeholder="Optional note"
-                            className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
-                          />
-                        </label>
-                      </div>
-                      {editError && (
-                        <div className="mt-2 text-xs text-[color:var(--severity-avoid)]">
-                          {editError}
+          <div role="tablist" aria-label="Day details" className={`mb-3 ${segmentedTrackClass}`}>
+            {DAY_TABS.map((t) => {
+              const count =
+                t.id === "stack"
+                  ? selectedList.length
+                  : t.id === "workouts"
+                    ? dayCounts.workouts
+                    : dayCounts.meals;
+              const active = dayTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => {
+                    setDayTab(t.id);
+                    trackCalendarTab(t.id);
+                  }}
+                  className={segmentedTabClass(active)}
+                >
+                  {t.label}
+                  {count > 0 && <SegmentedCount active={active}>{count}</SegmentedCount>}
+                </button>
+              );
+            })}
+          </div>
+
+          {dayTab === "stack" &&
+            (selectedList.length === 0 ? (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                No doses scheduled for this day.{" "}
+                <a
+                  href="/stack"
+                  className="font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  Add a compound
+                </a>{" "}
+                to start tracking.
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {selectedList.map((e) => {
+                  const s = (e.status ?? "pending") as Status;
+                  const time = formatInTimeZone(e.scheduled_at, zone, "h:mm a");
+                  const isFuturePending =
+                    s === "pending" && new Date(e.scheduled_at).getTime() > Date.now();
+                  const isEditing = editingId === e.id;
+                  if (isEditing) {
+                    return (
+                      <li key={e.id} className="py-3">
+                        <div className="mb-2 text-xs font-medium text-muted-foreground">
+                          {e.name}
+                          {e.dose ? ` · ${e.dose}` : ""}
                         </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label className="flex items-center gap-1.5 text-xs">
+                            <span className="text-muted-foreground">Time</span>
+                            <input
+                              type="time"
+                              value={editTime}
+                              onChange={(ev) => setEditTime(ev.target.value)}
+                              className="h-9 rounded-md border border-border bg-background px-2 text-sm tabular-nums"
+                            />
+                          </label>
+                          <label className="flex flex-1 items-center gap-1.5 text-xs min-w-[160px]">
+                            <span className="text-muted-foreground">Label</span>
+                            <input
+                              type="text"
+                              value={editLabel}
+                              onChange={(ev) => setEditLabel(ev.target.value)}
+                              maxLength={200}
+                              placeholder="Optional note"
+                              className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
+                            />
+                          </label>
+                        </div>
+                        {editError && (
+                          <div className="mt-2 text-xs text-[color:var(--severity-avoid)]">
+                            {editError}
+                          </div>
+                        )}
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => saveEdit(e)}
+                            disabled={saving}
+                            className="inline-flex h-9 items-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                          >
+                            {saving ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            disabled={saving}
+                            className="inline-flex h-9 items-center rounded-full border border-border px-3 text-xs font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2">
+                      <div className="w-14 shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {time}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm">{e.name}</div>
+                        {(e.note || e.dose) && (
+                          <div className="truncate text-[11px] text-muted-foreground">
+                            {e.note ? e.note : e.dose}
+                            {e.note && e.dose ? ` · ${e.dose}` : ""}
+                          </div>
+                        )}
+                      </div>
+                      {isFuturePending && (
+                        <button
+                          type="button"
+                          onClick={() => startEdit(e)}
+                          className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium hover:bg-muted"
+                          aria-label={`Edit dose at ${time}`}
+                        >
+                          Edit
+                        </button>
                       )}
-                      <div className="mt-2 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => saveEdit(e)}
-                          disabled={saving}
-                          className="inline-flex h-9 items-center rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-                        >
-                          {saving ? "Saving…" : "Save"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={cancelEdit}
-                          disabled={saving}
-                          className="inline-flex h-9 items-center rounded-full border border-border px-3 text-xs font-medium"
-                        >
-                          Cancel
-                        </button>
+                      <div
+                        role="group"
+                        aria-label={`Mark dose at ${time}`}
+                        className="flex items-center gap-1"
+                      >
+                        {(["taken", "missed", "skipped"] as const).map((k) => {
+                          const active = s === k;
+                          const busy = statusBusyId === e.id;
+                          const base =
+                            "inline-flex h-7 items-center rounded-full border px-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-60";
+                          const tone = active
+                            ? STATUS_STYLES[k as Status] + " border-transparent"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted";
+                          return (
+                            <button
+                              key={k}
+                              type="button"
+                              onClick={() => setEventStatus(e, k as Status)}
+                              disabled={busy}
+                              aria-pressed={active}
+                              aria-label={`${active ? "Clear" : "Mark"} ${STATUS_LABELS[k as Status]}`}
+                              className={`${base} ${tone}`}
+                            >
+                              {STATUS_LABELS[k as Status]}
+                            </button>
+                          );
+                        })}
                       </div>
                     </li>
                   );
-                }
-                return (
-                  <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2">
-                    <div className="w-14 shrink-0 text-xs tabular-nums text-muted-foreground">
-                      {time}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm">{e.name}</div>
-                      {(e.note || e.dose) && (
-                        <div className="truncate text-[11px] text-muted-foreground">
-                          {e.note ? e.note : e.dose}
-                          {e.note && e.dose ? ` · ${e.dose}` : ""}
-                        </div>
-                      )}
-                    </div>
-                    {isFuturePending && (
-                      <button
-                        type="button"
-                        onClick={() => startEdit(e)}
-                        className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium hover:bg-muted"
-                        aria-label={`Edit dose at ${time}`}
-                      >
-                        Edit
-                      </button>
-                    )}
-                    <div
-                      role="group"
-                      aria-label={`Mark dose at ${time}`}
-                      className="flex items-center gap-1"
-                    >
-                      {(["taken", "missed", "skipped"] as const).map((k) => {
-                        const active = s === k;
-                        const busy = statusBusyId === e.id;
-                        const base =
-                          "inline-flex h-7 items-center rounded-full border px-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-60";
-                        const tone = active
-                          ? STATUS_STYLES[k as Status] + " border-transparent"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted";
-                        return (
-                          <button
-                            key={k}
-                            type="button"
-                            onClick={() => setEventStatus(e, k as Status)}
-                            disabled={busy}
-                            aria-pressed={active}
-                            aria-label={`${active ? "Clear" : "Mark"} ${STATUS_LABELS[k as Status]}`}
-                            className={`${base} ${tone}`}
-                          >
-                            {STATUS_LABELS[k as Status]}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                })}
+              </ul>
+            ))}
+          {dayTab === "workouts" && <DayFoodWorkouts day={selected} tab="workouts" />}
+          {dayTab === "food" && (
+            <>
+              <DayFoodWorkouts day={selected} tab="food" />
+              <MacroProgress day={selected} className="mt-3" />
+            </>
           )}
-          <DayFoodWorkouts day={selected} />
-          <MacroProgress day={selected} className="mt-3" />
         </div>
       )}
     </Card>
@@ -975,7 +1038,7 @@ function MissedDosesPanel({
   return (
     <section
       aria-label="Missed doses"
-      className="mb-6 rounded-2xl border border-[color:var(--severity-avoid)]/30 bg-[color:var(--severity-avoid-bg))] p-4"
+      className="mb-6 rounded-2xl border border-[color:var(--severity-avoid)]/30 bg-[color:var(--severity-avoid-bg)] p-4"
     >
       <div className="flex items-baseline justify-between gap-3">
         <div>

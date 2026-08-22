@@ -1,17 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowRight, ChevronRight, Home, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { VS_INDEX_FAQ } from "@/lib/aeo-faqs-hubs";
 
-const CANONICAL = "https://doseroutine.com/vs";
+export const CANONICAL = "https://doseroutine.com/vs";
 const TITLE = "DoseRoutine vs. Other Apps — All Comparisons";
 const DESC =
   "Every side-by-side comparison of DoseRoutine against other medication, supplement, peptide and TRT trackers, on one page.";
 
 // Every /vs/* URL in the sitemap, plus the general compound comparison hubs.
-const COMPARISONS: {
+export const COMPARISONS: {
   to: string;
   label: string;
   description: string;
@@ -40,6 +45,36 @@ const COMPARISONS: {
     to: "/vs/pill-reminder",
     label: "vs. Pill Reminder",
     description: "Reminders vs. a full peptide + TRT routine tracker.",
+  },
+  {
+    to: "/vs/peptide-tracker",
+    label: "vs. Peptide Tracker",
+    description: "Peptide-only logging vs. a full routine with labs and interactions.",
+  },
+  {
+    to: "/vs/optipin",
+    label: "vs. OptiPin",
+    description: "An OptiPin alternative on Android and web with stack tracking.",
+  },
+  {
+    to: "/vs/bearable",
+    label: "vs. Bearable",
+    description: "Symptom and mood tracking next to real dosing tools.",
+  },
+  {
+    to: "/vs/dosecast",
+    label: "vs. Dosecast",
+    description: "Reminder depth plus peptide math, vials and injection sites.",
+  },
+  {
+    to: "/vs/myfitnesspal",
+    label: "vs. MyFitnessPal",
+    description: "Macros and doses in one record instead of two apps.",
+  },
+  {
+    to: "/vs/spreadsheet",
+    label: "vs. a spreadsheet",
+    description: "Where a Google Sheet works for a stack and where it quietly fails.",
   },
   {
     to: "/vs-supplement-planner",
@@ -77,6 +112,7 @@ export const Route = createFileRoute("/vs/")({
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/vs")],
     scripts: [
+      aeoFaqScript(CANONICAL, VS_INDEX_FAQ),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -183,6 +219,16 @@ function VsIndex() {
           </ul>
         </div>
       </section>
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="vs-index" />
+        </ProseContainer>
+      </ProseContainer>
+
+      <section className="mx-auto w-full max-w-3xl px-4">
+        <AeoFaq pairs={VS_INDEX_FAQ} />
+      </section>
+
       <AttributionFooter sourceUrl={CANONICAL} />
     </main>
   );

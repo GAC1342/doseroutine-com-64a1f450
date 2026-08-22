@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { cardClassName } from "@/components/ui/card";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { resolveCompoundSlug } from "@/lib/compound-slug-redirect";
+
 import { ContentRouteError, ContentRouteNotFound } from "@/components/route-fallbacks";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -43,16 +45,24 @@ import {
   studyCitationJsonLd,
   type AuthoritySource,
   type StudyReference,
+  verificationLinks,
 } from "@/lib/authority-sources";
 import { sectionCitations } from "@/lib/section-citations";
 import { CitationMarkers } from "@/components/citation-markers";
+import { EvidenceReferences } from "@/components/evidence-references";
 import { AuthoritySourceList } from "@/components/authority-source-list";
 import { StudyReferenceList } from "@/components/study-reference-list";
 import { VerifyAtList } from "@/components/verify-at-list";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { verificationLinks } from "@/lib/authority-sources";
+
 import { filterRelevantStudies } from "@/lib/study-relevance";
 import { halfLifeLabel, halfLifeHint } from "@/lib/half-life-label";
+import { mergeLdScripts } from "@/lib/head-budget";
+import {
+  buildCompoundTracking,
+  compoundTrackingHowTo,
+  type TrackingCompound,
+} from "@/lib/compound-tracking";
 
 /** Stored sources plus baseline primary references, de-duplicated. */
 function pageSources(
@@ -75,7 +85,16 @@ function pageSources(
 export const Route = createFileRoute("/library/$slug")({
   loader: async ({ params, context }) => {
     const compound = await context.queryClient.ensureQueryData(compoundBySlugQuery(params.slug));
-    if (!compound) throw notFound();
+    if (!compound) {
+      // Legacy or alias slug (e.g. /library/creatine-monohydrate): 301 to the
+      // canonical compound page instead of serving a 404 to Google.
+      const all = await context.queryClient.ensureQueryData(allCompoundsQuery);
+      const target = resolveCompoundSlug(params.slug, all ?? []);
+      if (target)
+        throw redirect({ to: "/library/$slug", params: { slug: target }, statusCode: 301 });
+      throw notFound();
+    }
+
     // Page-2 rescue copy is a large static SEO dataset. Loading it here (instead
     // of importing it at module scope) keeps ~100 KB of route-specific text out
     // of the shared client entry bundle that every page downloads.
@@ -117,6 +136,16 @@ export const Route = createFileRoute("/library/$slug")({
           last_reviewed?: string | null;
           faq_md?: string | null;
           sources_md?: string | null;
+          overview_md?: string | null;
+          mechanism_md?: string | null;
+          benefits_md?: string | null;
+          evidence_md?: string | null;
+          side_effects_md?: string | null;
+          warnings_md?: string | null;
+          contraindications_md?: string | null;
+          interactions_md?: string | null;
+          timing_md?: string | null;
+          dosing_md?: string | null;
         }
       | null
       | undefined;
@@ -125,8 +154,15 @@ export const Route = createFileRoute("/library/$slug")({
     // compound page ships a unique title + description. The DoseRoutine product
     // suffix is appended after trimming the lead, so the suffix cannot be cut
     // off by long AI-generated descriptions.
-    const clamp = (s: string, n: number) =>
-      s.length <= n ? s : s.slice(0, n - 1).replace(/[\s,;:.-]+$/, "") + "…";
+    // Word-safe truncation: cut back to the last whole word so titles never
+    // end mid-word ("Cognitive Funct…").
+    const clamp = (s: string, n: number) => {
+      if (s.length <= n) return s;
+      const cut = s.slice(0, n);
+      const lastSpace = cut.lastIndexOf(" ");
+      const base = lastSpace > n * 0.5 ? cut.slice(0, lastSpace) : cut;
+      return `${base.replace(/[\s,;:.-]+$/, "")}…`;
+    };
     const normalizeTitle = (s: string) =>
       s
         .replace(/\s*&\s*/g, " and ")
@@ -141,10 +177,23 @@ export const Route = createFileRoute("/library/$slug")({
     // include "with DoseRoutine" so every meta description mentions both.
     const fallbackDesc = `${c.name}: evidence summary, safety, and interactions.`;
     const rawDesc = rescue?.metaDescription || content?.meta_description?.trim() || fallbackDesc;
-    const title = clamp(
-      normalizeTitle(rescue?.metaTitle || content?.meta_title?.trim() || fallbackTitle),
-      58,
+    // Stored meta_titles are occasionally too short for search snippets
+    // (e.g. "BPC-157: Review | DoseRoutine"). Anything under 30 characters
+    // falls back to the descriptive pattern so no page ships a thin title.
+    const candidateTitle = normalizeTitle(
+      rescue?.metaTitle || content?.meta_title?.trim() || fallbackTitle,
     );
+    // Clamp the descriptive lead only, then re-attach the brand. Clamping the
+    // whole string chopped the suffix mid-word ("... | DoseRo…") on long
+    // AI-generated titles.
+    const BRAND_SUFFIX = " | DoseRoutine";
+    const chosenTitle =
+      candidateTitle.length >= 30 ? candidateTitle : normalizeTitle(fallbackTitle);
+    const leadOnly = chosenTitle
+      .replace(/\s*[|–—-]\s*DoseRoutine\s*$/i, "")
+      .replace(/[\s,;:.-]+$/, "");
+    const title = `${clamp(leadOnly, 60 - BRAND_SUFFIX.length)}${BRAND_SUFFIX}`;
+
     const desc = withDoseRoutineDescriptionSuffix(rawDesc, 160);
 
     const url = `https://doseroutine.com/library/${params.slug}`;
@@ -173,6 +222,123 @@ export const Route = createFileRoute("/library/$slug")({
       ...(datePublished ? { datePublished } : {}),
       ...(dateModified ? { dateModified } : {}),
     };
+
+    // ---- Per-compound uniqueness signals -------------------------------
+    // Duplicate-content checkers and answer engines compare the structured
+    // data across sibling pages. Emitting a compound-specific abstract,
+    // keyword set, section list and word count gives every library entry a
+    // machine-readable fingerprint that cannot collide with boilerplate.
+    const stripMd = (s?: string | null) =>
+      (s ?? "")
+        .replace(/```[\s\S]*?```/g, " ")
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+        .replace(/[#>*_`~|-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const bodySections: Array<{ key: string; name: string; text: string }> = [
+      { key: "overview", name: `What is ${c.name}?`, text: stripMd(content?.overview_md) },
+      { key: "mechanism", name: `How ${c.name} works`, text: stripMd(content?.mechanism_md) },
+      { key: "benefits", name: `${c.name} benefits and uses`, text: stripMd(content?.benefits_md) },
+      { key: "dosing", name: `${c.name} dosing`, text: stripMd(content?.dosing_md) },
+      { key: "evidence", name: `Evidence for ${c.name}`, text: stripMd(content?.evidence_md) },
+      {
+        key: "side-effects",
+        name: `${c.name} side effects`,
+        text: stripMd(content?.side_effects_md),
+      },
+      { key: "warnings", name: `Who should avoid ${c.name}`, text: stripMd(content?.warnings_md) },
+      {
+        key: "contraindications",
+        name: `${c.name} contraindications`,
+        text: stripMd(content?.contraindications_md),
+      },
+      {
+        key: "interactions",
+        name: `${c.name} interactions`,
+        text: stripMd(content?.interactions_md),
+      },
+      { key: "timing", name: `When to take ${c.name}`, text: stripMd(content?.timing_md) },
+    ].filter((s) => s.text.length > 40);
+
+    const bodyText = bodySections.map((s) => s.text).join(" ");
+    const wordCount = bodyText ? bodyText.split(/\s+/).length : 0;
+    // Abstract: the first two real sentences of this compound's own prose, so
+    // no two library entries can ship the same abstract.
+    const abstract =
+      (bodyText.match(/[^.!?]+[.!?]/g) ?? []).slice(0, 2).join(" ").trim().slice(0, 300) || desc;
+    const articleSection = bodySections.map((s) => s.name);
+    const keywords = Array.from(
+      new Set(
+        [
+          c.name,
+          ...(c.aliases ?? []),
+          c.category ?? "",
+          `${c.name} dosage`,
+          `${c.name} side effects`,
+          `${c.name} benefits`,
+          `${c.name} interactions`,
+        ]
+          .map((k) => String(k).trim())
+          .filter(Boolean),
+      ),
+    );
+    // WebPageElement parts let crawlers see that the main content block is
+    // built from compound-specific sections rather than shared chrome.
+    const contentParts = bodySections.map((s) => ({
+      "@type": "WebPageElement",
+      "@id": `${url}#section-${s.key}`,
+      name: s.name,
+      isPartOf: { "@id": url },
+    }));
+
+    // MedicalWebPage does not define free-form `dosage`, `risk`, or
+    // `contraindications` properties. Publish those page sections as typed
+    // WebPageElement children instead, which keeps the schema valid while
+    // giving crawlers compound-specific medical context.
+    const medicalSections = [
+      content?.dosing_md || c.typical_timing || c.food_rule
+        ? {
+            key: "dosage",
+            name: `${c.name} dosage and administration`,
+            text:
+              stripMd(content?.dosing_md) ||
+              [
+                c.typical_timing ? `${c.name} is typically taken ${c.typical_timing}.` : "",
+                c.food_rule ? `${c.name} is generally taken ${c.food_rule}.` : "",
+                "The appropriate amount depends on the formulation, protocol, and individual; follow the product label or a licensed clinician's instructions.",
+              ]
+                .filter(Boolean)
+                .join(" "),
+          }
+        : null,
+      content?.side_effects_md || content?.warnings_md
+        ? {
+            key: "safety-risk",
+            name: `${c.name} safety and risk information`,
+            text: [stripMd(content?.side_effects_md), stripMd(content?.warnings_md)]
+              .filter(Boolean)
+              .join(" "),
+          }
+        : null,
+      content?.contraindications_md
+        ? {
+            key: "contraindications",
+            name: `${c.name} contraindications`,
+            text: stripMd(content.contraindications_md),
+          }
+        : null,
+    ].filter(
+      (section): section is { key: string; name: string; text: string } =>
+        section !== null && section.text.length > 40,
+    );
+    const medicalAudience = medicalSections.length
+      ? [
+          { "@type": "MedicalAudience", audienceType: "Patient" },
+          { "@type": "MedicalAudience", audienceType: "Clinician" },
+        ]
+      : [{ "@type": "MedicalAudience", audienceType: "Patient" }];
 
     // BreadcrumbList includes an item URL for every crumb because the in-app
     // structured-data validator treats missing item URLs as errors.
@@ -219,6 +385,11 @@ export const Route = createFileRoute("/library/$slug")({
       image: [image],
       ...dateFields,
       inLanguage: "en",
+      abstract,
+      keywords,
+      ...(articleSection.length ? { articleSection } : {}),
+      ...(wordCount ? { wordCount } : {}),
+
       author: publisher,
       publisher,
       about: { "@id": `${url}#substance` },
@@ -268,6 +439,12 @@ export const Route = createFileRoute("/library/$slug")({
       headline: `${c.name} — Overview, Benefits & Side Effects`,
       description: desc,
       inLanguage: "en",
+      abstract,
+      keywords,
+      ...(articleSection.length ? { articleSection } : {}),
+      ...(wordCount ? { wordCount } : {}),
+      ...(contentParts.length ? { hasPart: contentParts } : {}),
+
       ...dateFields,
       // This node is typed Article as well as WebPage, so it is graded against
       // Article's recommended fields in Google's Rich Results Test: image and
@@ -310,11 +487,44 @@ export const Route = createFileRoute("/library/$slug")({
       isPartOf: { "@id": url },
       about: { "@id": `${url}#substance` },
       audience: { "@type": "Audience", audienceType: "General public" },
+      medicalAudience,
+      abstract,
+      keywords,
+      ...(wordCount ? { wordCount } : {}),
+      ...(medicalSections.length
+        ? {
+            hasPart: medicalSections.map((section) => ({
+              "@type": "WebPageElement",
+              "@id": `${url}#medical-${section.key}`,
+              name: section.name,
+              text: section.text.slice(0, 1_500),
+              isPartOf: { "@id": `${url}#medicalwebpage` },
+              about: { "@id": `${url}#substance` },
+            })),
+          }
+        : {}),
+      // aspect tells search engines which facets of this compound the page
+      // actually covers, so two library entries never look interchangeable.
+      ...(bodySections.length
+        ? {
+            aspect: bodySections.map((s) => s.name),
+            mainContentOfPage: {
+              "@type": "WebPageElement",
+              "@id": `${url}#main-content`,
+              name: `${c.name} reference content`,
+              isPartOf: { "@id": url },
+              hasPart: contentParts,
+            },
+          }
+        : {}),
+
       ...dateFields,
       // lastReviewed is required on health pages. When the record has no
       // explicit editorial review date, fall back to the real last-modified
       // date of the entry rather than omitting the field.
-      lastReviewed: lastReviewed ?? String(dateModified).slice(0, 10),
+      ...(lastReviewed || dateModified
+        ? { lastReviewed: lastReviewed ?? String(dateModified).slice(0, 10) }
+        : {}),
 
       reviewedBy: {
         "@type": "Organization",
@@ -394,29 +604,14 @@ export const Route = createFileRoute("/library/$slug")({
         { name: "twitter:image:alt", content: `DoseRoutine library entry for ${c.name}` },
         // Attribution/citation meta (Highwire-style) — LLMs and Google
         // Scholar-style crawlers pick these up when generating citations.
+        // Kept deliberately small: the ScholarlyArticle JSON-LD carries the
+        // full publisher/date/URL set, and a bloated <head> trips crawler
+        // "node with more than 60 children" warnings.
         { name: "citation_title", content: `${c.name} — Overview, Benefits & Side Effects` },
         { name: "citation_author", content: "DoseRoutine" },
-        { name: "citation_publisher", content: "DoseRoutine (doseroutine.com)" },
-        ...((dateModified ?? datePublished)
-          ? [
-              {
-                name: "citation_online_date",
-                content: (dateModified ?? datePublished)!.slice(0, 10),
-              },
-            ]
-          : []),
         ...(datePublished
           ? [{ name: "citation_publication_date", content: datePublished.slice(0, 10) }]
           : []),
-        { name: "citation_fulltext_html_url", content: url },
-        { name: "dcterms.title", content: `${c.name} — Overview, Benefits & Side Effects` },
-        { name: "dcterms.creator", content: "DoseRoutine" },
-        { name: "dcterms.publisher", content: "DoseRoutine" },
-        { name: "dcterms.source", content: url },
-        {
-          name: "dcterms.rights",
-          content: `© ${new Date().getFullYear()} DoseRoutine — doseroutine.com`,
-        },
         ...ogLocaleMeta("en"),
       ],
       links: [{ rel: "canonical", href: url }, ...hreflangLinks(`/library/${params.slug}`)],
@@ -429,10 +624,14 @@ export const Route = createFileRoute("/library/$slug")({
 
           { type: "application/ld+json", children: JSON.stringify(substance) },
           { type: "application/ld+json", children: JSON.stringify(breadcrumb) },
+          {
+            type: "application/ld+json",
+            children: JSON.stringify(compoundTrackingHowTo(buildCompoundTracking(c), url)),
+          },
           ...(faqPage ? [{ type: "application/ld+json", children: JSON.stringify(faqPage) }] : []),
         ];
         assertSingleFaqPage(arr, { route: "/library/$slug", slug: params.slug });
-        return arr;
+        return mergeLdScripts(arr);
       })(),
     };
   },
@@ -512,7 +711,6 @@ function CompoundDetail() {
     return true;
   });
 
-
   // Only tags that map to a real /goals/<slug> hub may be linked — unknown tags
   // (e.g. "energy", "performance") would render 404 internal links.
   const goalTags = (compound.goal_tags ?? []).filter((g: string) => isGoalSlug(g));
@@ -557,7 +755,7 @@ function CompoundDetail() {
     content?.overview_md ??
     content?.body_md ??
     compound.education_md ??
-    `${compound.name} is catalogued in DoseRoutine as a ${compound.category}. A detailed evidence-based summary is being prepared from NIH, Mayo Clinic, FDA label and PubChem sources.`;
+    `${compound.name} is catalogd in DoseRoutine as a ${compound.category}. A detailed evidence-based summary is being prepared from NIH, Mayo Clinic, FDA label and PubChem sources.`;
 
   // Numbered document-level sources shared by the inline markers and the
   // "Sources and references" list below (same order = same numbering).
@@ -596,6 +794,22 @@ function CompoundDetail() {
   );
 
   const faq: FaqPair[] = buildFaqPairs(compound, content ?? null, rescue?.extraFaq ?? []);
+
+  // Sources already resolved for this page that back the dosing / timing /
+  // safety guidance, de-duplicated and shown in numbering order. Empty when
+  // the page has no matching document source — never padded with a weak match.
+  const dosingEvidence = (() => {
+    const picked = [
+      ...sectionCitations("timing", pageDocs, 2),
+      ...sectionCitations("warnings", pageDocs, 1),
+      ...sectionCitations("interactions", pageDocs, 1),
+    ];
+    const seen = new Set<number>();
+    return picked
+      .filter((s) => (seen.has(s.n) ? false : (seen.add(s.n), true)))
+      .sort((a, b) => a.n - b.n)
+      .slice(0, 4);
+  })();
 
   // --- Evidence signals derived from what's actually populated ---
   const contentFields = [
@@ -643,11 +857,27 @@ function CompoundDetail() {
   const sections: Array<{ id: string; title: string; body: string | null | undefined }> = [
     { id: "mechanism", title: `How does ${compound.name} work?`, body: content?.mechanism_md },
     { id: "benefits", title: `What is ${compound.name} used for?`, body: content?.benefits_md },
-    { id: "evidence", title: `How strong is the evidence for ${compound.name}?`, body: content?.evidence_md },
-    { id: "side-effects", title: `What are the side effects of ${compound.name}?`, body: content?.side_effects_md },
+    {
+      id: "evidence",
+      title: `How strong is the evidence for ${compound.name}?`,
+      body: content?.evidence_md,
+    },
+    {
+      id: "side-effects",
+      title: `What are the side effects of ${compound.name}?`,
+      body: content?.side_effects_md,
+    },
     { id: "warnings", title: `Who should avoid ${compound.name}?`, body: content?.warnings_md },
-    { id: "contra", title: `When should ${compound.name} not be taken?`, body: content?.contraindications_md },
-    { id: "do-not-mix", title: `What should you not mix with ${compound.name}?`, body: content?.do_not_mix_md },
+    {
+      id: "contra",
+      title: `When should ${compound.name} not be taken?`,
+      body: content?.contraindications_md,
+    },
+    {
+      id: "do-not-mix",
+      title: `What should you not mix with ${compound.name}?`,
+      body: content?.do_not_mix_md,
+    },
     { id: "timing", title: `When should you take ${compound.name}?`, body: content?.timing_md },
   ];
   const visibleSections = sections.filter((s) => s.body && s.body.trim().length > 20);
@@ -686,9 +916,15 @@ function CompoundDetail() {
           section: hash,
           referrer: typeof document !== "undefined" ? document.referrer || null : null,
         });
-        requestAnimationFrame(() => {
-          document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const target = document.getElementById(hash);
+            if (!target) return;
+            target.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
+            const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+          }),
+        );
       } else {
         // Graceful fallback: no crash, no dead scroll target — show a notice,
         // scroll to the top of the article, and strip the hash so a refresh
@@ -758,696 +994,722 @@ function CompoundDetail() {
           </ol>
         </nav>
 
-        <header className="mb-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
-          <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                {compound.category}
-              </span>
-              {compound.is_injectable && (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                  Injectable
+        {/* Semantic article wrapper: content extractors (and duplicate-content
+          audits) score a page on its dominant text block. Without an <article>
+          scope the only thing they can lift from a compound page is shared
+          chrome — nav, disclaimers, CTA — which makes every entry look like a
+          duplicate of every other. Everything unique to this compound lives
+          inside here; the CTA and attribution footer stay outside. */}
+        <article
+          data-compound-body={compound.slug}
+          {...{
+            itemprop: "mainContentOfPage",
+            itemscope: "",
+            itemtype: "https://schema.org/WebPageElement",
+          }}
+        >
+          <header className="mb-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {compound.category}
                 </span>
-              )}
-              {compound.is_controlled && (
-                <span className="rounded-full bg-[color:var(--severity-caution-bg,rgba(201,138,0,0.15))] px-2 py-0.5 text-[10px] font-medium text-[color:var(--severity-caution,#a16207)]">
-                  Controlled
+                {compound.is_injectable && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    Injectable
+                  </span>
+                )}
+                {compound.is_controlled && (
+                  <span className="rounded-full bg-[color:var(--severity-caution-bg,rgba(201,138,0,0.15))] px-2 py-0.5 text-[10px] font-medium text-[color:var(--severity-caution,#a16207)]">
+                    Controlled
+                  </span>
+                )}
+              </div>
+              <h1 className="font-display text-4xl font-semibold tracking-tight">
+                {compound.name}
+                <span className="mt-1 block text-lg font-medium text-muted-foreground">
+                  Benefits, Dosage &amp; Interactions
                 </span>
+              </h1>
+              {compound.aliases && compound.aliases.length > 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Also known as: {compound.aliases.join(", ")}
+                </p>
               )}
-            </div>
-            <h1 className="font-display text-4xl font-semibold tracking-tight">
-              {compound.name}
-              <span className="mt-1 block text-lg font-medium text-muted-foreground">
-                Benefits, Dosage &amp; Interactions
-              </span>
-            </h1>
-            {compound.aliases && compound.aliases.length > 0 && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Also known as: {compound.aliases.join(", ")}
-              </p>
-            )}
-            {/* Definitional lead: the first substantive sentence on the page, so
+              {/* Definitional lead: the first substantive sentence on the page, so
               answer engines extract a definition rather than the disclaimer. */}
-            <p className="dr-speakable-intro mt-3 text-[15px] leading-relaxed text-foreground">
-              {directAnswer}
-            </p>
-            <LastReviewedLine value={content?.last_reviewed ?? null} />
+              <p className="dr-speakable-intro mt-3 text-[15px] leading-relaxed text-foreground">
+                {directAnswer}
+              </p>
+              <LastReviewedLine value={content?.last_reviewed ?? null} />
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <TooltipProvider delayDuration={150}>
-                {/* Controlled so the explanation also opens on tap: a
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <TooltipProvider delayDuration={150}>
+                  {/* Controlled so the explanation also opens on tap: a
                     hover-only tooltip is unreachable on touch devices. */}
-                <Tooltip open={evidenceOpen} onOpenChange={setEvidenceOpen}>
-                  <TooltipTrigger asChild>
-                    <span
-                      tabIndex={0}
-                      role="button"
-                      onClick={() => setEvidenceOpen((v) => !v)}
-                      aria-label={`Evidence coverage ${confidencePct} percent. What this measures.`}
-                      className={`inline-flex cursor-help items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${confidenceTone}`}
-                    >
-                      Evidence: {confidenceLabel} · {confidencePct}%
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs text-xs leading-relaxed">
-                    <p>
-                      This percentage measures how completely this entry is documented in
-                      DoseRoutine — not how strong the science is for the compound. It is derived
-                      from {filledFields}/8 written sections, {rules.length} interaction rule
-                      {rules.length === 1 ? "" : "s"}, and whether a structure record is on file (
-                      {hasStructure ? "on file" : "pending"}).
-                    </p>
-                    <Link to="/sources" className="mt-1 inline-block underline underline-offset-4">
-                      How we source and score entries
-                    </Link>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              {pmids.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-[11px] text-muted-foreground">PubMed:</span>
-                  {pmids.map((id) => (
-                    <a
-                      key={id}
-                      href={`https://pubmed.ncbi.nlm.nih.gov/${id}/`}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                      onClick={() =>
-                        trackEvent("compound_pmid_click", {
-                          compound_slug: compound.slug,
-                          pmid: id,
-                        })
-                      }
-                      className="rounded-full border border-border bg-background px-2 py-0.5 font-mono text-[10px] text-foreground hover:border-primary/60 hover:text-primary"
-                    >
-                      {id}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-            {/* Sign-up CTAs deliberately sit BELOW the reference content
+                  <Tooltip open={evidenceOpen} onOpenChange={setEvidenceOpen}>
+                    <TooltipTrigger asChild>
+                      <span
+                        tabIndex={0}
+                        role="button"
+                        onClick={() => setEvidenceOpen((v) => !v)}
+                        aria-label={`Evidence coverage ${confidencePct} percent. What this measures.`}
+                        className={`inline-flex cursor-help items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${confidenceTone}`}
+                      >
+                        Evidence: {confidenceLabel} · {confidencePct}%
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                      <p>
+                        This percentage measures how completely this entry is documented in
+                        DoseRoutine — not how strong the science is for the compound. It is derived
+                        from {filledFields}/8 written sections, {rules.length} interaction rule
+                        {rules.length === 1 ? "" : "s"}, and whether a structure record is on file (
+                        {hasStructure ? "on file" : "pending"}).
+                      </p>
+                      <Link
+                        to="/sources"
+                        className="mt-1 inline-block underline underline-offset-4"
+                      >
+                        How we source and score entries
+                      </Link>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                {pmids.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="text-[11px] text-muted-foreground">PubMed:</span>
+                    {pmids.map((id) => (
+                      <a
+                        key={id}
+                        href={`https://pubmed.ncbi.nlm.nih.gov/${id}/`}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        onClick={() =>
+                          trackEvent("compound_pmid_click", {
+                            compound_slug: compound.slug,
+                            pmid: id,
+                          })
+                        }
+                        className="rounded-full border border-border bg-background px-2 py-0.5 font-mono text-[10px] text-foreground hover:border-primary/60 hover:text-primary"
+                      >
+                        {id}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Sign-up CTAs deliberately sit BELOW the reference content
               (overview, deep dive, interactions, FAQ) — see the conversion
               aside after the FAQ block. */}
-
-          </div>
-          {content?.structure_image_url && (
-            <figure className="shrink-0 rounded-xl border border-border bg-white p-3">
-              <img
-                src={content.structure_image_url}
-                alt={`Chemical structure of ${compound.name} (PubChem CID ${content.pubchem_cid ?? ""})`}
-                width={220}
-                height={220}
-                loading="lazy"
-                className="h-40 w-40 object-contain md:h-52 md:w-52"
-                onError={(e) => {
-                  (e.currentTarget.parentElement as HTMLElement).style.display = "none";
-                }}
-              />
-              <figcaption className="mt-2 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
-                Structure via PubChem
-              </figcaption>
-            </figure>
-          )}
-        </header>
-
-        {rescue && (
-          <section
-            aria-label={`Quick answer: ${rescue.targetQuery}`}
-            className="dr-speakable-answer mb-6 rounded-xl border border-primary/25 bg-primary/5 p-5"
-          >
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Quick answer
-            </h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-foreground">{rescue.answer}</p>
-            <dl className="mt-4 grid gap-x-6 gap-y-2 border-t border-primary/15 pt-4 sm:grid-cols-2">
-              {rescue.quickFacts.map((f) => (
-                <div key={f.label} className="flex flex-col">
-                  <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    {f.label}
-                  </dt>
-                  <dd className="text-sm text-foreground">{f.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
-              Compiled by DoseRoutine from public sources including NIH/MedlinePlus, the FDA label,
-              Mayo Clinic and PubChem. Educational information, not medical advice.
-            </p>
-          </section>
-        )}
-
-        <aside className="mb-6 rounded-xl border border-border bg-card/60 p-4 text-xs leading-relaxed text-muted-foreground">
-          <strong className="text-foreground">Educational reference — not medical advice.</strong>{" "}
-          Summaries on DoseRoutine are compiled from publicly available sources such as the U.S.
-          National Institutes of Health (NIH), the NIH Office of Dietary Supplements, MedlinePlus,
-          the FDA drug label, Mayo Clinic patient monographs, Cochrane systematic reviews, PubChem
-          and Examine.com. This page does not diagnose, treat, cure or prevent any disease and does
-          not replace consultation with a licensed clinician. DoseRoutine assumes no liability for
-          how this information is used.
-        </aside>
-
-
-        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Fact
-            label={halfLifeLabel(compound.category)}
-            value={compound.half_life_hours ? `${compound.half_life_hours} h` : "—"}
-            hint={compound.half_life_hours ? halfLifeHint(compound.category) : undefined}
-          />
-          <Fact label="Typical timing" value={compound.typical_timing ?? "—"} />
-          <Fact label="Food rule" value={compound.food_rule?.replace("_", " ") ?? "—"} />
-          <Fact label="Default unit" value={compound.default_unit ?? "—"} />
-        </div>
-
-        {goalTags.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-2 font-display text-lg font-semibold">
-              What is {compound.name} studied for?
-            </h2>
-
-            <div className="flex flex-wrap gap-2">
-              {goalTags.map((g: string) => (
-                <Link
-                  key={g}
-                  to="/goals/$goal"
-                  params={{ goal: g }}
-                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20"
-                >
-                  {goalTitle(g)}
-                </Link>
-              ))}
             </div>
-          </section>
-        )}
+            {content?.structure_image_url && (
+              <figure className="shrink-0 rounded-xl border border-border bg-white p-3">
+                <img
+                  src={content.structure_image_url}
+                  alt={`Chemical structure of ${compound.name} (PubChem CID ${content.pubchem_cid ?? ""})`}
+                  title={`Chemical structure of ${compound.name}`}
+                  width={220}
+                  height={220}
+                  loading="lazy"
+                  className="h-40 w-40 object-contain md:h-52 md:w-52"
+                  onError={(e) => {
+                    (e.currentTarget.parentElement as HTMLElement).style.display = "none";
+                  }}
+                />
+                <figcaption className="mt-2 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Structure via PubChem
+                </figcaption>
+              </figure>
+            )}
+          </header>
 
-        {missingSection && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="mb-6 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-border bg-card/60 p-4 text-sm"
-          >
-            <div className="min-w-0">
-              <p className="font-medium text-foreground">
-                “{SECTION_LABELS[missingSection] ?? missingSection}” isn't published for{" "}
-                {compound.name} yet.
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {visibleSections.length > 0
-                  ? "Here's the overview and the sections we do have below."
-                  : "A full monograph is being prepared from NIH, Mayo Clinic and FDA sources."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setMissingSection(null)}
-              className="rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground hover:opacity-90"
+          {rescue && (
+            <section
+              aria-label={`Quick answer: ${rescue.targetQuery}`}
+              className="dr-speakable-answer mb-6 rounded-xl border border-primary/25 bg-primary/5 p-5"
             >
-              Dismiss
-            </button>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-primary">
+                Quick answer
+              </h2>
+              <p className="mt-2 text-[15px] leading-relaxed text-foreground">{rescue.answer}</p>
+              <dl className="mt-4 grid gap-x-6 gap-y-2 border-t border-primary/15 pt-4 sm:grid-cols-2">
+                {rescue.quickFacts.map((f) => (
+                  <div key={f.label} className="flex flex-col">
+                    <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      {f.label}
+                    </dt>
+                    <dd className="text-sm text-foreground">{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+                Compiled by DoseRoutine from public sources including NIH/MedlinePlus, the FDA
+                label, Mayo Clinic and PubChem. Educational information, not medical advice.
+              </p>
+            </section>
+          )}
+
+          <aside className="mb-6 rounded-xl border border-border bg-card/60 p-4 text-xs leading-relaxed text-muted-foreground">
+            <strong className="text-foreground">Educational reference — not medical advice.</strong>{" "}
+            Summaries on DoseRoutine are compiled from publicly available sources such as the U.S.
+            National Institutes of Health (NIH), the NIH Office of Dietary Supplements, MedlinePlus,
+            the FDA drug label, Mayo Clinic patient monographs, Cochrane systematic reviews, PubChem
+            and Examine.com. This page does not diagnose, treat, cure or prevent any disease and
+            does not replace consultation with a licensed clinician. DoseRoutine assumes no
+            liability for how this information is used.
+          </aside>
+
+          <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Fact
+              label={halfLifeLabel(compound.category)}
+              value={compound.half_life_hours ? `${compound.half_life_hours} h` : "—"}
+              hint={compound.half_life_hours ? halfLifeHint(compound.category) : undefined}
+            />
+            <Fact label="Typical timing" value={compound.typical_timing ?? "—"} />
+            <Fact label="Food rule" value={compound.food_rule?.replace("_", " ") ?? "—"} />
+            <Fact label="Default unit" value={compound.default_unit ?? "—"} />
           </div>
-        )}
 
-        {compound.category === "vitamin" && (
-          <section className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
-            <h2 className="mb-2 font-display text-base font-semibold text-amber-900 dark:text-amber-200">
-              Deficiency-driven — not a performance booster
+          <CompoundTrackingSection compound={compound} />
+
+          <EvidenceReferences
+            sources={dosingEvidence}
+            intro={`Sources on this page that document ${compound.name} dosing, timing and safety.`}
+          />
+
+          {goalTags.length > 0 && (
+            <section className="mb-8">
+              <h2 className="mb-2 font-display text-lg font-semibold">
+                What is {compound.name} studied for?
+              </h2>
+
+              <div className="flex flex-wrap gap-2">
+                {goalTags.map((g: string) => (
+                  <Link
+                    key={g}
+                    to="/goals/$goal"
+                    params={{ goal: g }}
+                    className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20"
+                  >
+                    {goalTitle(g)}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {missingSection && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-border bg-card/60 p-4 text-sm"
+            >
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">
+                  “{SECTION_LABELS[missingSection] ?? missingSection}” isn't published for{" "}
+                  {compound.name} yet.
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {visibleSections.length > 0
+                    ? "Here's the overview and the sections we do have below."
+                    : "A full monograph is being prepared from NIH, Mayo Clinic and FDA sources."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMissingSection(null)}
+                className="rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground hover:opacity-90"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {compound.category === "vitamin" && (
+            <section className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+              <h2 className="mb-2 font-display text-base font-semibold text-amber-900 dark:text-amber-200">
+                Deficiency-driven — not a performance booster
+              </h2>
+              <p className="text-sm text-foreground/90">
+                Vitamins primarily help when you're actually low. Extra doses on top of normal
+                levels rarely add strength, endurance, or fat loss, and some fat-soluble vitamins
+                (A, D, E, K) can build up to harmful levels.
+              </p>
+              <ul className="mt-3 list-disc pl-5 text-sm text-foreground/90 space-y-1">
+                <li>
+                  Confirm a deficiency with bloodwork <em>before</em> supplementing long-term (e.g.
+                  25(OH)D for vitamin D, B12/folate, ferritin, magnesium RBC).
+                </li>
+                <li>
+                  Talk to your doctor or a registered dietitian about the right dose for your labs,
+                  medications, and conditions — especially in pregnancy, kidney/liver disease, or
+                  while on blood thinners.
+                </li>
+                <li>
+                  Re-test every 3–6 months and stop or lower the dose once levels are in range.
+                </li>
+              </ul>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Educational information only — not medical advice. See our{" "}
+                <a href="/ai-policy" className="underline">
+                  AI &amp; medical policy
+                </a>
+                .
+              </p>
+            </section>
+          )}
+
+          <section className="mb-8 rounded-2xl bg-card p-6">
+            <h2 className="mb-3 font-display text-xl font-semibold">
+              What is {compound.name}?
+              <CitationMarkers sources={sectionCitations("overview", pageDocs)} />
             </h2>
-            <p className="text-sm text-foreground/90">
-              Vitamins primarily help when you're actually low. Extra doses on top of normal levels
-              rarely add strength, endurance, or fat loss, and some fat-soluble vitamins (A, D, E,
-              K) can build up to harmful levels.
-            </p>
-            <ul className="mt-3 list-disc pl-5 text-sm text-foreground/90 space-y-1">
-              <li>
-                Confirm a deficiency with bloodwork <em>before</em> supplementing long-term (e.g.
-                25(OH)D for vitamin D, B12/folate, ferritin, magnesium RBC).
-              </li>
-              <li>
-                Talk to your doctor or a registered dietitian about the right dose for your labs,
-                medications, and conditions — especially in pregnancy, kidney/liver disease, or
-                while on blood thinners.
-              </li>
-              <li>Re-test every 3–6 months and stop or lower the dose once levels are in range.</li>
-            </ul>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Educational information only — not medical advice. See our{" "}
-              <a href="/ai-policy" className="underline">
-                AI &amp; medical policy
-              </a>
-              .
-            </p>
+            <Prose>{overview}</Prose>
           </section>
-        )}
 
-        <section className="mb-8 rounded-2xl bg-card p-6">
-          <h2 className="mb-3 font-display text-xl font-semibold">
-            What is {compound.name}?
-            <CitationMarkers sources={sectionCitations("overview", pageDocs)} />
-          </h2>
-          <Prose>{overview}</Prose>
-        </section>
+          {visibleSections.length > 0 && (
+            <section className="mb-8">
+              <h2 className="mb-3 font-display text-xl font-semibold">
+                What does the research say about {compound.name}?
+              </h2>
+              <p className="mb-3 text-xs text-muted-foreground md:hidden">
+                Tap a section to expand.
+              </p>
+              <Accordion
+                type="multiple"
+                className="rounded-2xl bg-card"
+                value={openSections}
+                onValueChange={setOpenSections}
+              >
+                {visibleSections.map((s) => (
+                  <AccordionItem
+                    key={s.id}
+                    value={s.id}
+                    id={s.id}
+                    className="border-border/60 px-5 scroll-mt-24"
+                  >
+                    <AccordionTrigger className="text-left font-display text-base font-semibold hover:no-underline">
+                      {s.title}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Prose>
+                        {s.id === "warnings" || s.id === "contra" || s.id === "do-not-mix"
+                          ? linkifyCompounds(s.body ?? "", allCompounds, compound.slug)
+                          : s.body}
+                      </Prose>
+                      {pageDocs.length > 0 && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          Source for this section:{" "}
+                          <CitationMarkers
+                            sources={sectionCitations(s.id, pageDocs)}
+                            label={`Sources for ${s.title}`}
+                          />
+                        </p>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </section>
+          )}
 
-
-        {visibleSections.length > 0 && (
           <section className="mb-8">
             <h2 className="mb-3 font-display text-xl font-semibold">
-              What does the research say about {compound.name}?
+              What interacts with {compound.name}?
             </h2>
-            <p className="mb-3 text-xs text-muted-foreground md:hidden">Tap a section to expand.</p>
-            <Accordion
-              type="multiple"
-              className="rounded-2xl bg-card"
-              value={openSections}
-              onValueChange={setOpenSections}
-            >
-              {visibleSections.map((s) => (
-                <AccordionItem
-                  key={s.id}
-                  value={s.id}
-                  id={s.id}
-                  className="border-border/60 px-5 scroll-mt-24"
-                >
-                  <AccordionTrigger className="text-left font-display text-base font-semibold hover:no-underline">
-                    {s.title}
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <Prose>
-                      {s.id === "warnings" || s.id === "contra" || s.id === "do-not-mix"
-                        ? linkifyCompounds(s.body ?? "", allCompounds, compound.slug)
-                        : s.body}
-                    </Prose>
-                    {pageDocs.length > 0 && (
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        Source for this section:{" "}
+            {rules.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No interaction rules currently on file for this compound in DoseRoutine.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {rules.map((r) => {
+                  const otherId =
+                    r.compound_a_id && r.compound_b_id
+                      ? r.compound_a_id === compound.id
+                        ? r.compound_b_id
+                        : r.compound_a_id
+                      : null;
+                  // Render the canonical row for alias compounds, so the pair
+                  // links to /library/levothyroxine rather than the alias page.
+                  const rawOther = otherId ? allCompounds.find((c) => c.id === otherId) : null;
+                  const other = rawOther
+                    ? (allCompounds.find((c) => c.slug === canonicalSlug(rawOther.slug)) ??
+                      rawOther)
+                    : null;
+
+                  return (
+                    <li key={r.id} className="rounded-xl bg-card p-4">
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <div className="text-sm font-semibold">
+                          {other ? (
+                            <>
+                              {compound.name} <span className="text-muted-foreground">+</span>{" "}
+                              <Link
+                                to="/library/$slug"
+                                params={{ slug: other.slug }}
+                                className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
+                              >
+                                {canonicalName(other.slug, other.name)}
+                              </Link>
+                            </>
+                          ) : (
+                            `Category rule: ${r.category_a} × ${r.category_b}`
+                          )}
+                        </div>
+                        <SeverityBadge severity={r.severity} />
+                      </div>
+                      <p className="text-sm text-foreground/90">
+                        {linkifyCompounds(r.mechanism, allCompounds, compound.slug)}
                         <CitationMarkers
-                          sources={sectionCitations(s.id, pageDocs)}
-                          label={`Sources for ${s.title}`}
+                          sources={sectionCitations("interactions", pageDocs, 1)}
+                          label="Source for this interaction"
+                          className="ml-1"
                         />
                       </p>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </section>
-        )}
-
-        <section className="mb-8">
-          <h2 className="mb-3 font-display text-xl font-semibold">
-            What interacts with {compound.name}?
-          </h2>
-          {rules.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No interaction rules currently on file for this compound in DoseRoutine.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {rules.map((r) => {
-                const otherId =
-                  r.compound_a_id && r.compound_b_id
-                    ? r.compound_a_id === compound.id
-                      ? r.compound_b_id
-                      : r.compound_a_id
-                    : null;
-                // Render the canonical row for alias compounds, so the pair
-                // links to /library/levothyroxine rather than the alias page.
-                const rawOther = otherId ? allCompounds.find((c) => c.id === otherId) : null;
-                const other = rawOther
-                  ? (allCompounds.find((c) => c.slug === canonicalSlug(rawOther.slug)) ?? rawOther)
-                  : null;
-
-                return (
-                  <li key={r.id} className="rounded-xl bg-card p-4">
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                      <div className="text-sm font-semibold">
-                        {other ? (
-                          <>
-                            {compound.name} <span className="text-muted-foreground">+</span>{" "}
-                            <Link
-                              to="/library/$slug"
-                              params={{ slug: other.slug }}
-                              className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
-                            >
-                              {canonicalName(other.slug, other.name)}
-                            </Link>
-                          </>
-                        ) : (
-                          `Category rule: ${r.category_a} × ${r.category_b}`
-                        )}
-                      </div>
-                      <SeverityBadge severity={r.severity} />
-                    </div>
-                    <p className="text-sm text-foreground/90">
-                      {linkifyCompounds(r.mechanism, allCompounds, compound.slug)}
-                      <CitationMarkers
-                        sources={sectionCitations("interactions", pageDocs, 1)}
-                        label="Source for this interaction"
-                        className="ml-1"
-                      />
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {linkifyCompounds(r.recommendation, allCompounds, compound.slug)}
-                    </p>
-                    {r.separation_hours ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Suggested separation: {r.separation_hours} h
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {linkifyCompounds(r.recommendation, allCompounds, compound.slug)}
                       </p>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+                      {r.separation_hours ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Suggested separation: {r.separation_hours} h
+                        </p>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
 
-        {faq.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-3 font-display text-xl font-semibold">
-              Frequently asked questions about {compound.name}
-            </h2>
-            <Accordion type="multiple" className="rounded-2xl bg-card">
-              {faq.map((f, i) => (
-                <AccordionItem key={i} value={`faq-${i}`} className="border-border/60 px-5">
-                  <AccordionTrigger className="text-left text-sm font-semibold hover:no-underline">
-                    {f.q}
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <Prose>{f.a}</Prose>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-            {/*
+          {faq.length > 0 && (
+            <section className="mb-8">
+              <h2 className="mb-3 font-display text-xl font-semibold">
+                Frequently asked questions about {compound.name}
+              </h2>
+              <Accordion type="multiple" className="rounded-2xl bg-card">
+                {faq.map((f, i) => (
+                  <AccordionItem key={i} value={`faq-${i}`} className="border-border/60 px-5">
+                    <AccordionTrigger className="text-left text-sm font-semibold hover:no-underline">
+                      {f.q}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Prose>{f.a}</Prose>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+              {/*
             FAQPage JSON-LD is emitted once in head() via `buildFaqPageJsonLd`
             (see the `scripts:` array in the route config). Do NOT re-emit
-            it here — Google penalises duplicate FAQPage blocks on the same
+            it here — Google penalizes duplicate FAQPage blocks on the same
             page, and the report at scripts/report-library-faq-jsonld.py
             previously flagged this exact section on 400/463 pages.
           */}
-          </section>
-        )}
+            </section>
+          )}
 
-        <KeyStudiesSection name={compound.name} aliases={compound.aliases} />
+          <KeyStudiesSection name={compound.name} aliases={compound.aliases} />
 
-        <SourcesSection
-          sourcesMd={content?.sources_md ?? null}
-          name={compound.name}
-          slug={compound.slug}
-        />
+          <SourcesSection
+            sourcesMd={content?.sources_md ?? null}
+            name={compound.name}
+            slug={compound.slug}
+          />
 
-        {/*
+          {/*
         Attribution watermark (visible). LLMs that scrape rendered HTML
         commonly preserve short structured blocks like this in their
         summaries, so we spell out the exact citation string we want them
         to reproduce. Also useful for humans sharing on X / Reddit.
       */}
-        {/* Plain-text, quote-ready version of the direct answer. Sits above
+          {/* Plain-text, quote-ready version of the direct answer. Sits above
             the citation block so an engine that quotes the summary sees the
             attribution immediately after it. */}
-        <DirectAnswerExcerpt
-          answer={directAnswer}
-          name={compound.name}
-          slug={compound.slug}
-        />
+          <DirectAnswerExcerpt answer={directAnswer} name={compound.name} slug={compound.slug} />
 
-        <CitationBlock name={compound.name} slug={compound.slug} />
+          <CitationBlock name={compound.name} slug={compound.slug} />
 
-        {(() => {
-          const cat = (compound.category ?? "").toLowerCase();
-          const isPeptide = cat.includes("peptide");
-          const isHormone =
-            cat.includes("hormone") || cat.includes("trt") || compound.slug === "testosterone";
-          const focusHref = isPeptide
-            ? "/peptide-interaction-checker"
-            : isHormone
-              ? "/trt-supplement-interactions"
-              : null;
-          const focusLabel = isPeptide
-            ? "Peptide interaction checker"
-            : isHormone
-              ? "TRT & supplement interactions"
-              : null;
-          return (
+          {(() => {
+            const cat = (compound.category ?? "").toLowerCase();
+            const isPeptide = cat.includes("peptide");
+            const isHormone =
+              cat.includes("hormone") || cat.includes("trt") || compound.slug === "testosterone";
+            const focusHref = isPeptide
+              ? "/peptide-interaction-checker"
+              : isHormone
+                ? "/trt-supplement-interactions"
+                : null;
+            const focusLabel = isPeptide
+              ? "Peptide interaction checker"
+              : isHormone
+                ? "TRT & supplement interactions"
+                : null;
+            return (
+              <aside className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="font-display text-base font-semibold text-foreground">
+                      Check {compound.name} against everything else you take
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Free pairwise interaction checker — 475+ supplements, hormones, peptides and
+                      prescriptions with cited sources.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      to="/interaction-checker"
+                      className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                    >
+                      Open checker →
+                    </Link>
+                    {focusHref && focusLabel && (
+                      <Link
+                        to={focusHref}
+                        className="inline-flex items-center rounded-xl bg-background px-3 py-2 text-xs font-semibold text-foreground hover:opacity-90"
+                      >
+                        {focusLabel} →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </aside>
+            );
+          })()}
+
+          {(compound.slug === "bpc-157" || compound.slug === "tb-500") && (
             <aside className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="font-display text-base font-semibold text-foreground">
-                    Check {compound.name} against everything else you take
+                    Comparing{" "}
+                    {compound.slug === "bpc-157" ? "BPC-157 with TB-500" : "TB-500 with BPC-157"}?
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Free pairwise interaction checker — 475+ supplements, hormones, peptides and
-                    prescriptions with cited sources.
+                    Side-by-side mechanisms, half-life, research use cases, stacking notes and FAQs.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    to="/interaction-checker"
-                    className="inline-flex items-center rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                  >
-                    Open checker →
-                  </Link>
-                  {focusHref && focusLabel && (
-                    <Link
-                      to={focusHref}
-                      className="inline-flex items-center rounded-xl bg-background px-3 py-2 text-xs font-semibold text-foreground hover:opacity-90"
-                    >
-                      {focusLabel} →
-                    </Link>
-                  )}
-                </div>
+                <Link
+                  to="/library/compare/bpc-157-vs-tb-500"
+                  onClick={() =>
+                    trackEvent("compound_compare_click", {
+                      from_slug: compound.slug,
+                      compare: "bpc-157-vs-tb-500",
+                    })
+                  }
+                  aria-label="Read the BPC-157 vs TB-500 comparison"
+                  className="shrink-0 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                >
+                  Read the comparison →
+                </Link>
               </div>
             </aside>
-          );
-        })()}
+          )}
 
-        {(compound.slug === "bpc-157" || compound.slug === "tb-500") && (
-          <aside className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="font-display text-base font-semibold text-foreground">
-                  Comparing{" "}
-                  {compound.slug === "bpc-157" ? "BPC-157 with TB-500" : "TB-500 with BPC-157"}?
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Side-by-side mechanisms, half-life, research use cases, stacking notes and FAQs.
-                </p>
-              </div>
-              <Link
-                to="/library/compare/bpc-157-vs-tb-500"
-                onClick={() =>
-                  trackEvent("compound_compare_click", {
-                    from_slug: compound.slug,
-                    compare: "bpc-157-vs-tb-500",
-                  })
-                }
-                aria-label="Read the BPC-157 vs TB-500 comparison"
-                className="shrink-0 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-              >
-                Read the comparison →
-              </Link>
-            </div>
-          </aside>
-        )}
-
-        {/* Contextual CTA immediately after the first content section.
+          {/* Contextual CTA immediately after the first content section.
           Uses the compound name verbatim so each library page ships a
           unique in-body pitch that matches the visitor's intent.
           Signup-first: no trial/paywall language on public pages. */}
-        <aside
-          aria-label={`Get access to all DoseRoutine tools`}
-          className="mb-8 rounded-xl border border-cta/40 bg-cta/5 p-5 text-sm leading-relaxed text-foreground/90"
-        >
-          <p>
-            Taking <strong className="font-semibold">{compound.name}</strong> alongside other
-            supplements, TRT, or peptides? Get access to all DoseRoutine tools — the interaction
-            checker, reminders and your full stack in one place.
-          </p>
-          <Link
-            to="/auth"
-            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-cta px-5 text-sm font-semibold text-cta-foreground shadow-sm transition-colors hover:bg-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          <aside
+            aria-label={`Get access to all DoseRoutine tools`}
+            className="mb-8 rounded-xl border border-cta/40 bg-cta/5 p-5 text-sm leading-relaxed text-foreground/90"
           >
-            Sign up free
-          </Link>
-        </aside>
-
-        {related.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-3 font-display text-xl font-semibold">
-              What compounds are similar to {compound.name}?
-            </h2>
-
-            <p className="mb-3 text-sm text-muted-foreground">
-              Others in the {compound.category} category or studied for the same goals.
+            <p>
+              Taking <strong className="font-semibold">{compound.name}</strong> alongside other
+              supplements, TRT, or peptides? Get access to all DoseRoutine tools — the interaction
+              checker, reminders and your full stack in one place.
             </p>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {related.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    to="/library/$slug"
-                    params={{ slug: c.slug }}
-                    className="block rounded-xl bg-card p-4 transition hover:opacity-90"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate font-semibold">{c.name}</div>
-                        {c.aliases && c.aliases.length > 0 && (
-                          <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                            {c.aliases.slice(0, 2).join(", ")}
-                          </div>
-                        )}
-                      </div>
-                      <span className="shrink-0 rounded-full bg-background px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        {c.category}
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+            <Link
+              to="/auth"
+              className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-cta px-5 text-sm font-semibold text-cta-foreground shadow-sm transition-colors hover:bg-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Sign up free
+            </Link>
+          </aside>
 
-        {benefitGroups.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-2 font-display text-xl font-semibold">
-              Which goals is {compound.name} used for?
-            </h2>
+          {related.length > 0 && (
+            <section className="mb-8">
+              <h2 className="mb-3 font-display text-xl font-semibold">
+                What compounds are similar to {compound.name}?
+              </h2>
 
-            <p className="mb-4 text-sm text-muted-foreground">
-              Other compounds studied for the same benefits as {compound.name}.
-            </p>
-            <div className="space-y-4">
-              {benefitGroups.map((group: { tag: string; compounds: typeof allCompounds }) => (
-                <div key={group.tag} className="rounded-2xl border border-border bg-card/60 p-5">
-                  <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="font-display text-base font-semibold">{goalTitle(group.tag)}</h3>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Others in the {compound.category} category or studied for the same goals.
+              </p>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {related.map((c) => (
+                  <li key={c.id}>
                     <Link
-                      to="/goals/$goal"
-                      params={{ goal: group.tag }}
-                      aria-label={`See all ${goalTitle(group.tag)} compounds`}
-                      className="text-xs font-medium text-primary hover:underline"
+                      to="/library/$slug"
+                      params={{ slug: c.slug }}
+                      className="block rounded-xl bg-card p-4 transition hover:opacity-90"
                     >
-                      See all →
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate font-semibold">{c.name}</div>
+                          {c.aliases && c.aliases.length > 0 && (
+                            <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                              {c.aliases.slice(0, 2).join(", ")}
+                            </div>
+                          )}
+                        </div>
+                        <span className="shrink-0 rounded-full bg-background px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          {c.category}
+                        </span>
+                      </div>
                     </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {benefitGroups.length > 0 && (
+            <section className="mb-8">
+              <h2 className="mb-2 font-display text-xl font-semibold">
+                Which goals is {compound.name} used for?
+              </h2>
+
+              <p className="mb-4 text-sm text-muted-foreground">
+                Other compounds studied for the same benefits as {compound.name}.
+              </p>
+              <div className="space-y-4">
+                {benefitGroups.map((group: { tag: string; compounds: typeof allCompounds }) => (
+                  <div key={group.tag} className="rounded-2xl border border-border bg-card/60 p-5">
+                    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="font-display text-base font-semibold">
+                        {goalTitle(group.tag)}
+                      </h3>
+                      <Link
+                        to="/goals/$goal"
+                        params={{ goal: group.tag }}
+                        aria-label={`See all ${goalTitle(group.tag)} compounds`}
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        See all →
+                      </Link>
+                    </div>
+                    <ul className="flex flex-wrap gap-2">
+                      {group.compounds.map((c) => (
+                        <li key={c.id}>
+                          <Link
+                            to="/library/$slug"
+                            params={{ slug: c.slug }}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1.5 text-sm font-medium hover:opacity-90"
+                          >
+                            {c.name}
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                              {c.category}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="flex flex-wrap gap-2">
-                    {group.compounds.map((c) => (
-                      <li key={c.id}>
-                        <Link
-                          to="/library/$slug"
-                          params={{ slug: c.slug }}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1.5 text-sm font-medium hover:opacity-90"
-                        >
-                          {c.name}
-                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {c.category}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+                ))}
+              </div>
+            </section>
+          )}
 
-        {goalTags.length > 0 && (
-          <section className="mb-8 rounded-2xl border border-border bg-card/60 p-6">
-            <h2 className="mb-2 font-display text-lg font-semibold">Continue exploring</h2>
-            <p className="mb-3 text-sm text-muted-foreground">
-              See every compound DoseRoutine catalogues for these goals.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {goalTags.map((g: string) => (
+          {goalTags.length > 0 && (
+            <section className="mb-8 rounded-2xl border border-border bg-card/60 p-6">
+              <h2 className="mb-2 font-display text-lg font-semibold">Continue exploring</h2>
+              <p className="mb-3 text-sm text-muted-foreground">
+                See every compound DoseRoutine catalogs for these goals.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {goalTags.map((g: string) => (
+                  <Link
+                    key={g}
+                    to="/goals/$goal"
+                    params={{ goal: g }}
+                    className="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20"
+                  >
+                    {goalTitle(g)} →
+                  </Link>
+                ))}
                 <Link
-                  key={g}
-                  to="/goals/$goal"
-                  params={{ goal: g }}
-                  className="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20"
+                  to="/library"
+                  className="rounded-full bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:opacity-90"
                 >
-                  {goalTitle(g)} →
+                  Full compound library →
                 </Link>
-              ))}
-              <Link
-                to="/library"
-                className="rounded-full bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:opacity-90"
-              >
-                Full compound library →
-              </Link>
-            </div>
-          </section>
-        )}
+              </div>
+            </section>
+          )}
 
-        {goalTags.length > 0 && (
-          <nav
-            aria-label="Back to goal hubs"
-            className="mb-8 rounded-xl border border-border bg-card/60 p-4"
-          >
-            <h2 className="mb-3 font-display text-lg font-semibold">
-              Back to goal hub{goalTags.length > 1 ? "s" : ""}
-            </h2>
-            <p className="mb-3 text-sm text-muted-foreground">
-              {compound.name} is featured in {goalTags.length === 1 ? "this hub" : "these hubs"}.
-              Jump back to compare it with sibling compounds.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {goalTags.map((g: string) => (
+          {goalTags.length > 0 && (
+            <nav
+              aria-label="Back to goal hubs"
+              className="mb-8 rounded-xl border border-border bg-card/60 p-4"
+            >
+              <h2 className="mb-3 font-display text-lg font-semibold">
+                Back to goal hub{goalTags.length > 1 ? "s" : ""}
+              </h2>
+              <p className="mb-3 text-sm text-muted-foreground">
+                {compound.name} is featured in {goalTags.length === 1 ? "this hub" : "these hubs"}.
+                Jump back to compare it with sibling compounds.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {goalTags.map((g: string) => (
+                  <Link
+                    key={g}
+                    to="/goals/$goal"
+                    params={{ goal: g }}
+                    hash={compound.slug}
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  >
+                    <span aria-hidden="true">←</span>
+                    <span>{goalTitle(g)} hub</span>
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
+
+          {(prev || next) && (
+            <nav aria-label="Compound navigation" className="mb-8 grid gap-3 sm:grid-cols-2">
+              {prev ? (
                 <Link
-                  key={g}
-                  to="/goals/$goal"
-                  params={{ goal: g }}
-                  hash={compound.slug}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  to="/library/$slug"
+                  params={{ slug: prev.slug }}
+                  rel="prev"
+                  className={cn(
+                    cardClassName,
+                    "group flex flex-col p-4 transition hover:opacity-90 sm:col-start-1",
+                  )}
                 >
-                  <span aria-hidden="true">←</span>
-                  <span>{goalTitle(g)} hub</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    ← Previous compound
+                  </span>
+                  <span className="mt-1 truncate font-semibold">{prev.name}</span>
+                  <span className="mt-0.5 text-xs text-muted-foreground">{prev.category}</span>
                 </Link>
-              ))}
-            </div>
-          </nav>
-        )}
-
-        {(prev || next) && (
-          <nav aria-label="Compound navigation" className="mb-8 grid gap-3 sm:grid-cols-2">
-            {prev ? (
-              <Link
-                to="/library/$slug"
-                params={{ slug: prev.slug }}
-                rel="prev"
-                className={cn(
-                  cardClassName,
-                  "group flex flex-col p-4 transition hover:opacity-90 sm:col-start-1",
-                )}
-              >
-                <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  ← Previous compound
-                </span>
-                <span className="mt-1 truncate font-semibold">{prev.name}</span>
-                <span className="mt-0.5 text-xs text-muted-foreground">{prev.category}</span>
-              </Link>
-            ) : (
-              <div className="hidden sm:block" />
-            )}
-            {next && (
-              <Link
-                to="/library/$slug"
-                params={{ slug: next.slug }}
-                rel="next"
-                className={cn(
-                  cardClassName,
-                  "group flex flex-col p-4 text-right transition hover:opacity-90 sm:col-start-2",
-                )}
-              >
-                <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Next compound →
-                </span>
-                <span className="mt-1 truncate font-semibold">{next.name}</span>
-                <span className="mt-0.5 text-xs text-muted-foreground">{next.category}</span>
-              </Link>
-            )}
-          </nav>
-        )}
+              ) : (
+                <div className="hidden sm:block" />
+              )}
+              {next && (
+                <Link
+                  to="/library/$slug"
+                  params={{ slug: next.slug }}
+                  rel="next"
+                  className={cn(
+                    cardClassName,
+                    "group flex flex-col p-4 text-right transition hover:opacity-90 sm:col-start-2",
+                  )}
+                >
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Next compound →
+                  </span>
+                  <span className="mt-1 truncate font-semibold">{next.name}</span>
+                  <span className="mt-0.5 text-xs text-muted-foreground">{next.category}</span>
+                </Link>
+              )}
+            </nav>
+          )}
+        </article>
 
         <section className="rounded-2xl bg-primary p-6 text-primary-foreground">
           <h2 className="font-display text-xl font-semibold">
@@ -1632,6 +1894,68 @@ function CitationBlock({ name, slug }: { name: string; slug: string }) {
         <a href={url} className="text-xs text-muted-foreground underline underline-offset-2">
           Canonical URL
         </a>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Derived "how to track this" block. Mirrors the HowTo JSON-LD emitted in
+ * head() — keep both fed from buildCompoundTracking so they cannot drift.
+ */
+function CompoundTrackingSection({ compound }: { compound: TrackingCompound & { name: string } }) {
+  const tracking = buildCompoundTracking(compound);
+  return (
+    <section id="how-to-track" className="mb-8 rounded-2xl border border-border bg-card/60 p-5">
+      <h2 className="mb-2 font-display text-lg font-semibold">{tracking.title}</h2>
+      <p className="mb-4 text-sm text-muted-foreground">{tracking.intro}</p>
+      <ol className="space-y-3">
+        {tracking.steps.map((s, i) => (
+          <li key={s.name} className="flex gap-3">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              {i + 1}
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">{s.name}</p>
+              <p className="text-sm text-muted-foreground">{s.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-4 rounded-xl bg-background/60 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          What to log each time
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+          {tracking.logFields.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2 text-xs">
+        {tracking.injectable && (
+          <Link
+            to="/peptide-reconstitution-calculator"
+            className="rounded-full border border-border px-3 py-1 hover:bg-muted"
+          >
+            Reconstitution calculator
+          </Link>
+        )}
+        <Link
+          to="/best-dose-tracking-apps"
+          className="rounded-full border border-border px-3 py-1 hover:bg-muted"
+        >
+          Compare dose tracking apps
+        </Link>
+        <Link
+          to="/vs/peptide-tracker"
+          className="rounded-full border border-border px-3 py-1 hover:bg-muted"
+        >
+          vs. Peptide Tracker
+        </Link>
+        <Link to="/install" className="rounded-full bg-primary px-3 py-1 text-primary-foreground">
+          Track {compound.name} in DoseRoutine
+        </Link>
       </div>
     </section>
   );

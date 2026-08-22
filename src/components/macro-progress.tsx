@@ -1,12 +1,16 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
-import { UtensilsCrossed } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, XAxis, YAxis } from "recharts";
+import { ScanLine, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import type { ChartConfig } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { roundTotals, type MealTotals } from "@/lib/meal-nutrition";
 import {
   MACRO_META,
@@ -14,6 +18,7 @@ import {
   addTotals,
   dayKeyOf,
   emptyTotals,
+  dayHeadingLabel,
   goalPercent,
   hasAnyTarget,
   shortWeekdayLabel,
@@ -45,7 +50,19 @@ const chartConfig = {
  * Daily macro totals against the user's goals, plus a seven-day calorie chart
  * for the week that contains `day`.
  */
-export function MacroProgress({ day, className = "" }: { day: string; className?: string }) {
+export function MacroProgress({
+  day,
+  className = "",
+  onLogMeal,
+}: {
+  day: string;
+  className?: string;
+  /**
+   * Opens the Quick Add scanner in place. Without it the "Log a meal" action
+   * falls back to navigating to the Food page.
+   */
+  onLogMeal?: () => void;
+}) {
   const week = useMemo(() => weekDaysFor(day), [day]);
 
   const { data, isPending, isError } = useQuery({
@@ -70,7 +87,6 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
           .maybeSingle(),
       ]);
       if (mealsRes.error) throw mealsRes.error;
-
 
       const byDay = new Map<string, MealTotals>(week.map((key) => [key, emptyTotals()]));
       for (const row of (mealsRes.data ?? []) as MealRow[]) {
@@ -118,6 +134,7 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
     isSelected: key === day,
   }));
   const loggedDays = series.filter((point) => point.calories > 0).length;
+  const dayHeading = dayHeadingLabel(day);
 
   if (isPending) {
     return (
@@ -144,13 +161,28 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
           <UtensilsCrossed className="h-4 w-4 text-primary" />
           Macros
         </h2>
-        <Link
-          to="/food"
-          className="text-xs font-medium text-primary underline-offset-2 hover:underline"
-        >
-          {loggedDays === 0 ? "Log your first meal" : "Log a meal"}
-        </Link>
+        {onLogMeal ? (
+          <button
+            type="button"
+            onClick={onLogMeal}
+            className="tap-target inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+          >
+            <ScanLine className="h-3.5 w-3.5" aria-hidden="true" />
+            {loggedDays === 0 ? "Scan your first meal" : "Scan a meal"}
+          </button>
+        ) : (
+          <Link
+            to="/food"
+            className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+          >
+            {loggedDays === 0 ? "Log your first meal" : "Log a meal"}
+          </Link>
+        )}
       </div>
+
+      <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {dayHeading}
+      </p>
 
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {MACRO_META.map(({ key, label, unit }) => {
@@ -169,9 +201,7 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
               </div>
               <div className="text-base font-semibold tabular-nums">
                 {value}
-                <span className="ml-0.5 text-[11px] font-normal text-muted-foreground">
-                  {unit}
-                </span>
+                <span className="ml-0.5 text-[11px] font-normal text-muted-foreground">{unit}</span>
               </div>
               {target ? (
                 <>
@@ -206,7 +236,7 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
       {!goalsSet && (
         <p className="mt-3 text-[11px] text-muted-foreground">
           Set daily calorie and macro goals on the{" "}
-          <Link to="/food" className="text-primary underline-offset-2 hover:underline">
+          <Link to="/food" className="text-primary underline underline-offset-2">
             Food page
           </Link>{" "}
           to see progress bars here.
@@ -215,7 +245,12 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
 
       <div className="mt-4 border-t border-border pt-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide">This week</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide">
+            This week{" "}
+            <span className="font-normal normal-case text-muted-foreground">
+              ({loggedDays} of 7 days logged)
+            </span>
+          </h3>
           <p className="text-[11px] tabular-nums text-muted-foreground">
             {weekTotals.calories} kcal · {weekTotals.protein_g}g P · {weekTotals.carbs_g}g C ·{" "}
             {weekTotals.fat_g}g F
@@ -231,10 +266,12 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
           </p>
         ) : (
           <ChartContainer config={chartConfig} className="mt-2 h-36 w-full">
-            <BarChart data={series} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+            <BarChart data={series} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={11} />
-              <YAxis tickLine={false} axisLine={false} width={40} fontSize={11} />
+              {/* A negative left margin used to slice the leading digits off
+                  four-figure calorie ticks ("00" instead of "1600"). */}
+              <YAxis tickLine={false} axisLine={false} width={44} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               {targets.calories ? (
                 <ReferenceLine
@@ -244,7 +281,18 @@ export function MacroProgress({ day, className = "" }: { day: string; className?
                   label={{ value: "Goal", position: "right", fontSize: 10 }}
                 />
               ) : null}
-              <Bar dataKey="calories" radius={[4, 4, 0, 0]} fill="var(--color-calories)" />
+              <Bar dataKey="calories" radius={[4, 4, 0, 0]} fill="var(--color-calories)">
+                {/* The selected day is dimmed-out elsewhere, so tie the bar to
+                    the totals above it — an empty today then reads as "today",
+                    not as the chart disagreeing with the numbers. */}
+                {series.map((point) => (
+                  <Cell
+                    key={point.day}
+                    fill="var(--color-calories)"
+                    fillOpacity={point.isSelected ? 1 : 0.45}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ChartContainer>
         )}

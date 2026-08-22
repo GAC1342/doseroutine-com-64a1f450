@@ -13,6 +13,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { redactError } from "@/lib/log-redact";
 
 let _supabase: ReturnType<typeof createClient<Database>> | null = null;
 function getSupabase() {
@@ -58,6 +59,7 @@ function timingSafeEq(a: string, b: string): boolean {
   return diff === 0;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function handleEvent(event: any) {
   const type: string = event.type;
   const userId: string | undefined = event.app_user_id;
@@ -158,7 +160,7 @@ export const Route = createFileRoute("/api/public/payments/revenuecat-webhook")(
           await handleEvent(event);
           return Response.json({ received: true });
         } catch (e) {
-          console.error("[RC webhook] error:", e);
+          console.error("[RC webhook] error:", redactError(e));
           // Return 500 so RevenueCat retries.
           return new Response("Webhook error", { status: 500 });
         }

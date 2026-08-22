@@ -42,7 +42,7 @@ export const MYO_INOSITOL: WomensCompoundContent = {
     },
     {
       heading: "Facchinetti 2019 head-to-head vs metformin",
-      body: "Facchinetti et al. (Gynecol Endocrinol 2019) meta-analysed head-to-head RCTs of inositol versus metformin in PCOS. Metabolic markers (HOMA-IR, BMI, testosterone) and ovulation rates were statistically equivalent, but the metformin arm had substantially higher GI adverse events and drop-outs. This is the strongest justification for offering myo-inositol as a first-line option in patients who cannot tolerate metformin.",
+      body: "Facchinetti et al. (Gynecol Endocrinol 2019) meta-analyzed head-to-head RCTs of inositol versus metformin in PCOS. Metabolic markers (HOMA-IR, BMI, testosterone) and ovulation rates were statistically equivalent, but the metformin arm had substantially higher GI adverse events and drop-outs. This is the strongest justification for offering myo-inositol as a first-line option in patients who cannot tolerate metformin.",
     },
     {
       heading: "Oocyte quality and IVF outcomes",

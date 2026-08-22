@@ -1,5 +1,5 @@
 /**
- * Integration coverage for the review sheet's live maths: totals and the item
+ * Integration coverage for the review sheet's live math: totals and the item
  * list must both update as soon as "Servings eaten" changes or a Nutrition
  * Facts total is hand-corrected — no explicit "recalculate" press.
  */
@@ -13,7 +13,10 @@ vi.mock("@tanstack/react-start", () => ({
   createMiddleware: () => ({ server: () => ({}), client: () => ({}) }),
   createServerFn: () => ({
     inputValidator: () => ({ handler: () => vi.fn() }),
-    middleware: () => ({ inputValidator: () => ({ handler: () => vi.fn() }), handler: () => vi.fn() }),
+    middleware: () => ({
+      inputValidator: () => ({ handler: () => vi.fn() }),
+      handler: () => vi.fn(),
+    }),
     handler: () => vi.fn(),
   }),
 }));
@@ -31,6 +34,11 @@ vi.mock("@/integrations/supabase/client", () => ({
     storage: { from: vi.fn(() => ({ upload: vi.fn(async () => ({ error: null })) })) },
   },
 }));
+// The provenance picker fetches household portions; tests don't need a client.
+vi.mock("@/components/food-portion-picker", () => ({
+  FoodPortionPicker: () => null,
+  rescaleItemToGrams: () => ({}),
+}));
 vi.mock("@/lib/barcode-scanner", () => ({ scanBarcodeFromImage: vi.fn(async () => null) }));
 vi.mock("@/lib/image-downscale", () => ({
   dataUrlToBlob: vi.fn(),
@@ -44,7 +52,6 @@ const DRAFT: MealDraft = {
   items: [
     { name: "Greek yogurt", portion: "170 g", calories: 100, protein_g: 17, carbs_g: 6, fat_g: 0 },
     { name: "Granola", portion: "30 g", calories: 140, protein_g: 3, carbs_g: 20, fat_g: 5 },
-
   ],
   confidence: "medium",
   note: "",
@@ -56,9 +63,7 @@ function totalInput(name: RegExp) {
 }
 
 function itemInput(index: number, macro: string) {
-  return screen.getByLabelText(
-    new RegExp(`Item ${index + 1} ${macro}`, "i"),
-  ) as HTMLInputElement;
+  return screen.getByLabelText(new RegExp(`Item ${index + 1} ${macro}`, "i")) as HTMLInputElement;
 }
 
 /** Push past the 350ms debounce on the servings effect. */
@@ -188,7 +193,7 @@ describe("MealReviewSheet live recalculation", () => {
     expect(itemInput(0, "kcal").value).toBe("100");
   });
 
-  it("resets an override and its servings maths back to the item totals", async () => {
+  it("resets an override and its servings math back to the item totals", async () => {
     renderSheet();
     fireEvent.change(totalInput(/Meal total calories/i), { target: { value: "999" } });
     fireEvent.change(screen.getByLabelText(/Servings eaten/i), { target: { value: "2" } });
@@ -198,7 +203,7 @@ describe("MealReviewSheet live recalculation", () => {
     await flushRecalc();
 
     // The hand-typed override is dropped, so the totals fall back to the
-    // (already scaled) item list rather than the override maths.
+    // (already scaled) item list rather than the override math.
     expect(totalInput(/Meal total calories/i).value).toBe("480");
     expect(itemInput(0, "kcal").value).toBe("200");
     expect((screen.getByLabelText(/Servings eaten/i) as HTMLInputElement).value).toBe("1");

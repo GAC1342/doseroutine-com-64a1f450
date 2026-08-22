@@ -18,14 +18,16 @@ import {
 } from "@/components/peptide-dosage-glossary";
 import { RelatedLinks } from "@/components/related-links";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { CalculatorScopeNote } from "@/components/calculator-scope-note";
 import { LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/calculator";
+export const CANONICAL = "https://doseroutine.com/calculator";
 const TITLE = "Peptide, TRT & Reconstitution Calculators — Free";
 const DESC =
   "Free dosing calculators for peptides, TRT and reconstitution. Convert mg to U-100 syringe units, plan vials, then track the routine in DoseRoutine.";
 
-const CALCULATORS = [
+export const CALCULATORS = [
   {
     to: "/peptide-dosage-calculator",
     label: "Peptide Dosage Calculator",
@@ -164,7 +166,7 @@ export const Route = createFileRoute("/calculator")({
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/calculator")],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -224,7 +226,10 @@ export const Route = createFileRoute("/calculator")({
                 browserRequirements: "Requires JavaScript. Modern browser.",
                 isAccessibleForFree: true,
                 offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-                publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+                publisher: {
+                  "@type": "Organization",
+                  "@id": "https://doseroutine.com/#organization",
+                  name: "DoseRoutine",
                   url: "https://doseroutine.com",
                 },
               })),
@@ -258,7 +263,7 @@ export const Route = createFileRoute("/calculator")({
           url: `${CANONICAL}#glossary`,
         }),
       },
-    ],
+    ]),
   }),
   component: CalculatorHub,
 });
@@ -298,6 +303,7 @@ function CalculatorHub() {
             Three accurate, mobile-friendly calculators for peptides, reconstitution, and
             testosterone protocols.
           </p>
+          <CalculatorScopeNote className="mt-8" />
         </div>
       </section>
 
@@ -330,6 +336,57 @@ function CalculatorHub() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="border-t border-border/40 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="mb-4 text-2xl font-semibold text-foreground">
+            Which calculator should you use?
+          </h2>
+          <p className="text-muted-foreground">
+            The three tools solve different steps of the same problem. Start with the reconstitution
+            calculator when a vial arrives as lyophilized powder and you need to decide how much
+            bacteriostatic water to add — that single choice sets the concentration every later dose
+            depends on. Move to the peptide dosage calculator once the vial is mixed and you need a
+            specific microgram or milligram dose converted into marks on a U-100 insulin syringe.
+            Use the TRT dosage calculator when the prescription is written as a weekly milligram
+            total of testosterone cypionate or enanthate and you split it into two or more
+            injections.
+          </p>
+          <h3 className="mt-8 text-lg font-semibold text-foreground">
+            What each answer depends on
+          </h3>
+          <ul className="mt-3 space-y-2 text-muted-foreground">
+            <li>
+              <strong className="text-foreground">Concentration, not volume,</strong> is the number
+              that carries between steps. 5 mg of peptide in 2 mL of water is 2.5 mg/mL; the same 5
+              mg in 1 mL is 5 mg/mL, and every syringe reading halves.
+            </li>
+            <li>
+              <strong className="text-foreground">
+                Syringe scale matters more than syringe size.
+              </strong>{" "}
+              A U-100 syringe reads 100 units per milliliter, a U-40 reads 40. Reading a U-100 dose
+              off a U-40 barrel is the most common two-and-a-half-fold dosing error.
+            </li>
+            <li>
+              <strong className="text-foreground">Ester weight is not drug weight</strong> on TRT. A
+              200 mg/mL cypionate label is 200 mg of the ester per milliliter, which is why per-shot
+              volume, not per-shot testosterone, is what you draw.
+            </li>
+            <li>
+              <strong className="text-foreground">Doses per vial</strong> is the practical output
+              most people actually need — it tells you when to reorder and whether the mix volume
+              you chose leaves an awkward partial dose at the end.
+            </li>
+          </ul>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Every calculator here runs entirely in your browser: nothing you type is uploaded, and
+            no account is needed. If you want the numbers kept alongside a schedule, the same math
+            runs inside DoseRoutine so a vial logged once keeps its concentration for every future
+            dose.
+          </p>
         </div>
       </section>
 

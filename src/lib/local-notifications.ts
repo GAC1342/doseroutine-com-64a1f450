@@ -21,18 +21,32 @@ export function isNativeNotifications(): boolean {
   }
 }
 
+/**
+ * Ask for notification permission. Only call this from a user gesture that
+ * explains why — a plugin failure must never bubble up and break the screen.
+ */
 export async function requestNativePermission(): Promise<boolean> {
   if (!isNativeNotifications()) return false;
-  const status = await LocalNotifications.checkPermissions();
-  if (status.display === "granted") return true;
-  const res = await LocalNotifications.requestPermissions();
-  return res.display === "granted";
+  try {
+    const status = await LocalNotifications.checkPermissions();
+    if (status.display === "granted") return true;
+    const res = await LocalNotifications.requestPermissions();
+    return res.display === "granted";
+  } catch (err) {
+    console.warn("[alarms] permission request failed", err);
+    return false;
+  }
 }
 
+/** Read-only permission check — never shows a system dialog. */
 export async function checkNativePermission(): Promise<boolean> {
   if (!isNativeNotifications()) return false;
-  const status = await LocalNotifications.checkPermissions();
-  return status.display === "granted";
+  try {
+    const status = await LocalNotifications.checkPermissions();
+    return status.display === "granted";
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -124,9 +138,13 @@ export type RoutineAlarm = {
  */
 export async function cancelAllDoseAlarms(): Promise<void> {
   if (!isNativeNotifications()) return;
-  const pending = await LocalNotifications.getPending();
-  if (pending.notifications.length === 0) return;
-  await LocalNotifications.cancel({ notifications: pending.notifications });
+  try {
+    const pending = await LocalNotifications.getPending();
+    if (pending.notifications.length === 0) return;
+    await LocalNotifications.cancel({ notifications: pending.notifications });
+  } catch (err) {
+    console.warn("[alarms] cancel failed", err);
+  }
 }
 
 /**
@@ -186,7 +204,15 @@ export async function syncDoseAlarms(
 
   if (notifications.length === 0) return 0;
   await ensureChannel();
-  await LocalNotifications.schedule({ notifications });
+  // L1 — own the failure here rather than relying on every caller wrapping
+  // this in try/catch. A rejected schedule() must never take down the screen
+  // that triggered the sync; report 0 scheduled and let the caller carry on.
+  try {
+    await LocalNotifications.schedule({ notifications });
+  } catch (err) {
+    console.warn("[alarms] LocalNotifications.schedule failed", err);
+    return 0;
+  }
   return notifications.length;
 }
 

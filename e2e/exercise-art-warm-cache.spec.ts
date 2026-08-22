@@ -37,7 +37,10 @@ test.describe("illustration modal opens from cache (WebKit touch)", () => {
     await expect(thumb).toBeVisible();
     await settle(page);
 
-    const src = await thumb.locator("img").first().evaluate((el: HTMLImageElement) => el.src);
+    const src = await thumb
+      .locator("img")
+      .first()
+      .evaluate((el: HTMLImageElement) => el.src);
     expect(src).toBeTruthy();
 
     // Cold start: forget anything warmed while the list rendered.

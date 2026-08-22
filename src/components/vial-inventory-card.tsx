@@ -98,7 +98,7 @@ export function VialInventoryCard({ userCompoundId }: { userCompoundId: string }
         </div>
         {isLoading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
         {isLow && (
-          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600">
+          <span className="rounded-full bg-[color:var(--caution)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--caution)]">
             Reorder soon
           </span>
         )}

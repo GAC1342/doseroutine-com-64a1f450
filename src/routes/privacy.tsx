@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { PRIVACY_FAQ } from "@/lib/aeo-faqs-legal";
 
 const pageUrl = "https://doseroutine.com/privacy";
-const pageTitle = "Privacy Policy — DoseRoutine";
+const pageTitle = "Privacy Policy — How DoseRoutine Handles Your Data";
 const pageDescription =
   "How DoseRoutine collects, uses, stores, and shares your data. Your stack, dose… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
 
@@ -16,12 +22,13 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:description", content: pageDescription },
       { property: "og:type", content: "website" },
       { property: "og:url", content: pageUrl },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, PRIVACY_FAQ),
       breadcrumbScript("https://doseroutine.com/privacy", [
         { name: "Legal", path: "/legal" },
         { name: "Privacy Policy", path: "/privacy" },
@@ -48,7 +55,7 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-2xl px-4 pb-24 pt-8">
+      <main id="main-content" className="mx-auto max-w-2xl px-4 pb-24 pt-8">
         <Link
           to="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -126,7 +133,12 @@ function PrivacyPage() {
           </Link>
           .
         </p>
-      </div>
+        <AeoFaq pairs={PRIVACY_FAQ} />
+
+        <ProseContainer>
+          <PageProse id="privacy" />
+        </ProseContainer>
+      </main>
     </div>
   );
 }

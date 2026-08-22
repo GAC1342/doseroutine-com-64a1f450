@@ -111,7 +111,9 @@ async function reachIllustrationControls(page) {
       .catch(() => false);
     if (ok) break;
     if (attempt === 5) {
-      throw new Error(`sign-in failed; still at ${page.url()} (submit="${await submit.innerText().catch(() => "?")}")`);
+      throw new Error(
+        `sign-in failed; still at ${page.url()} (submit="${await submit.innerText().catch(() => "?")}")`,
+      );
     }
     await page.goto(`${BASE}/auth`, { waitUntil: "domcontentloaded" });
     await sleep(1_500);
@@ -194,7 +196,11 @@ const main = async () => {
       name: "Workout illustration controls",
       config: {
         extends: "lighthouse:default",
-        settings: { onlyCategories: ["accessibility"], formFactor: "mobile", screenEmulation: { disabled: true } },
+        settings: {
+          onlyCategories: ["accessibility"],
+          formFactor: "mobile",
+          screenEmulation: { disabled: true },
+        },
       },
     });
 

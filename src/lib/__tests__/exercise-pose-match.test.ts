@@ -60,6 +60,28 @@ const APPROVED_POSES: Record<string, PoseId[]> = {
   "bear crawl hold": ["plank"],
   "ab wheel rollout": ["plank"],
   "pallof press": ["cableStand"],
+  "dumbbell bench press": ["benchLying"],
+  "machine chest press": ["machineSeated"],
+  "decline push-up": ["pushupFloor"],
+  "dumbbell floor press": ["floorLying"],
+  "chest-supported row": ["machineSeated"],
+  "single-arm dumbbell row": ["seatedRow"],
+  "t-bar row": ["standingHinge"],
+  "straight-arm pulldown": ["cableStand"],
+  "rack pull": ["standingHinge"],
+  "dumbbell shoulder press": ["machineSeated"],
+  "arnold press": ["machineSeated"],
+  "cable lateral raise": ["cableStand"],
+  "rear delt fly": ["machineSeated"],
+  "upright row": ["standingPress"],
+  "barbell shrug": ["standingPress"],
+  "hammer curl": ["standingCurl"],
+  "incline dumbbell curl": ["inclineBench"],
+  "preacher curl": ["machineSeated"],
+  "skull crusher": ["benchLying"],
+  "overhead cable extension": ["cableStand"],
+  "close-grip bench press": ["benchLying"],
+  "reverse curl": ["standingCurl"],
 };
 
 /**
@@ -71,16 +93,34 @@ const POSE_MUSCLE_EXPECTATIONS: Partial<Record<PoseId, MuscleRegion[]>> = {
   inclineBench: ["chest", "frontDelts", "biceps"],
   pushupFloor: ["chest", "triceps", "abs", "heart"],
   dipBars: ["chest", "triceps"],
-  cableStand: ["chest", "triceps", "rearDelts", "sideDelts", "upperBack", "biceps", "abs", "obliques"],
-  standingPress: ["frontDelts", "sideDelts", "triceps"],
+  cableStand: [
+    "chest",
+    "triceps",
+    "rearDelts",
+    "sideDelts",
+    "upperBack",
+    "biceps",
+    "abs",
+    "obliques",
+  ],
+  standingPress: ["frontDelts", "sideDelts", "triceps", "traps"],
   standingCurl: ["biceps", "sideDelts", "forearms"],
   standingHinge: ["lats", "upperBack", "lowerBack", "hamstrings", "glutes"],
   seatedRow: ["lats", "upperBack", "rearDelts"],
-  machineSeated: ["lats", "quads", "hamstrings", "upperBack"],
+  machineSeated: [
+    "lats",
+    "quads",
+    "hamstrings",
+    "upperBack",
+    "chest",
+    "frontDelts",
+    "rearDelts",
+    "biceps",
+  ],
   squat: ["quads", "glutes", "heart"],
   lunge: ["quads", "glutes", "hamstrings"],
   hipThrust: ["glutes", "hamstrings"],
-  floorLying: ["abs", "glutes", "obliques"],
+  floorLying: ["abs", "glutes", "obliques", "chest", "triceps"],
   plank: ["abs", "obliques"],
   sidePlank: ["obliques", "abs"],
   hang: ["lats", "abs", "biceps"],
@@ -91,9 +131,7 @@ const POSE_MUSCLE_EXPECTATIONS: Partial<Record<PoseId, MuscleRegion[]>> = {
   rowErg: ["heart", "lats", "upperBack"],
 };
 
-const allExercises = MUSCLE_GROUPS.flatMap((g) =>
-  g.exercises.map((e) => ({ group: g.key, ...e })),
-);
+const allExercises = MUSCLE_GROUPS.flatMap((g) => g.exercises.map((e) => ({ group: g.key, ...e })));
 
 describe("exercise → pose figure mapping", () => {
   it("gives every exercise an approved pose", () => {
@@ -122,7 +160,9 @@ describe("exercise → pose figure mapping", () => {
       if (!expected) continue;
       const worked = new Set<MuscleRegion>([...e.primary, ...(e.secondary ?? [])]);
       if (!expected.some((m) => worked.has(m))) {
-        mismatches.push(`${e.group}/${e.name} uses pose "${e.pose}" but works ${[...worked].join(", ")}`);
+        mismatches.push(
+          `${e.group}/${e.name} uses pose "${e.pose}" but works ${[...worked].join(", ")}`,
+        );
       }
     }
     expect(mismatches).toEqual([]);

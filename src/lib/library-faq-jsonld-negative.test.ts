@@ -19,6 +19,7 @@ import {
 // ---------------------------------------------------------------------------
 // Validation predicates (mirror the live suite in library-faq-jsonld.test.ts)
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 type Faq = Record<string, any>;
 
 interface ValidationResult {
@@ -77,6 +78,7 @@ function validateFaqPage(faq: Faq | null): ValidationResult {
   }
   const nameDupes = findDuplicateGroups(
     entities.filter((e) => e && typeof e.name === "string"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     (e: any) => e.name,
   );
   if (nameDupes.length > 0) {
@@ -206,6 +208,7 @@ describe("validateFaqPage rejects malformed payloads", () => {
 
   it("rejects a Question.name that is not a string", () => {
     const faq = validFaq();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     faq.mainEntity[0].name = 42 as any;
     const r = validateFaqPage(faq);
     expect(r.ok).toBe(false);

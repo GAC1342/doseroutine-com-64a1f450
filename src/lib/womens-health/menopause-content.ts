@@ -37,7 +37,7 @@ export const BLACK_COHOSH: WomensCompoundContent = {
   },
   research: [
     {
-      body: "The Cochrane Review (Leach & Moore, 2012) analysed 16 RCTs (n=2027) and concluded that black cohosh produced a small but statistically significant reduction in hot flash frequency versus placebo, though heterogeneity was high and the effect was inconsistent across preparations.",
+      body: "The Cochrane Review (Leach & Moore, 2012) analyzed 16 RCTs (n=2027) and concluded that black cohosh produced a small but statistically significant reduction in hot flash frequency versus placebo, though heterogeneity was high and the effect was inconsistent across preparations.",
     },
     {
       body: "A 2021 systematic review in Drugs (Beer et al.) confirmed modest vasomotor benefit and noted that isopropanolic and ethanolic extracts (Remifemin, CR BNO 1055) had more consistent data than aqueous extracts. Effects typically emerge over 4–12 weeks.",

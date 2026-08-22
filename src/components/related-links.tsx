@@ -25,11 +25,6 @@ export const CALCULATOR_LINKS: readonly RelatedLink[] = Object.freeze([
     description: "Index of every DoseRoutine calculator and dosing tool.",
   },
   {
-    to: "/calculator",
-    label: "Calculator hub",
-    description: "Peptide & TRT calculator hub with FAQ and dosing glossary.",
-  },
-  {
     to: "/peptide-dosage-calculator",
     label: "Peptide dosage calculator",
     description: "Convert peptide doses into exact insulin-syringe units.",
@@ -61,6 +56,41 @@ export const COMPARISON_LINKS: readonly RelatedLink[] = Object.freeze([
     to: "/vs",
     label: "All comparisons",
     description: "Every side-by-side DoseRoutine comparison in one place.",
+  },
+  {
+    to: "/best-dose-tracking-apps",
+    label: "Best dose tracking apps",
+    description: "Eleven peptide, hormone and supplement trackers compared honestly.",
+  },
+  {
+    to: "/vs/peptide-tracker",
+    label: "vs. Peptide Tracker",
+    description: "Peptide-only logging vs a full routine with labs and interactions.",
+  },
+  {
+    to: "/vs/optipin",
+    label: "vs. OptiPin",
+    description: "An OptiPin alternative on Android and web with stack tracking.",
+  },
+  {
+    to: "/vs/spreadsheet",
+    label: "vs. a spreadsheet",
+    description: "What a Google Sheet does well for a stack, and where it costs you.",
+  },
+  {
+    to: "/vs/bearable",
+    label: "vs. Bearable",
+    description: "Symptom tracking plus real dosing tools on one timeline.",
+  },
+  {
+    to: "/vs/dosecast",
+    label: "vs. Dosecast",
+    description: "Reminder depth plus peptide, vial and injection tracking.",
+  },
+  {
+    to: "/vs/myfitnesspal",
+    label: "vs. MyFitnessPal",
+    description: "Macros and doses in one record instead of two apps.",
   },
   {
     to: "/vs/medisafe",

@@ -1,0 +1,2 @@
+ALTER TABLE public.workout_sessions ADD COLUMN IF NOT EXISTS repeat_until date;
+COMMENT ON COLUMN public.workout_sessions.repeat_until IS 'Last calendar day this recurring workout runs (inclusive). NULL = repeats indefinitely.';

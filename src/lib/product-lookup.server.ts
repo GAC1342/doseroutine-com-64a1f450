@@ -44,9 +44,16 @@ async function getJson(url: string): Promise<unknown | null> {
   try {
     const res = await fetch(url, {
       signal: controller.signal,
-      headers: { accept: "application/json", "user-agent": "DoseRoutine/1.0 (label lookup)" },
+      headers: {
+        accept: "application/json",
+        // Open Food Facts asks every client to identify itself in this shape.
+        "user-agent": "DoseRoutine - Web - Version 1.0 - https://doseroutine.com - scan",
+      },
     });
+    // 404 still carries a JSON body saying "not found"; treat it as a miss and
+    // let the caller move to the next source rather than aborting the chain.
     if (!res.ok) return null;
+
     return (await res.json()) as unknown;
   } catch {
     return null;
@@ -139,15 +146,37 @@ function singularise(unit: string): string {
     .replace(/^softgel$/, "soft gel");
 }
 
+/**
+ * DSLD stores UPCs the way they're printed — "0 74312 76274 1" — so a plain
+ * digit search never matches. We query the spaced form, then confirm the
+ * candidate's own upcSku digits before trusting it: a fuzzy text hit on the
+ * wrong bottle would show someone the wrong Supplement Facts panel.
+ */
+function spacedUpc(digits: string): string | null {
+  if (digits.length !== 12) return null;
+  return `${digits[0]} ${digits.slice(1, 6)} ${digits.slice(6, 11)} ${digits[11]}`;
+}
+
 async function lookupDsld(barcode: string): Promise<ProductLabel | null> {
-  const search = (await getJson(
-    `${DSLD_BASE}/search-filter?q=${encodeURIComponent(barcode)}&size=1`,
-  )) as { hits?: { _id?: string }[] } | null;
-  const id = search?.hits?.[0]?._id;
-  if (!id) return null;
-  const label = (await getJson(`${DSLD_BASE}/label/${encodeURIComponent(id)}`)) as DsldLabel | null;
-  if (!label || Array.isArray(label)) return null;
-  return normalizeDsld({ ...label, id: label.id ?? id }, barcode);
+  const spaced = spacedUpc(barcode);
+  const queries = [barcode, ...(spaced ? [`"${spaced}"`] : [])];
+  for (const query of queries) {
+    const search = (await getJson(
+      `${DSLD_BASE}/search-filter?q=${encodeURIComponent(query)}&size=5`,
+    )) as { hits?: { _id?: string }[] } | null;
+    for (const hit of search?.hits ?? []) {
+      const id = hit?._id;
+      if (!id) continue;
+      const label = (await getJson(`${DSLD_BASE}/label/${encodeURIComponent(id)}`)) as
+        | (DsldLabel & { upcSku?: string })
+        | null;
+      if (!label || Array.isArray(label)) continue;
+      const upc = String(label.upcSku ?? "").replace(/\D/g, "");
+      if (!upc || upc.replace(/^0+/, "") !== barcode.replace(/^0+/, "")) continue;
+      return normalizeDsld({ ...label, id: label.id ?? id }, barcode);
+    }
+  }
+  return null;
 }
 
 /* ---------------- Open Food Facts ---------------- */
@@ -187,12 +216,51 @@ async function lookupOff(barcode: string): Promise<ProductLabel | null> {
   return normalizeOff(json.product, barcode);
 }
 
+/** USDA Branded is the third source — many US products live only there. */
+async function lookupUsda(barcode: string): Promise<ProductLabel | null> {
+  try {
+    const { lookupUsdaByBarcode } = await import("@/lib/usda.server");
+    const food = await lookupUsdaByBarcode(barcode);
+    if (!food) return null;
+    return {
+      barcode,
+      brand: food.brand,
+      name: food.name,
+      servingSize: food.defaultPortionG > 0 ? `${Math.round(food.defaultPortionG)} g` : null,
+      servingUnitNoun: null,
+      servingCount: null,
+      servingsPerDay: null,
+      ingredients: [],
+      directions: null,
+      sourceName: "USDA FoodData Central",
+      sourceUrl: "https://fdc.nal.usda.gov/",
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Look a barcode up across both sources. Never throws — an unreachable or
- * slow upstream simply means "not found" so the scan flow keeps working.
+ * Look a barcode up across all three sources, trying every GTIN padding
+ * (UPC-E, UPC-A, EAN-13, GTIN-14) because each database stores a different
+ * one. Never throws — an unreachable or slow upstream simply means
+ * "not found" so the scan flow keeps working.
  */
 export async function lookupBarcode(raw: string): Promise<ProductLabel | null> {
   const barcode = normalizeBarcode(raw);
   if (!barcode) return null;
-  return (await lookupDsld(barcode)) ?? (await lookupOff(barcode));
+  const { gtinVariants } = await import("@/lib/gtin");
+  const variants = gtinVariants(barcode).slice(0, 4);
+  const codes = variants.length > 0 ? variants : [barcode];
+
+  for (const code of codes) {
+    const dsld = await lookupDsld(code);
+    if (dsld) return { ...dsld, barcode };
+  }
+  for (const code of codes) {
+    const off = await lookupOff(code);
+    if (off) return { ...off, barcode };
+  }
+  const usda = await lookupUsda(barcode);
+  return usda ? { ...usda, barcode } : null;
 }

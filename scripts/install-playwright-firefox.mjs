@@ -61,7 +61,10 @@ export function expectedFirefoxRevision() {
 
 /** Where `playwright install` puts browsers on this machine. */
 function browsersRoot() {
-  return process.env.PLAYWRIGHT_BROWSERS_PATH || join(process.env.HOME ?? "/root", ".cache", "ms-playwright");
+  return (
+    process.env.PLAYWRIGHT_BROWSERS_PATH ||
+    join(process.env.HOME ?? "/root", ".cache", "ms-playwright")
+  );
 }
 
 function installedFirefoxBinary(revision) {
@@ -169,7 +172,9 @@ function main() {
     console.error("Could not read the expected Firefox revision from playwright-core.");
     process.exit(1);
   }
-  console.log(`Playwright ${JSON.parse(readFileSync(require.resolve("playwright-core/package.json"), "utf8")).version} wants firefox-${revision}.`);
+  console.log(
+    `Playwright ${JSON.parse(readFileSync(require.resolve("playwright-core/package.json"), "utf8")).version} wants firefox-${revision}.`,
+  );
 
   let binary = installedFirefoxBinary(revision);
   if (!binary) {

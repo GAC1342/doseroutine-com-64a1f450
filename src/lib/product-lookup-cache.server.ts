@@ -3,8 +3,8 @@
  *
  * Product labels don't change, so the first person to scan a bottle pays the
  * external round-trip and everyone after that gets an instant answer. Writes
- * go through the service-role client because the cache table is read-only to
- * app users.
+ * go through the service-role client, and so do reads: the cache table grants
+ * no direct access to app users at all.
  */
 import { lookupBarcode, normalizeBarcode, type ProductLabel } from "@/lib/product-lookup.server";
 import {

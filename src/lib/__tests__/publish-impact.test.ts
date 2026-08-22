@@ -7,10 +7,7 @@ import {
   type PublishImpactSnapshot,
 } from "@/lib/publish-impact";
 
-function snap(
-  date: string,
-  overrides: Partial<PublishImpactSnapshot> = {},
-): PublishImpactSnapshot {
+function snap(date: string, overrides: Partial<PublishImpactSnapshot> = {}): PublishImpactSnapshot {
   return {
     snapshot_date: date,
     impressions: 100,
@@ -55,7 +52,10 @@ describe("buildPublishImpactReport", () => {
   });
 
   it("treats lower average position as an improvement", () => {
-    const rows = [snap("2026-08-02", { avg_position: 30 }), snap("2026-08-03", { avg_position: 20 })];
+    const rows = [
+      snap("2026-08-02", { avg_position: 30 }),
+      snap("2026-08-03", { avg_position: 20 }),
+    ];
     const report = buildPublishImpactReport(rows, "2026-08-03", 1);
     const position = report.metrics.find((m) => m.key === "avg_position")!;
     expect(position.change).toBe(-10);

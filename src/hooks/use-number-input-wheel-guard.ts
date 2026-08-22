@@ -7,7 +7,7 @@ import { useEffect } from "react";
  * remaining native number inputs.
  *
  * New dose fields should use `<DecimalInput>` (text + inputMode="decimal"),
- * which has no spinner behaviour to guard against in the first place.
+ * which has no spinner behavior to guard against in the first place.
  */
 export function useNumberInputWheelGuard() {
   useEffect(() => {

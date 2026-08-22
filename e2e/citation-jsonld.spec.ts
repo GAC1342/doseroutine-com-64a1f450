@@ -112,7 +112,9 @@ for (const path of PAGES) {
       // contract only covers the numbered source nodes (@id "...#source-n").
       const citations = raw.filter(
         (c): c is CitationNode =>
-          !!c && typeof c === "object" && typeof (c as CitationNode)["@id"] === "string" &&
+          !!c &&
+          typeof c === "object" &&
+          typeof (c as CitationNode)["@id"] === "string" &&
           (c as CitationNode)["@id"]!.includes("#source-"),
       );
 
@@ -166,9 +168,10 @@ for (const path of PAGES) {
     ];
     expect(anchorIds.length, "expected numbered citation anchors").toBeGreaterThan(0);
     for (const id of anchorIds) {
-      await expect(page.locator(`#${id}`), `#${id} from JSON-LD is missing or duplicated`).toHaveCount(
-        1,
-      );
+      await expect(
+        page.locator(`#${id}`),
+        `#${id} from JSON-LD is missing or duplicated`,
+      ).toHaveCount(1);
     }
   });
 }
@@ -183,23 +186,21 @@ for (const path of PAGES) {
  * publisher/title the marker announces.
  */
 async function readMarkers(page: Page) {
-  return page
-    .locator('a[href^="#source-"][data-no-citation-modal="true"]')
-    .evaluateAll((els) =>
-      els.map((el) => {
-        const href = el.getAttribute("href") ?? "";
-        const label = el.getAttribute("aria-label") ?? "";
-        const match = /^Reference (\d+): (.*), ([^,]+)$/.exec(label);
-        return {
-          href,
-          n: Number(href.replace("#source-", "")),
-          labelledN: match ? Number(match[1]) : null,
-          title: match?.[2] ?? null,
-          publisher: match?.[3] ?? null,
-          text: (el.textContent ?? "").trim(),
-        };
-      }),
-    );
+  return page.locator('a[href^="#source-"][data-no-citation-modal="true"]').evaluateAll((els) =>
+    els.map((el) => {
+      const href = el.getAttribute("href") ?? "";
+      const label = el.getAttribute("aria-label") ?? "";
+      const match = /^Reference (\d+): (.*), ([^,]+)$/.exec(label);
+      return {
+        href,
+        n: Number(href.replace("#source-", "")),
+        labelledN: match ? Number(match[1]) : null,
+        title: match?.[2] ?? null,
+        publisher: match?.[3] ?? null,
+        text: (el.textContent ?? "").trim(),
+      };
+    }),
+  );
 }
 
 for (const path of PAGES) {
@@ -228,10 +229,9 @@ for (const path of PAGES) {
       const anchor = c["@id"]!.split("#")[1]!;
       const seen = byAnchor.get(anchor);
       if (seen) {
-        expect(
-          JSON.stringify(c),
-          `#${anchor} is described differently by two JSON-LD nodes`,
-        ).toBe(JSON.stringify(seen));
+        expect(JSON.stringify(c), `#${anchor} is described differently by two JSON-LD nodes`).toBe(
+          JSON.stringify(seen),
+        );
         continue;
       }
       byAnchor.set(anchor, c);
@@ -261,7 +261,9 @@ for (const path of PAGES) {
       );
       expect(c!.name, `citation ${m.n} name differs from the marker`).toBe(m.title);
 
-      await expect(page.locator(`#${anchor}`), `#${anchor} is missing or duplicated`).toHaveCount(1);
+      await expect(page.locator(`#${anchor}`), `#${anchor} is missing or duplicated`).toHaveCount(
+        1,
+      );
     }
   });
 }

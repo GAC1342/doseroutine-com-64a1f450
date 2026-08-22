@@ -104,7 +104,11 @@ if (!curr) {
       changedReasons.length === 0 &&
       addedPages.length === 0 &&
       removedPages.length === 0;
-    lines.push(noChange ? "**No change since the previous run.**" : "**Marker state changed since the previous run.**");
+    lines.push(
+      noChange
+        ? "**No change since the previous run.**"
+        : "**Marker state changed since the previous run.**",
+    );
   }
 }
 

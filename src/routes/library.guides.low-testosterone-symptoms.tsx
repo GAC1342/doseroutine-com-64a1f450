@@ -4,13 +4,14 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/guides/low-testosterone-symptoms";
+export const CANONICAL = "https://doseroutine.com/library/guides/low-testosterone-symptoms";
 const TITLE = "Low Testosterone: Symptoms, Labs & Next Steps | DoseRoutine";
 const DESC =
   "The real symptoms of low testosterone in men, which blood tests to order, and what to do next — from lifestyle changes to when TRT is indicated.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "What is 'low' testosterone?",
     a: "Most labs flag total T under 300 ng/dL as low. But 'clinical low T' also requires symptoms plus two morning tests confirming the low reading — a single result isn't a diagnosis.",
@@ -111,7 +112,7 @@ export const Route = createFileRoute("/library/guides/low-testosterone-symptoms"
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/guides/low-testosterone-symptoms"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -125,12 +126,20 @@ export const Route = createFileRoute("/library/guides/low-testosterone-symptoms"
           description: DESC,
           url: CANONICAL,
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
           dateModified: "2026-07-27",
+          image: ["https://doseroutine.com/og/guide-low-t.jpg"],
           mainEntityOfPage: { "@type": "WebPage", "@id": CANONICAL },
         }),
       },
@@ -173,7 +182,7 @@ export const Route = createFileRoute("/library/guides/low-testosterone-symptoms"
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });

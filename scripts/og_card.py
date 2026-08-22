@@ -6,7 +6,7 @@ scripts/generate-page-og.py (marketing / tool pages) so every card in the
 image sitemap carries the same brand identity: teal gradient, coral rule,
 wordmark, eyebrow chip and headline. No stock or generic imagery.
 """
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 FONT = "/nix/store/dg3hd9mqha517djbgpgnq8r4q1j1wn30-noto-fonts-2025.11.01/share/fonts/noto/NotoSans[wdth,wght].ttf"
 
@@ -46,6 +46,7 @@ def render_card(
     eyebrow,
     url_label,
     footer="Research-backed peptide & supplement tracking",
+    hero=None,
 ):
     """Return a finished brand card image for `heading`."""
     img = Image.new("RGB", (W, H), TEAL_DARK)
@@ -56,6 +57,18 @@ def render_card(
             [(0, y), (W, y)],
             fill=tuple(int(TEAL_DARK[i] + (TEAL[i] - TEAL_DARK[i]) * t) for i in range(3)),
         )
+    if hero:
+        source = Image.open(hero).convert("RGB")
+        source.thumbnail((470, H))
+        canvas = Image.new("RGB", (470, H), TEAL_DARK)
+        x = (470 - source.width) // 2
+        y = (H - source.height) // 2
+        canvas.paste(source, (x, y))
+        canvas = canvas.filter(ImageFilter.GaussianBlur(0.4))
+        shade = Image.new("RGBA", canvas.size, (7, 62, 70, 80))
+        canvas = Image.alpha_composite(canvas.convert("RGBA"), shade).convert("RGB")
+        img.paste(canvas, (W - 470, 0))
+        d = ImageDraw.Draw(img)
     d.rectangle([0, 0, W, 10], fill=CORAL)
 
     d.text((72, 64), "DOSEROUTINE", font=font(30, 800), fill=WHITE)
@@ -70,7 +83,7 @@ def render_card(
     size = 62
     while size > 34:
         hf = font(size, 800)
-        lines = wrap(d, heading, hf, W - 144)
+        lines = wrap(d, heading, hf, W - (590 if hero else 144))
         if len(lines) <= 4:
             break
         size -= 4

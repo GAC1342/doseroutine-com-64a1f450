@@ -7,10 +7,9 @@ import {
   Sparkles,
   Home,
   Layers,
-  ShieldCheck,
-  Clock,
+  LineChart,
+  UtensilsCrossed,
   MoreHorizontal,
-  BookOpen,
 } from "lucide-react";
 import { hapticTap } from "@/lib/haptics";
 import { trackEvent } from "@/lib/analytics";
@@ -33,39 +32,33 @@ const STEPS: Step[] = [
   },
   {
     title: "Today",
-    body: "Your daily dose ribbon. Tap ✓ to mark taken, or swipe to skip. Streaks and adherence show here.",
+    body: "See what is due today: doses, meals, and repeating workouts. Log each item as you complete it.",
     icon: Home,
     cta: { label: "Open Today", to: "/today" },
   },
   {
     title: "Stack",
-    body: "Add compounds, set doses, and pick times. Use quick templates like 'Once daily' or 'AM + PM' to save taps.",
+    body: "Add compounds, set doses and times, check supplies, and manage your protocol.",
     icon: Layers,
     cta: { label: "Open Stack", to: "/stack" },
   },
   {
-    title: "Safety",
-    body: "Interaction checker, side-effect journal, and labs — everything that keeps your protocol safe.",
-    icon: ShieldCheck,
-    cta: { label: "Open Safety", to: "/safety" },
+    title: "Progress",
+    body: "Review adherence, body changes, photos, charts, labs, and other results in one place.",
+    icon: LineChart,
+    cta: { label: "Open Progress", to: "/progress" },
   },
   {
-    title: "Timeline",
-    body: "See every dose you've logged, mark missed ones, and export your data whenever you need it.",
-    icon: Clock,
-    cta: { label: "Open Timeline", to: "/timeline" },
+    title: "Food",
+    body: "Log meals, scan barcodes, review calories and macros, and build your weekly meal plan.",
+    icon: UtensilsCrossed,
+    cta: { label: "Open Food", to: "/food" },
   },
   {
     title: "More",
-    body: "Templates, vial inventory, refill predictions, progress photos, cost tracker, cycles — all the extras live here.",
+    body: "Find fitness, safety, reminders, reports, learning resources, and every calculator under Dose calculators.",
     icon: MoreHorizontal,
     cta: { label: "Open More", to: "/more" },
-  },
-  {
-    title: "Help Center",
-    body: "Stuck? The Help Center has clear, simple guides for every feature. Tap the (?) buttons anywhere in the app.",
-    icon: BookOpen,
-    cta: { label: "Open Help", to: "/help" },
   },
 ];
 
@@ -84,13 +77,17 @@ export function WelcomeTour({ forceOpen, onClose }: { forceOpen?: boolean; onClo
         setOpen(true);
         trackEvent("welcome_tour_started", {});
       }
-    } catch {}
+    } catch {
+      // Non-critical: safe to ignore.
+    }
   }, [forceOpen]);
 
   function finish() {
     try {
       localStorage.setItem(TOUR_KEY, new Date().toISOString());
-    } catch {}
+    } catch {
+      // Non-critical: safe to ignore.
+    }
     trackEvent("welcome_tour_completed", { step });
     setOpen(false);
     onClose?.();
@@ -99,7 +96,9 @@ export function WelcomeTour({ forceOpen, onClose }: { forceOpen?: boolean; onClo
   function skip() {
     try {
       localStorage.setItem(TOUR_KEY, new Date().toISOString());
-    } catch {}
+    } catch {
+      // Non-critical: safe to ignore.
+    }
     trackEvent("welcome_tour_skipped", { step });
     setOpen(false);
     onClose?.();
@@ -198,5 +197,7 @@ export function WelcomeTour({ forceOpen, onClose }: { forceOpen?: boolean; onClo
 export function resetWelcomeTour() {
   try {
     localStorage.removeItem(TOUR_KEY);
-  } catch {}
+  } catch {
+    // Non-critical: safe to ignore.
+  }
 }

@@ -1,10 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { articleScript } from "@/lib/article-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { AI_POLICY_FAQ } from "@/lib/aeo-faqs-info";
 
 const pageUrl = "https://doseroutine.com/ai-policy";
-const pageTitle = "AI Policy — DoseRoutine";
+const pageTitle = "AI Policy — How DoseRoutine Uses AI Safely";
 const pageDescription =
   "How DoseRoutine uses AI: what it does, what it doesn't do, what data is sent… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
 
@@ -17,12 +21,13 @@ export const Route = createFileRoute("/ai-policy")({
       { property: "og:description", content: pageDescription },
       { property: "og:type", content: "website" },
       { property: "og:url", content: pageUrl },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, AI_POLICY_FAQ),
       breadcrumbScript("https://doseroutine.com/ai-policy", [
         { name: "AI Policy", path: "/ai-policy" },
       ]),
@@ -199,6 +204,8 @@ function AiPolicyPage() {
             </li>
           </ul>
         </Section>
+
+        <AeoFaq pairs={AI_POLICY_FAQ} />
       </main>
     </div>
   );

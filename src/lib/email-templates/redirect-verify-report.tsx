@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing violations in this file. */
+/* eslint-disable @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing violations in this file; new files must not add these. */
 import * as React from "react";
 import {
   Body,
@@ -26,13 +28,7 @@ interface Props {
   issues: Issue[];
 }
 
-const RedirectVerifyReport = ({
-  checkedAt,
-  siteOrigin,
-  robotsFetched,
-  summary,
-  issues,
-}: Props) => (
+const RedirectVerifyReport = ({ checkedAt, siteOrigin, robotsFetched, summary, issues }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>{`Redirect check: ${summary.failing} failing of ${summary.total}`}</Preview>

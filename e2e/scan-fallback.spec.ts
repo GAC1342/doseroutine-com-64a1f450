@@ -28,8 +28,10 @@ async function stripBarcodeDetector(page: Page) {
     try {
       // Some engines expose it on window, some on self — clear both.
       // @ts-expect-error BarcodeDetector is not in lib.dom for all engines.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       delete (window as any).BarcodeDetector;
       // @ts-expect-error idem
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       delete (globalThis as any).BarcodeDetector;
       Object.defineProperty(window, "BarcodeDetector", {
         configurable: true,
@@ -100,6 +102,7 @@ test.describe("scan page — fallback when BarcodeDetector is unavailable", () =
 
     // Sanity: patch survived into the page.
     const hasDetector = await page.evaluate(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       () => typeof (window as any).BarcodeDetector === "function",
     );
     expect(hasDetector).toBe(false);

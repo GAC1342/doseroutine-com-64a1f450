@@ -35,7 +35,12 @@ describe("redirect verification rules", () => {
   });
 
   it("flags a URL that no longer redirects", () => {
-    const issues = issuesForObservation({ ...base, status: 200, location: null, targetStatus: null });
+    const issues = issuesForObservation({
+      ...base,
+      status: 200,
+      location: null,
+      targetStatus: null,
+    });
     expect(issues.map((i) => i.code)).toContain("not_redirecting");
   });
 
@@ -59,9 +64,9 @@ describe("redirect verification rules", () => {
   });
 
   it("errors when robots.txt blocks the redirecting URL or its destination", () => {
-    expect(issuesForObservation({ ...base, fromRobotsAllowed: false }).map((i) => i.code)).toContain(
-      "robots_blocked_source",
-    );
+    expect(
+      issuesForObservation({ ...base, fromRobotsAllowed: false }).map((i) => i.code),
+    ).toContain("robots_blocked_source");
     expect(issuesForObservation({ ...base, toRobotsAllowed: false }).map((i) => i.code)).toContain(
       "robots_blocked_target",
     );

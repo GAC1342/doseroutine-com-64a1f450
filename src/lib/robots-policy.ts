@@ -16,6 +16,7 @@ import {
 } from "./robots-policy.config";
 
 export {
+  ALLOWED_SITEMAP_URLS,
   CANONICAL_SITEMAP_URL,
   PUBLIC_CONTENT_PATHS,
   REQUIRED_AI_AGENTS,
@@ -24,7 +25,6 @@ export {
   policyFor,
 } from "./robots-policy.config";
 export type { RobotAgentPolicy } from "./robots-policy.config";
-
 
 /** A robots.txt group: one or more user-agents sharing a rule block. */
 export interface RobotsGroup {
@@ -90,7 +90,6 @@ export function blocksPublicContent(group: RobotsGroup | undefined): boolean {
     (PUBLIC_CONTENT_PATHS as readonly string[]).includes(rule),
   );
 }
-
 
 /**
  * Turn a robots.txt path rule into a matcher. Supports the de-facto `*`
@@ -190,7 +189,8 @@ export function crawlDelayProblems(
   for (const bad of invalid) problems.push(`${label} has an invalid Crawl-delay value "${bad}"`);
   if (duplicated) problems.push(`${label} declares more than one Crawl-delay`);
   if (maxSeconds === null) {
-    for (const value of values) problems.push(`${label} should not throttle crawling (Crawl-delay: ${value})`);
+    for (const value of values)
+      problems.push(`${label} should not throttle crawling (Crawl-delay: ${value})`);
   } else {
     for (const value of values) {
       if (value > maxSeconds) {
@@ -223,7 +223,9 @@ export function findPolicyViolations(text: string): string[] {
     for (const conflict of findPathConflicts(wildcard, WILDCARD_POLICY.mustBeCrawlable)) {
       problems.push(`wildcard group blocks ${conflict.path} via Disallow: ${conflict.rule}`);
     }
-    problems.push(...crawlDelayProblems("wildcard group", wildcard, WILDCARD_POLICY.maxCrawlDelaySeconds));
+    problems.push(
+      ...crawlDelayProblems("wildcard group", wildcard, WILDCARD_POLICY.maxCrawlDelaySeconds),
+    );
   }
 
   for (const policy of ROBOT_AGENT_POLICIES) {
@@ -233,7 +235,8 @@ export function findPolicyViolations(text: string): string[] {
       continue;
     }
     for (const path of policy.allow) {
-      if (!group.allow.includes(path)) problems.push(`${policy.name} has no explicit Allow: ${path}`);
+      if (!group.allow.includes(path))
+        problems.push(`${policy.name} has no explicit Allow: ${path}`);
     }
     if (group.disallow.includes("/")) {
       problems.push(`${policy.name} is blocked by a site-wide Disallow`);
@@ -248,7 +251,6 @@ export function findPolicyViolations(text: string): string[] {
     }
     problems.push(...crawlDelayProblems(policy.name, group, policy.maxCrawlDelaySeconds));
   }
-
 
   for (const g of groups) {
     if (g.disallow.includes("/")) {

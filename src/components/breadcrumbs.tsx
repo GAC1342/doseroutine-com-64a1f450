@@ -265,16 +265,19 @@ export function Breadcrumbs() {
     });
     rememberExpansion(pathname);
     setExpanded(true);
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
     setAnnouncement(`Expanded breadcrumb trail. Showing ${rawSegments.length} steps.`);
   };
 
   const handleCollapse = () => {
     expandedByPath.delete(pathname);
     setExpanded(false);
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
     setAnnouncement("Collapsed breadcrumb trail.");
     // Return focus to the expander that reappears in place of the collapse
     // control, so keyboard users stay oriented.
     requestAnimationFrame(() => {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
       expanderRef.current?.focus();
     });
   };

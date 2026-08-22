@@ -20,8 +20,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { getFunnelSummary, type FunnelWindow } from "@/lib/funnel.functions";
 import { getTrafficSummary, type TrafficSummary } from "@/lib/traffic.functions";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
+  errorComponent: routeErrorComponent("admin-analytics", "Traffic data couldn't load"),
   head: () => ({
     meta: [
       { title: "Traffic & conversion — DoseRoutine admin" },
@@ -120,7 +122,7 @@ function AnalyticsPage() {
         </div>
         <div
           role="tablist"
-          className="inline-flex rounded-full border border-border bg-muted/40 p-0.5 text-xs"
+          className="inline-flex rounded-full border border-border bg-surface-track p-1 text-xs"
         >
           {(["7d", "30d"] as const).map((w) => (
             <button
@@ -130,7 +132,9 @@ function AnalyticsPage() {
               aria-selected={win === w}
               onClick={() => setWin(w)}
               className={`rounded-full px-3 py-1 font-medium transition ${
-                win === w ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                win === w
+                  ? "border border-border bg-card font-semibold text-primary shadow-sm"
+                  : "border border-transparent text-foreground/75 hover:text-foreground"
               }`}
             >
               {w === "7d" ? "7 days" : "30 days"}
@@ -162,7 +166,7 @@ function AnalyticsPage() {
         />
         <StatCard
           icon={<MousePointer className="h-4 w-4 text-primary" />}
-          label="Visit → signup"
+          label="Visit → sign-up"
           value={funnel ? `${(funnel.signupRate * 100).toFixed(1)}%` : "—"}
           sub={funnel ? `${funnel.signups} signups / ${funnel.authViews} auth views` : undefined}
           loading={funnelLoading}

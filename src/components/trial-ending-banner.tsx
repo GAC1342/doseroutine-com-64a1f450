@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Clock, X, ArrowRight } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useEntitlementSettled } from "@/hooks/use-entitlement-settled";
 import { trackEvent } from "@/lib/analytics";
 
 const DAY = 86_400_000;
@@ -29,6 +30,9 @@ function dismissKey(endIso: string) {
 export function TrialEndingBanner() {
   const navigate = useNavigate();
   const sub = useSubscription();
+  // Same anti-flicker gate as the expired banner: never paint trial messaging
+  // off an in-flight or unresolved entitlement.
+  const settled = useEntitlementSettled();
   const end = sub.data?.currentPeriodEnd ?? null;
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === "undefined" || !end) return false;
@@ -39,7 +43,7 @@ export function TrialEndingBanner() {
     }
   });
 
-  if (sub.isLoading) return null;
+  if (!settled) return null;
   if (sub.data?.status !== "trialing") return null;
   if (dismissed) return null;
 
@@ -81,8 +85,7 @@ export function TrialEndingBanner() {
               }}
               className="tap-target inline-flex items-center gap-1.5 rounded-xl bg-cta px-4 py-2 text-sm font-semibold text-cta-foreground hover:bg-cta-hover"
             >
-              {willRenew ? "Manage plan" : "Keep Pro — checkout"}{" "}
-              <ArrowRight className="h-4 w-4" />
+              {willRenew ? "Manage plan" : "Keep Pro — checkout"} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -93,7 +96,9 @@ export function TrialEndingBanner() {
             if (end) {
               try {
                 window.localStorage.setItem(dismissKey(end), "1");
-              } catch {}
+              } catch {
+                // Non-critical: safe to ignore.
+              }
             }
             setDismissed(true);
           }}

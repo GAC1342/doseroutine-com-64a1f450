@@ -20,7 +20,7 @@ function notBotFilter() {
 }
 
 /**
- * Admin-only signup funnel summary. Uniques are counted by session_id (auth
+ * Admin-only sign-up funnel summary. Uniques are counted by session_id (auth
  * view stage — user may not have an account yet) and by user_id afterwards.
  * Bot traffic is filtered out so the numbers reflect real humans.
  */

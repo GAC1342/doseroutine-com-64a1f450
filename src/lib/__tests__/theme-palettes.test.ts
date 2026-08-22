@@ -105,6 +105,16 @@ describe("color themes", () => {
     }
   });
 
+  // Accent text and links sit on white cards in light mode. Neon hues are the
+  // easy way to break this, so every palette is gated here.
+  it("keeps light-mode primary readable on a white card", () => {
+    for (const id of themeIds) {
+      const decls = block(`[data-theme="${id}"]`);
+      const ratio = contrast(decls["--primary"], "oklch(1 0 0)");
+      expect(ratio, `${id} primary on white (${ratio.toFixed(2)}:1)`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it("declares the full brand token set for every theme", () => {
     const required = [
       "--primary",

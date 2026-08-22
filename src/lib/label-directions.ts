@@ -6,8 +6,7 @@
  * value is validated and stays editable.
  */
 import type { ProductLabel } from "@/lib/product-lookup.server";
-import { convertDose, type LabelUnit } from "@/lib/label-parse";
-import { parseSupplementLabel } from "@/lib/label-parse";
+import { convertDose, type LabelUnit, parseSupplementLabel } from "@/lib/label-parse";
 
 /**
  * Where each pre-filled value came from:

@@ -70,6 +70,15 @@ import { ShareStackButton } from "@/components/share-stack-button";
 import { ExportGate } from "@/components/export-gate";
 import { Card } from "@/components/ui/card";
 import { ScanHistoryPanel } from "@/components/scan-history-panel";
+import { LoadingStatus } from "@/components/skeletons";
+import { routeErrorComponent } from "@/components/route-error-panel";
+import {
+  buildStackPayload,
+  releaseStuckPointerLock,
+  runStackDelete,
+  runStackUpdate,
+  validateStackItemSave,
+} from "@/lib/stack-item-actions";
 
 /**
  * Optional details handed over from the barcode scanner so the add form opens
@@ -93,6 +102,9 @@ function str(v: unknown): string | undefined {
 }
 
 export const Route = createFileRoute("/_authenticated/stack")({
+  errorComponent: routeErrorComponent("stack"),
+  // Auth-gated: never prerender (explicit rather than inherited).
+  ssr: false,
   head: () => ({ meta: [{ title: "Stack — DoseRoutine" }] }),
   validateSearch: (search: Record<string, unknown>): StackPrefill => ({
     prefillName: str(search.prefillName),
@@ -237,7 +249,6 @@ function StackPage() {
     }
   };
 
-
   const grouped = useMemo(() => {
     const map = new Map<Category, UCWithCompound[]>();
     for (const r of rows) {
@@ -335,7 +346,8 @@ function StackPage() {
       )}
 
       {loading ? (
-        <div className="mt-6 space-y-3" aria-busy="true" aria-label="Loading your stack">
+        <div className="mt-6 space-y-3" aria-busy="true">
+          <LoadingStatus label="Loading your stack…" />
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-24 w-full rounded-2xl" />
           ))}
@@ -513,14 +525,14 @@ function StackInteractionsBanner({
     caution: {
       bg: "bg-amber-500/10",
       border: "border-amber-500/30",
-      icon: "text-amber-600",
+      icon: "text-[color:var(--caution)]",
       Icon: AlertTriangle,
     },
     info: { bg: "bg-primary/5", border: "border-primary/20", icon: "text-primary", Icon: Info },
     ok: {
       bg: "bg-emerald-500/5",
       border: "border-emerald-500/20",
-      icon: "text-emerald-600",
+      icon: "text-[color:var(--severity-synergy)]",
       Icon: ShieldCheck,
     },
   };
@@ -598,9 +610,12 @@ function PrescriptionCrossCheck({
 
   const sevStyle: Record<Severity, { chip: string; label: string }> = {
     avoid: { chip: "bg-destructive/15 text-destructive", label: "Avoid" },
-    caution: { chip: "bg-amber-500/15 text-amber-700", label: "Caution" },
+    caution: { chip: "bg-[color:var(--caution)]/15 text-[color:var(--caution)]", label: "Caution" },
     note: { chip: "bg-primary/10 text-primary", label: "Note" },
-    synergy: { chip: "bg-emerald-500/15 text-emerald-700", label: "Synergy" },
+    synergy: {
+      chip: "bg-[color:var(--severity-synergy-bg)] text-[color:var(--severity-synergy)]",
+      label: "Synergy",
+    },
   };
 
   return (
@@ -706,7 +721,7 @@ function FlaggedList({
           {majorOnly ? ` of ${flagged.length}` : ""})
         </p>
         <div
-          className="inline-flex rounded-lg border border-border bg-background p-0.5"
+          className="inline-flex rounded-lg border border-border bg-surface-track p-1"
           role="tablist"
           aria-label="Severity filter"
         >
@@ -715,7 +730,7 @@ function FlaggedList({
             role="tab"
             aria-selected={!majorOnly}
             onClick={() => setMajorOnly(false)}
-            className={`tap-target h-8 rounded-md px-2.5 text-[11px] font-semibold ${!majorOnly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`tap-target h-8 rounded-md border px-2.5 text-[11px] font-semibold ${!majorOnly ? "border-primary bg-primary text-primary-foreground shadow-sm" : "border-transparent text-foreground/75 hover:border-border hover:bg-card hover:text-foreground"}`}
           >
             All ({flagged.length})
           </button>
@@ -724,7 +739,7 @@ function FlaggedList({
             role="tab"
             aria-selected={majorOnly}
             onClick={() => setMajorOnly(true)}
-            className={`tap-target h-8 rounded-md px-2.5 text-[11px] font-semibold ${majorOnly ? "bg-destructive text-white" : "text-muted-foreground hover:text-foreground"}`}
+            className={`tap-target h-8 rounded-md border px-2.5 text-[11px] font-semibold ${majorOnly ? "border-destructive bg-destructive text-white shadow-sm" : "border-transparent text-foreground/75 hover:border-border hover:bg-card hover:text-foreground"}`}
           >
             Major only ({majorCount})
           </button>
@@ -735,8 +750,8 @@ function FlaggedList({
         <div
           className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[11px] ${
             majorAcked === majorCount
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-800"
-              : "border-amber-500/40 bg-amber-500/10 text-amber-800"
+              ? "border-[color:var(--severity-synergy)]/40 bg-[color:var(--severity-synergy-bg)] text-[color:var(--severity-synergy)]"
+              : "border-[color:var(--caution)]/40 bg-[color:var(--caution)]/10 text-[color:var(--caution)]"
           }`}
         >
           <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -791,7 +806,7 @@ function FlaggedList({
                   {e.a.name} <span className="text-muted-foreground">×</span> {e.b.name}
                 </p>
                 {acked && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--severity-synergy-bg)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--severity-synergy)]">
                     <ShieldCheck className="h-3 w-3" aria-hidden /> Reviewed
                   </span>
                 )}
@@ -852,49 +867,49 @@ function UCCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // Optimistically hide a removed card so a slow refetch can't make it look
+  // like the delete did nothing (which led to repeat taps).
+  const [removed, setRemoved] = useState(false);
   const name = uc.compound?.name ?? uc.custom_name ?? "Custom item";
   const cat = (uc.compound?.category ?? uc.custom_category ?? "supplement") as Category;
   const Icon = CATEGORY_ICON[cat] ?? Pill;
   const controlled = !!uc.compound?.is_controlled;
 
   async function toggleActive() {
+    if (busy) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("user_compounds")
-      .update({ active: !uc.active })
-      .eq("id", uc.id);
+    const outcome = await runStackUpdate(() =>
+      supabase.from("user_compounds").update({ active: !uc.active }).eq("id", uc.id),
+    );
     setBusy(false);
-    if (error) {
-      toast.error(`Couldn't update ${name}`, { description: error.message });
+    releaseStuckPointerLock();
+    if (!outcome.ok) {
+      toast.error(`Couldn't update ${name}`, { description: outcome.message });
       return;
     }
     onChanged();
   }
   async function remove() {
+    if (busy) return;
     setBusy(true);
     // Return the deleted row so a silently-blocked delete (RLS, stale row,
-    // offline) can't look like success — the old code ignored both the error
-    // and a zero-row result, so the card just reappeared on the next refetch.
-    const { data, error } = await supabase
-      .from("user_compounds")
-      .delete()
-      .eq("id", uc.id)
-      .select("id");
+    // offline) can't look like success. runStackDelete also guarantees the
+    // promise settles — a rejected or hanging request used to leave the card
+    // stuck in its busy state with the dialog open.
+    const outcome = await runStackDelete(() =>
+      supabase.from("user_compounds").delete().eq("id", uc.id).select("id"),
+    );
+    // Always clear busy and close the dialog before any toast, on every path,
+    // so the page can never be left locked behind an open dialog.
     setBusy(false);
     setConfirmOpen(false);
-    if (error) {
-      toast.error(`Couldn't remove ${name}`, {
-        description: error.message || "Please try again.",
-      });
+    releaseStuckPointerLock();
+    if (!outcome.ok) {
+      toast.error(`Couldn't remove ${name}`, { description: outcome.message });
+      if (outcome.reason === "missing") onChanged();
       return;
     }
-    if (!data || data.length === 0) {
-      toast.error(`Couldn't remove ${name}`, {
-        description: "It may already be deleted or belong to another account. Pull to refresh.",
-      });
-      onChanged();
-      return;
-    }
+    setRemoved(true);
     toast.success(`${name} removed from your stack`);
     onChanged();
   }
@@ -918,16 +933,14 @@ function UCCard({
     // calendar app first. Point the user at that step so they don't think the
     // download alone will beep. For live push alerts on this device, direct
     // them to More → Reminders (web push) or install the app for native alarms.
-    setTimeout(() => {
-      alert(
-        `Downloaded doseroutine-${name}.ics\n\n` +
-          `To hear alerts:\n` +
-          `1. Open the downloaded file — your phone will offer to add it to Apple Calendar or Google Calendar.\n` +
-          `2. Confirm "Add All" and make sure Calendar notifications are ON in your phone settings.\n\n` +
-          `For instant push alerts without a calendar, go to More → Reminders and turn on "Push on this device."`,
-      );
-    }, 300);
+    toast.success(`Downloaded doseroutine-${name}.ics`, {
+      description:
+        "Open the file to add it to Apple or Google Calendar, then make sure Calendar notifications are on. For instant push alerts, go to More → Reminders.",
+      duration: 10_000,
+    });
   }
+
+  if (removed) return null;
 
   return (
     <div
@@ -1018,7 +1031,6 @@ function UCCard({
             </AlertDialogContent>
           </AlertDialog>
         </div>
-
       </div>
 
       <ScanHistoryPanel userCompoundId={uc.id} />
@@ -1077,6 +1089,15 @@ function AddEditSheet({
   );
   const controlled = !!selected?.is_controlled;
 
+  // Legacy rows created before the library match existed: no compound_id, just
+  // a free-text name. They must stay fully editable — the form used to hide
+  // every field behind `selected`, which made them impossible to change.
+  const isCustom = !!existing && !existing.compound_id && !existing.compound;
+  const [customName, setCustomName] = useState(existing?.custom_name ?? "");
+  // Any field below renders as soon as we have either a library match or a
+  // custom row to edit.
+  const formReady = !!selected || isCustom;
+
   // When compound changes, pre-select its default unit (never dose for controlled).
   // A unit read off a scanned label wins for that first selection — the label
   // is more specific than our library default.
@@ -1128,7 +1149,7 @@ function AddEditSheet({
   }, [selected, existingRows, rules, existing]);
 
   const canSave =
-    !!selected &&
+    (!!selected || (isCustom && customName.trim() !== "")) &&
     dose.trim() !== "" &&
     Number(dose) > 0 &&
     times.length > 0 &&
@@ -1165,8 +1186,23 @@ function AddEditSheet({
   }
 
   async function save() {
-    if (!selected) return;
+    if (!selected && !isCustom) return;
+
     setError(null);
+
+    // Identity + duplicate gate. Blocks orphan rows (no compound, no name) and
+    // a second copy of something already in the stack — the two shapes that
+    // produced un-editable, un-deletable cards in older builds.
+    const identity = {
+      compound_id: selected?.id ?? null,
+      custom_name: selected ? null : customName.trim() || (existing?.custom_name ?? null),
+      displayName: selected?.name ?? customName.trim(),
+    };
+    const check = validateStackItemSave(existingRows, identity, existing?.id ?? null);
+    if (!check.ok) {
+      setError(check.message);
+      return;
+    }
 
     // Gate save on high-risk cardiovascular acknowledgment. Build the
     // prospective row set (existing rows with this compound applied) and
@@ -1212,20 +1248,23 @@ function AddEditSheet({
       setError("Add at least one time of day.");
       return;
     }
-    const payload = {
-      user_id: userId,
-      compound_id: selected.id,
-      custom_name: null,
-      custom_category: null,
-      dose_amount: parsedDose.value,
-      dose_unit: unit,
-      frequency: freq,
-      days_of_week: freq === "weekly" ? weeklyDays : null,
-      times_of_day: dedupedTimes,
-      with_food: withFood,
-      notes: notes || null,
-      active: true,
-    };
+    const payload = buildStackPayload({
+      userId,
+      compoundId: selected?.id ?? null,
+      // Preserve the free-text identity of legacy custom rows on every save.
+      customName: customName.trim() || existing?.custom_name || "Custom item",
+      customCategory: existing?.custom_category ?? null,
+      rest: {
+        dose_amount: parsedDose.value,
+        dose_unit: unit,
+        frequency: freq,
+        days_of_week: freq === "weekly" ? weeklyDays : null,
+        times_of_day: dedupedTimes,
+        with_food: withFood,
+        notes: notes || null,
+        active: true,
+      },
+    });
     const res = existing
       ? await supabase
           .from("user_compounds")
@@ -1293,26 +1332,45 @@ function AddEditSheet({
             </div>
           )}
 
-          {/* Compound (searchable, grouped combobox) */}
+          {/* Compound — custom rows keep an editable free-text name */}
           <div>
-            <label className="text-sm font-medium" htmlFor="compound-combobox">
-              Compound
+            <label
+              className="text-sm font-medium"
+              htmlFor={isCustom ? "custom-name" : "compound-combobox"}
+            >
+              {isCustom ? "Name" : "Compound"}
             </label>
-            <CompoundCombobox
-              id="compound-combobox"
-              compounds={library}
-              value={compoundId}
-              onChange={setCompoundId}
-              disabled={!!existing}
-              loading={libLoading}
-            />
+            {isCustom ? (
+              <>
+                <input
+                  id="custom-name"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="Custom item name"
+                  className="tap-target mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base focus:border-primary focus:outline-none"
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  This item isn't linked to the compound library, so interaction checks don't apply
+                  to it.
+                </p>
+              </>
+            ) : (
+              <CompoundCombobox
+                id="compound-combobox"
+                compounds={library}
+                value={compoundId}
+                onChange={setCompoundId}
+                disabled={!!existing}
+                loading={libLoading}
+              />
+            )}
             {selected?.education_md && (
               <p className="mt-2 text-xs text-muted-foreground">{selected.education_md}</p>
             )}
           </div>
 
           {/* Dose */}
-          {selected && (
+          {formReady && (
             <div>
               <label className="text-sm font-medium">Dose</label>
               {controlled ? (
@@ -1323,22 +1381,22 @@ function AddEditSheet({
                     controlled compounds. Use what your clinician prescribed.
                   </span>
                 </div>
-              ) : selected.rda_low != null ||
-                selected.rda_high != null ||
-                selected.upper_limit != null ? (
-                <div className="mt-2 flex items-start gap-2 rounded-lg bg-[color:var(--severity-note-bg))] p-3 text-xs text-[color:var(--severity-note)]">
+              ) : selected?.rda_low != null ||
+                selected?.rda_high != null ||
+                selected?.upper_limit != null ? (
+                <div className="mt-2 flex items-start gap-2 rounded-lg bg-[color:var(--severity-note-bg)] p-3 text-xs text-[color:var(--severity-note)]">
                   <Info className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
                     Published reference intake:{" "}
-                    {selected.rda_low != null && selected.rda_high != null
-                      ? `${selected.rda_low}–${selected.rda_high} ${selected.default_unit ?? ""}/day`
-                      : selected.rda_low != null
-                        ? `${selected.rda_low} ${selected.default_unit ?? ""}/day`
-                        : selected.rda_high != null
-                          ? `up to ${selected.rda_high} ${selected.default_unit ?? ""}/day`
+                    {selected?.rda_low != null && selected?.rda_high != null
+                      ? `${selected?.rda_low}–${selected?.rda_high} ${selected?.default_unit ?? ""}/day`
+                      : selected?.rda_low != null
+                        ? `${selected?.rda_low} ${selected?.default_unit ?? ""}/day`
+                        : selected?.rda_high != null
+                          ? `up to ${selected?.rda_high} ${selected?.default_unit ?? ""}/day`
                           : ""}
-                    {selected.upper_limit != null &&
-                      ` · Upper limit ${selected.upper_limit} ${selected.default_unit ?? ""}/day`}
+                    {selected?.upper_limit != null &&
+                      ` · Upper limit ${selected?.upper_limit} ${selected?.default_unit ?? ""}/day`}
                     . Not a recommendation — talk to your clinician.
                   </span>
                 </div>
@@ -1368,7 +1426,7 @@ function AddEditSheet({
                   {(parseDoseInput(dose) as { ok: false; error: string }).error}
                 </p>
               )}
-              {!controlled && (
+              {!controlled && selected && (
                 <CapsuleQuickSet
                   compoundId={selected.id}
                   unit={unit}
@@ -1383,7 +1441,7 @@ function AddEditSheet({
           )}
 
           {/* Schedule */}
-          {selected && (
+          {formReady && (
             <div>
               <label className="flex items-center gap-2 text-sm font-medium">
                 <Clock className="h-4 w-4" /> Schedule
@@ -1541,7 +1599,7 @@ function AddEditSheet({
                   className="h-5 w-5 accent-[color:var(--primary)]"
                 />
               </label>
-              {selected.food_rule && selected.food_rule !== "either" && (
+              {selected?.food_rule && selected.food_rule !== "either" && (
                 <p className="mt-2 text-xs text-muted-foreground">
                   Guidance: usually taken {selected.food_rule.replace("_", " ")}.
                 </p>
@@ -1550,7 +1608,7 @@ function AddEditSheet({
           )}
 
           {/* Notes */}
-          {selected && (
+          {formReady && (
             <div>
               <label className="text-sm font-medium">Notes</label>
               <textarea
@@ -1581,13 +1639,13 @@ function AddEditSheet({
           )}
 
           {error && (
-            <p className="rounded-lg bg-[color:var(--severity-avoid-bg))] px-3 py-2 text-sm text-[color:var(--severity-avoid)]">
+            <p className="rounded-lg bg-[color:var(--severity-avoid-bg)] px-3 py-2 text-sm text-[color:var(--severity-avoid)]">
               {error}
             </p>
           )}
         </div>
 
-        <div className="sticky bottom-0 z-10 border-t border-border bg-background px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="keyboard-lift sticky z-10 border-t border-border bg-background px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {!canSave && !saving && (
             <p className="mb-2 text-center text-xs text-muted-foreground">
               {!compoundId ? "Pick a compound to continue" : "Enter a dose to continue"}
@@ -1638,7 +1696,7 @@ function WarningRow({
     { bg: string; fg: string; label: string; Icon: React.ComponentType<{ className?: string }> }
   > = {
     avoid: {
-      bg: "bg-[color:var(--severity-avoid-bg))]",
+      bg: "bg-[color:var(--severity-avoid-bg)]",
       fg: "text-[color:var(--severity-avoid)]",
       label: "Avoid",
       Icon: Ban,
@@ -1650,13 +1708,13 @@ function WarningRow({
       Icon: AlertTriangle,
     },
     note: {
-      bg: "bg-[color:var(--severity-note-bg))]",
+      bg: "bg-[color:var(--severity-note-bg)]",
       fg: "text-[color:var(--severity-note)]",
       label: "Note",
       Icon: Info,
     },
     synergy: {
-      bg: "bg-[color:var(--severity-synergy-bg))]",
+      bg: "bg-[color:var(--severity-synergy-bg)]",
       fg: "text-[color:var(--severity-synergy)]",
       label: "Synergy",
       Icon: ShieldCheck,

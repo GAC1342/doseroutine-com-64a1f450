@@ -197,7 +197,6 @@ describe("crawl cache", () => {
   });
 });
 
-
 const SITEMAP = `<urlset>
   <url><loc>https://example.test/library/zinc</loc></url>
   <url><loc>https://example.test/blog/retatrutide</loc></url>
@@ -310,7 +309,11 @@ describe("text resources", () => {
     const res = await cachedFetchText("https://example.test/sitemap.xml", {
       fetcher: site.fetcher,
     });
-    expect(res).toMatchObject({ ok: true, status: 200, finalUrl: "https://example.test/sitemap.xml" });
+    expect(res).toMatchObject({
+      ok: true,
+      status: 200,
+      finalUrl: "https://example.test/sitemap.xml",
+    });
     expect(res.text).toContain("<loc>");
 
     const again = await cachedFetchText("https://example.test/sitemap.xml", {

@@ -6,17 +6,19 @@ import { ArrowLeft, Bot, Download, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { getInstallFunnel, type InstallFunnelWindow } from "@/lib/install-funnel.functions";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/install-funnel")({
+  errorComponent: routeErrorComponent("admin-install-funnel"),
   head: () => ({
     meta: [
-      { title: "Install → signup funnel — DoseRoutine admin" },
+      { title: "Install → sign-up funnel — DoseRoutine admin" },
       {
         name: "description",
         content:
           "Internal DoseRoutine report: install page visits, closed-testing landing clicks and real tester account creations with conversion rates.",
       },
-      { property: "og:title", content: "Install → signup funnel — DoseRoutine admin" },
+      { property: "og:title", content: "Install → sign-up funnel — DoseRoutine admin" },
       {
         property: "og:description",
         content: "Internal conversion report for the closed-testing recruitment funnel.",
@@ -83,7 +85,7 @@ function InstallFunnelPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
-            Install → signup funnel
+            Install → sign-up funnel
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Every step from the install page to a real tester account. Bot traffic and our own
@@ -93,7 +95,7 @@ function InstallFunnelPage() {
         <div className="flex items-center gap-2">
           <div
             role="tablist"
-            className="inline-flex rounded-full border border-border bg-muted/40 p-0.5 text-xs"
+            className="inline-flex rounded-full border border-border bg-surface-track p-1 text-xs"
           >
             {(["7d", "30d"] as const).map((w) => (
               <button
@@ -103,7 +105,9 @@ function InstallFunnelPage() {
                 aria-selected={win === w}
                 onClick={() => setWin(w)}
                 className={`rounded-full px-3 py-1 font-medium transition ${
-                  win === w ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                  win === w
+                    ? "border border-border bg-card font-semibold text-primary shadow-sm"
+                    : "border border-transparent text-foreground/75 hover:text-foreground"
                 }`}
               >
                 {w === "7d" ? "7 days" : "30 days"}

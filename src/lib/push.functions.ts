@@ -72,6 +72,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
           payload,
         );
         sent++;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       } catch (err: any) {
         const status = err?.statusCode;
         if (status === 404 || status === 410) deadIds.push(s.id);

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
 import { sendTemplateEmail } from "@/lib/email-templates/send-email";
+import { redactError, redactId, redactPrefixedId } from "@/lib/log-redact";
 
 // Defer client construction until first use so env var availability is not
 // assumed at module load time.
@@ -49,7 +50,7 @@ async function sendWelcomeIfFirst(
 
   const { data: userRes, error: userErr } = await supabase.auth.admin.getUserById(userId);
   if (userErr || !userRes.user?.email) {
-    console.error("Welcome email: no user email", userId, userErr);
+    console.error("Welcome email: no user email", redactId(userId), redactError(userErr));
     return;
   }
 
@@ -64,10 +65,11 @@ async function sendWelcomeIfFirst(
       console.log("Welcome email not sent:", result.reason);
     }
   } catch (e) {
-    console.error("Welcome email failed:", e);
+    console.error("Welcome email failed:", redactError(e));
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   const userId = subscription.metadata?.userId;
   if (!userId) {
@@ -111,6 +113,7 @@ async function handleSubscriptionCreated(subscription: any, env: StripeEnv) {
   await sendWelcomeIfFirst(userId, subscription.id, tier, subscription.status);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
   const item = subscription.items?.data?.[0];
   const priceId =
@@ -135,6 +138,7 @@ async function handleSubscriptionUpdated(subscription: any, env: StripeEnv) {
     .eq("environment", env);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
   await getSupabase()
     .from("subscriptions")
@@ -146,10 +150,11 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     .eq("environment", env);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function handleCheckoutSessionCompleted(session: any, env: StripeEnv) {
   // Subscription checkouts are handled by the subscription.created/updated
   // webhooks. One-time payments would land here if needed in the future.
-  console.log("Checkout session completed:", session.id, env);
+  console.log("Checkout session completed:", redactPrefixedId(session.id), env);
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
@@ -189,7 +194,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           await handleWebhook(request, env);
           return Response.json({ received: true });
         } catch (e) {
-          console.error("Webhook error:", e);
+          console.error("Webhook error:", redactError(e));
           return new Response("Webhook error", { status: 400 });
         }
       },

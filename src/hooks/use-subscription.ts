@@ -31,6 +31,9 @@ export function useSubscription() {
       return result;
     },
     staleTime: 1000 * 60 * 2,
+    // A network blip must not read as "no subscription" — retry before the
+    // UI is allowed to conclude anything about entitlement.
+    retry: 2,
   });
 }
 

@@ -25,6 +25,11 @@ declare global {
 
 export function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
+  // Also record it in our own production error monitor so boundary-caught
+  // errors show up on the admin health dashboard, not just in the editor.
+  void import("@/lib/client-error-monitor").then((m) =>
+    m.captureClientError(error, context, "react_error_boundary"),
+  );
   window.__lovableEvents?.captureException?.(
     error,
     {

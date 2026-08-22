@@ -10,7 +10,7 @@ type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "value" 
  * A numeric field that cannot be changed by anything except typing.
  *
  * It renders `type="text"` with `inputMode="decimal"`, so mobile still gets the
- * number pad but the browser's spinner behaviour — wheel scroll and Up/Down
+ * number pad but the browser's spinner behavior — wheel scroll and Up/Down
  * arrows silently incrementing a focused field — simply does not exist. Input
  * is sanitised to a plain decimal on every keystroke.
  */

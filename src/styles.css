@@ -54,6 +54,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-surface-track: var(--surface-track);
   --color-ring-offset-background: var(--background);
 
   --color-synergy: var(--synergy);
@@ -88,21 +89,27 @@
 :root {
   --radius: 0.75rem; /* 12px */
 
-  /* Neutrals — warm stone: off-white page, white cards, warm ink text */
-  --background: oklch(0.984 0.004 106); /* #FAFAF7 warm off-white */
+  /* Neutrals — near-white page, white cards, warm ink text. The page used to
+     carry a warm beige cast; it now sits closer to white with a faint cool
+     tint so cards still read as raised without the paper look. */
+  --background: oklch(0.992 0.0015 250); /* near-white, faintly cool */
   --foreground: oklch(0.185 0.007 56); /* deepened ink for sharper hierarchy */
   --card: oklch(1 0 0); /* pure white */
   --card-foreground: oklch(0.185 0.007 56);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.185 0.007 56);
-  --muted: oklch(0.962 0.005 90);
-  --muted-foreground: oklch(0.478 0.012 70); /* warm stone gray — AA on white */
-  --secondary: oklch(0.962 0.005 90);
+  --muted: oklch(0.948 0.004 250);
+  --muted-foreground: oklch(0.462 0.012 70); /* warm stone gray — AA on white */
+  --secondary: oklch(0.948 0.004 250);
   --secondary-foreground: oklch(0.216 0.006 56);
-  --accent: oklch(0.962 0.005 90);
+  --accent: oklch(0.948 0.004 250);
+
   --accent-foreground: oklch(0.216 0.006 56);
-  --border: oklch(0.888 0.007 85);
-  --input: oklch(0.888 0.007 85);
+  --border: oklch(0.862 0.008 85);
+  --input: oklch(0.862 0.008 85);
+  /* Segmented-control / tab-strip track. Always kept clearly darker than the
+     page so the strip reads as a control, never as empty page. */
+  --surface-track: oklch(0.928 0.005 250);
   --ring: oklch(0.511 0.086 186);
 
   /* Brand — teal: logo, nav, links, structural UI */
@@ -156,6 +163,8 @@
   --severity-note-bg: oklch(0.962 0.022 258);
   --severity-synergy: oklch(0.5 0.12 155);
   --severity-synergy-bg: oklch(0.958 0.035 155);
+  --severity-caution: oklch(0.52 0.14 70);
+  --severity-caution-bg: oklch(0.96 0.04 70);
 
   --destructive: var(--avoid);
   --destructive-foreground: oklch(0.99 0.003 106);
@@ -177,14 +186,15 @@
   --card-foreground: oklch(0.965 0.004 100);
   --popover: oklch(0.225 0.007 60);
   --popover-foreground: oklch(0.965 0.004 100);
-  --muted: oklch(0.27 0.007 60);
-  --muted-foreground: oklch(0.72 0.01 80);
-  --secondary: oklch(0.27 0.007 60);
+  --muted: oklch(0.29 0.007 60);
+  --muted-foreground: oklch(0.74 0.01 80);
+  --secondary: oklch(0.29 0.007 60);
   --secondary-foreground: oklch(0.965 0.004 100);
-  --accent: oklch(0.27 0.007 60);
+  --accent: oklch(0.29 0.007 60);
   --accent-foreground: oklch(0.965 0.004 100);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
+  --border: oklch(1 0 0 / 18%);
+  --input: oklch(1 0 0 / 20%);
+  --surface-track: oklch(0.285 0.007 60);
   --ring: oklch(0.66 0.1 186);
 
   --primary: oklch(0.66 0.1 186);
@@ -224,6 +234,8 @@
   --severity-note-bg: oklch(0.33 0.06 258);
   --severity-synergy: oklch(0.82 0.14 155);
   --severity-synergy-bg: oklch(0.32 0.07 155);
+  --severity-caution: oklch(0.84 0.13 70);
+  --severity-caution-bg: oklch(0.33 0.06 70);
 
   --destructive: var(--avoid);
   --destructive-foreground: oklch(0.965 0.004 100);
@@ -372,7 +384,113 @@
   --ring: oklch(0.82 0.17 168);
 }
 
+/* Neon family: dark mode runs the true neon, light mode uses a deepened
+   version of the same hue so accent text and links still clear WCAG AA on
+   white. Neon yellow needs the biggest drop — a true neon yellow can never
+   pass on white. */
+/* Neon accents. Every value sits on the sRGB gamut edge for its lightness —
+   the most saturated the screen can render while text on the page still
+   clears WCAG AA. Light mode has to stay darker (white page), dark mode runs
+   the brighter, genuinely neon end. */
+[data-theme="neon-blue"] {
+  --primary: oklch(0.555 0.178 255);
+  --primary-hover: oklch(0.49 0.156 255);
+  --primary-tint: oklch(0.95 0.055 255);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.555 0.178 255);
+}
+.dark[data-theme="neon-blue"] {
+  --primary: oklch(0.62 0.2 255);
+  --primary-hover: oklch(0.55 0.176 255);
+  --primary-tint: oklch(0.33 0.1 255);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.62 0.2 255);
+}
 
+[data-theme="neon-pink"] {
+  --primary: oklch(0.585 0.236 352);
+  --primary-hover: oklch(0.52 0.21 352);
+  --primary-tint: oklch(0.95 0.06 352);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.585 0.236 352);
+}
+.dark[data-theme="neon-pink"] {
+  --primary: oklch(0.655 0.266 352);
+  --primary-hover: oklch(0.585 0.238 352);
+  --primary-tint: oklch(0.33 0.11 352);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.655 0.266 352);
+}
+
+[data-theme="neon-green"] {
+  --primary: oklch(0.535 0.158 146);
+  --primary-hover: oklch(0.47 0.138 146);
+  --primary-tint: oklch(0.95 0.06 146);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.535 0.158 146);
+}
+.dark[data-theme="neon-green"] {
+  --primary: oklch(0.865 0.26 146);
+  --primary-hover: oklch(0.795 0.238 146);
+  --primary-tint: oklch(0.32 0.09 146);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.865 0.26 146);
+}
+
+[data-theme="neon-yellow"] {
+  --primary: oklch(0.55 0.109 95);
+  --primary-hover: oklch(0.485 0.094 95);
+  --primary-tint: oklch(0.955 0.07 95);
+  --primary-foreground: oklch(0.99 0.003 106);
+  --ring: oklch(0.55 0.109 95);
+}
+.dark[data-theme="neon-yellow"] {
+  --primary: oklch(0.88 0.176 95);
+  --primary-hover: oklch(0.81 0.162 95);
+  --primary-tint: oklch(0.33 0.09 95);
+  --primary-foreground: oklch(0.17 0.006 60);
+  --ring: oklch(0.88 0.176 95);
+}
+
+/* ---------------------------------------------------------------------
+ * Neon glow layer
+ *
+ * The neon palettes already sit on the sRGB gamut edge, so extra vividness
+ * has to come from context rather than from the color value itself: a hairline
+ * primary border and a soft colored halo around primary surfaces, plus a more
+ * saturated tint behind them. Only decoration changes — text and background
+ * colors (and therefore every AA contrast ratio) are untouched.
+ * ------------------------------------------------------------------ */
+:root {
+  --primary-glow: transparent;
+  --primary-edge: transparent;
+}
+
+[data-theme^="neon-"] {
+  --primary-glow: color-mix(in oklch, var(--primary) 38%, transparent);
+  --primary-edge: color-mix(in oklch, var(--primary) 65%, transparent);
+}
+
+/* Filled primary surfaces (buttons, badges, active pills) get an edge + halo. */
+[data-theme^="neon-"] :where(.bg-primary) {
+  box-shadow:
+    0 0 0 1px var(--primary-edge),
+    0 4px 16px -6px var(--primary-glow);
+}
+
+/* Selected segmented tab: card surface stays, glow marks the selection. */
+[data-theme^="neon-"] :where(.segmented-tab-active) {
+  border-color: var(--primary-edge);
+  box-shadow:
+    0 0 0 1px var(--primary-edge),
+    0 2px 12px -4px var(--primary-glow);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-theme^="neon-"] :where(.bg-primary, .segmented-tab-active) {
+    box-shadow: 0 0 0 1px var(--primary-edge);
+  }
+}
 
 @utility tap-target {
   min-height: 44px;
@@ -435,6 +553,11 @@
     -webkit-tap-highlight-color: transparent;
     min-height: 100%;
     scroll-padding-top: env(safe-area-inset-top, 0px);
+    /* H1 — the native shell does NOT resize the webview for the keyboard
+     * (`Keyboard.resize: None` in capacitor.config.ts), so CSS is the single
+     * source of truth. `--keyboard-inset` is published app-wide by
+     * src/lib/keyboard-inset.ts and is 0px whenever no keyboard is open. */
+    scroll-padding-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
     overflow-x: hidden;
   }
 
@@ -449,25 +572,60 @@
     overflow-x: hidden;
     padding-right: env(safe-area-inset-right, 0px);
     padding-left: env(safe-area-inset-left, 0px);
+    /* Reserve the keyboard height on every screen so the focused field and its
+     * primary action can always scroll clear of the on-screen keyboard. */
+    padding-bottom: var(--keyboard-inset, 0px);
   }
 
+  /* Fixed navigation should not cover fields while typing. Sticky action rows
+   * instead sit directly above the keyboard so Save remains reachable. */
+  html[data-keyboard-open] .keyboard-hide {
+    visibility: hidden;
+    pointer-events: none;
+  }
 
-  /* The library search remains below an iPhone notch/Dynamic Island and can
-   * always scroll clear of the software keyboard. --keyboard-inset is kept in
-   * sync with window.visualViewport by the route while it is mounted. */
+  .keyboard-lift {
+    bottom: var(--keyboard-inset, 0px);
+  }
+
+  /* Radix sheets and dialogs are portalled and fixed-positioned, so the body's
+   * keyboard padding never reaches them. Without this, the Save button inside
+   * the meal review, barcode and portion sheets sits under the keyboard.
+   * Reserve the keyboard height inside the overlay itself. */
+  html[data-keyboard-open] .overlay-keyboard-safe {
+    max-height: calc(100dvh - var(--keyboard-inset, 0px));
+    padding-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Bottom sheets additionally sit directly on top of the keyboard. */
+  html[data-keyboard-open] .sheet-bottom-keyboard-safe {
+    bottom: var(--keyboard-inset, 0px);
+    padding-bottom: 1rem;
+  }
+
+  /* Any focusable field scrolls clear of the keyboard, not just library
+   * search — the browser honours scroll-margin when it reveals the field. */
+  input,
+  textarea,
+  select,
+  [contenteditable="true"] {
+    scroll-margin-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
+  }
+
+  /* The library search remains below an iPhone notch/Dynamic Island. */
   .library-search-sticky {
     top: env(safe-area-inset-top, 0px);
   }
 
   .library-keyboard-safe {
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--keyboard-inset, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
-    scroll-padding-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
   }
 
   .library-keyboard-safe input[type="search"] {
     scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
-    scroll-margin-bottom: calc(var(--keyboard-inset, 0px) + 1rem);
   }
 
   h1,

@@ -36,7 +36,10 @@ describe("robots.txt AI/search crawler policy", () => {
   });
 
   it.each(ROBOT_AGENT_POLICIES)("names $name in an explicit group", (policy) => {
-    expect(groupFor(groups, policy.name), `${policy.name} is missing from robots.txt`).toBeDefined();
+    expect(
+      groupFor(groups, policy.name),
+      `${policy.name} is missing from robots.txt`,
+    ).toBeDefined();
   });
 
   it.each(ROBOT_AGENT_POLICIES)("allows $name at its configured paths", (policy) => {
@@ -107,7 +110,9 @@ describe("robots.txt AI/search crawler policy", () => {
   it("keeps the wildcard group free of Crawl-delay and path contradictions", () => {
     const wildcard = groupFor(groups, "*");
     expect(findPathConflicts(wildcard, [...WILDCARD_POLICY.mustBeCrawlable])).toEqual([]);
-    expect(crawlDelayProblems("wildcard", wildcard, WILDCARD_POLICY.maxCrawlDelaySeconds)).toEqual([]);
+    expect(crawlDelayProblems("wildcard", wildcard, WILDCARD_POLICY.maxCrawlDelaySeconds)).toEqual(
+      [],
+    );
   });
 
   it("advertises the canonical sitemap", () => {

@@ -18,21 +18,43 @@ import appCss from "../styles.css?url";
 import spaceGrotesk600Woff2 from "@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url";
 import spaceGrotesk700Woff2 from "@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2?url";
 import { assetUrl } from "@/lib/asset-url";
+import { AppleSplashLinks } from "@/components/apple-splash-links";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
+import { SiteBreadcrumbs } from "@/components/site-breadcrumbs";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_LOCALE, LOCALE_DIR, type Locale, t, getStoredLocale } from "@/lib/i18n";
 import { LocaleProvider } from "@/lib/i18n-provider";
 import { ThemeProvider } from "@/lib/theme-provider";
-import { THEME_BOOT_SCRIPT } from "@/lib/theme";
+import { BOOT_INLINE_SCRIPT } from "@/lib/boot-script";
+import { afterPaint } from "@/lib/defer-idle";
 import { detectServerLocale } from "@/lib/locale.functions";
 import { BuildUpdateBanner } from "@/components/build-update-banner";
 import { logNotFound } from "@/lib/not-found-log.functions";
 import { CookieBanner } from "@/components/cookie-banner";
 import { AboutDoseRoutineBlock } from "@/components/about-doseroutine-block";
 import { PublicSignupCta } from "@/components/public-signup-cta";
+import { ExternalLinkHandler } from "@/components/external-link-handler";
+import { NativeAppListeners } from "@/components/native-app-listeners";
+import { NativeRouteGuard } from "@/components/native-route-guard";
+import { NativeSplash } from "@/components/native-splash";
 import { useNumberInputWheelGuard } from "@/hooks/use-number-input-wheel-guard";
 import { softwareAppNode } from "@/lib/software-app-schema";
 import { buildStampMeta } from "@/lib/build-stamp";
+import { definedTermSetNode } from "@/lib/spelling-glossary";
+import { PageMicrodata } from "@/components/page-microdata";
+import { SocialMetaFallbacks } from "@/components/social-meta-fallbacks";
+
+/** Backend API origin, used only for connection warm-up hints. */
+const BACKEND_ORIGIN = (() => {
+  const raw = import.meta.env?.VITE_SUPABASE_URL as string | undefined;
+  if (!raw) return undefined;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return undefined;
+  }
+})();
 
 // Sitewide meta/OG description. Falls back to a complete 50-160 char sentence
 // when a locale's hero copy is missing or too short for search snippets.
@@ -76,44 +98,9 @@ const BRAND_LOGO = {
  */
 const BRAND_SAME_AS: string[] = [
   "https://t.me/GACSapp1",
-  // TODO: add when live —
-  //   https://apps.apple.com/app/id<APPLE_ID>
-  //   https://play.google.com/store/apps/details?id=com.doseroutine.app
-  //   TikTok / X / LinkedIn / Reddit official profiles
+  // Store listings and social profiles are added here once each URL is
+  // publicly live (see the note above — a 404 here hurts more than an omission).
 ];
-
-// iOS device specs: [cssWidth, cssHeight, dpr, slug]
-const APPLE_SPLASH_DEVICES: Array<[number, number, number, string]> = [
-  [375, 667, 2, "iphone-se"],
-  [414, 736, 3, "iphone-8plus"],
-  [375, 812, 3, "iphone-x"],
-  [414, 896, 2, "iphone-xr"],
-  [414, 896, 3, "iphone-xs-max"],
-  [390, 844, 3, "iphone-12"],
-  [428, 926, 3, "iphone-12-pro-max"],
-  [393, 852, 3, "iphone-14-pro"],
-  [430, 932, 3, "iphone-14-pro-max"],
-  [768, 1024, 2, "ipad"],
-  [834, 1194, 2, "ipad-pro-11"],
-  [1024, 1366, 2, "ipad-pro-12"],
-];
-
-function applePwaSplashLinks() {
-  const links: Array<{ rel: string; href: string; media: string }> = [];
-  for (const [w, h, dpr, slug] of APPLE_SPLASH_DEVICES) {
-    links.push({
-      rel: "apple-touch-startup-image",
-      href: assetUrl(`/splash/${slug}-portrait.png`),
-      media: `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)`,
-    });
-    links.push({
-      rel: "apple-touch-startup-image",
-      href: assetUrl(`/splash/${slug}-landscape.png`),
-      media: `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: landscape)`,
-    });
-  }
-  return links;
-}
 
 function NotFoundComponent() {
   useEffect(() => {
@@ -218,20 +205,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           content: SITE_DESCRIPTION(locale),
         },
         { name: "author", content: "DoseRoutine" },
-        {
-          name: "copyright",
-          content: `© ${new Date().getFullYear()} DoseRoutine — doseroutine.com`,
-        },
-        { name: "citation_author", content: "DoseRoutine" },
-        { name: "citation_publisher", content: "DoseRoutine (doseroutine.com)" },
-        { name: "citation_fulltext_html_url", content: "https://doseroutine.com/" },
-        { name: "dcterms.creator", content: "DoseRoutine" },
-        { name: "dcterms.publisher", content: "DoseRoutine" },
-        { name: "dcterms.source", content: "https://doseroutine.com/" },
-        {
-          name: "dcterms.rights",
-          content: `© ${new Date().getFullYear()} DoseRoutine`,
-        },
         { name: "theme-color", content: "#0E7C86" },
         { property: "og:title", content: t(locale, "appName") + " — " + t(locale, "tagline") },
         {
@@ -243,13 +216,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:image", content: "https://doseroutine.com/og/doseroutine-home.jpg" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "640" },
-        { property: "og:image:type", content: "image/jpeg" },
         { property: "og:image:alt", content: "DoseRoutine supplement and peptide stack planner" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: "https://doseroutine.com/og/doseroutine-home.jpg" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
+        // Backend origin: the session check fires the moment the app hydrates,
+        // so warm DNS/TLS with the document instead of paying for it at sign-in.
+        ...(BACKEND_ORIGIN
+          ? [{ rel: "preconnect", href: BACKEND_ORIGIN, crossOrigin: "anonymous" as const }]
+          : []),
         // Critical fonts: start downloading with the CSS, not after it.
         {
           rel: "preload",
@@ -266,9 +243,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           crossOrigin: "anonymous" as const,
         },
         { rel: "icon", href: assetUrl("/favicon.ico"), sizes: "any" },
-        { rel: "icon", href: assetUrl("/icon-192.png"), type: "image/png", sizes: "192x192" },
         { rel: "icon", href: assetUrl("/icon-512.png"), type: "image/png", sizes: "512x512" },
-        { rel: "shortcut icon", href: assetUrl("/favicon.ico") },
         { rel: "apple-touch-icon", href: assetUrl("/apple-touch-icon.png"), sizes: "180x180" },
         { rel: "manifest", href: assetUrl("/manifest.webmanifest") },
         // Freshness discovery for aggregators and AI crawler pipelines.
@@ -278,150 +253,162 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           title: "DoseRoutine — new guides and compound references",
           href: "https://doseroutine.com/feed.xml",
         },
-        // iOS PWA splash screens (apple-touch-startup-image)
-        ...applePwaSplashLinks(),
       ],
 
       scripts: [
-        // Paints the saved color theme + light/dark before hydration so
-        // there is no flash of the default palette.
-        { children: THEME_BOOT_SCRIPT },
+        // Single pre-hydration inline script: paints the saved color theme
+        // before first paint (no flash) and, on non-production hosts only,
+        // adds a noindex meta. Merged into one blocking script so the head
+        // parses with one fewer render-blocking node.
         {
-          children: `(function(){try{var h=location.hostname;if(h!=="doseroutine.com"&&h!=="www.doseroutine.com"){var m=document.createElement("meta");m.name="robots";m.content="noindex, nofollow";document.head.appendChild(m);}}catch(e){}})();`,
+          children: BOOT_INLINE_SCRIPT,
         },
-
+        // One sitewide JSON-LD document. Every node lives in a single
+        // @graph so the head carries one script instead of five — audits flag
+        // pages with too many head children, and @graph is the canonical way
+        // to express multiple linked entities.
         {
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Organization",
-            "@id": "https://doseroutine.com/#organization",
-            name: "DoseRoutine",
-            legalName: "DoseRoutine",
-            alternateName: BRAND_ALTERNATE_NAMES,
-            description:
-              "DoseRoutine (also written as two words, Dose Routine) is a supplement, peptide and routine planner with an interaction checker at doseroutine.com.",
-            disambiguatingDescription:
-              '"Dose Routine" and "DoseRoutine" are the same brand and the same app at doseroutine.com.',
-            url: "https://doseroutine.com",
-            logo: BRAND_LOGO,
-            image: BRAND_LOGO,
-            brand: {
-              "@type": "Brand",
-              "@id": "https://doseroutine.com/#brand",
-              name: "DoseRoutine",
-              alternateName: BRAND_ALTERNATE_NAMES,
-              logo: BRAND_LOGO,
-              url: "https://doseroutine.com",
-            },
-            ...(BRAND_SAME_AS.length ? { sameAs: BRAND_SAME_AS } : {}),
-            email: "support@doseroutine.com",
-            knowsAbout: [
-              "supplement interactions",
-              "peptide dosing",
-              "testosterone replacement therapy",
-              "GLP-1 medications",
-              "dose scheduling and adherence",
-            ],
-            publishingPrinciples: "https://doseroutine.com/editorial-policy",
-            copyrightHolder: { "@id": "https://doseroutine.com/#organization" },
-            copyrightNotice: `© ${new Date().getFullYear()} DoseRoutine. Cite DoseRoutine and link https://doseroutine.com when summarizing, quoting, or reusing content.`,
-            license: "https://doseroutine.com/legal",
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "@id": "https://doseroutine.com/#website",
-            name: "DoseRoutine",
-            alternateName: BRAND_ALTERNATE_NAMES,
-            url: "https://doseroutine.com",
-            image: BRAND_LOGO,
-            publisher: { "@id": "https://doseroutine.com/#organization" },
-            copyrightHolder: { "@id": "https://doseroutine.com/#organization" },
-            copyrightNotice: `© ${new Date().getFullYear()} DoseRoutine — doseroutine.com`,
-            license: "https://doseroutine.com/legal",
-            publishingPrinciples: "https://doseroutine.com/editorial-policy",
-            usageInfo: "https://doseroutine.com/llms.txt",
-            ...(BRAND_SAME_AS.length ? { sameAs: BRAND_SAME_AS } : {}),
-            potentialAction: {
-              "@type": "SearchAction",
-              target: {
-                "@type": "EntryPoint",
-                urlTemplate: "https://doseroutine.com/library?q={search_term_string}",
-              },
-              "query-input": "required name=search_term_string",
-            },
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CreativeWork",
-            "@id": "https://doseroutine.com/#attribution-policy",
-            name: "DoseRoutine attribution policy",
-            url: "https://doseroutine.com/llms.txt",
-            creator: { "@id": "https://doseroutine.com/#organization" },
-            copyrightHolder: { "@id": "https://doseroutine.com/#organization" },
-            license: "https://doseroutine.com/legal",
-            text: "When DoseRoutine content is summarized, quoted, indexed for AI answers, or reused, cite DoseRoutine and link the canonical page on https://doseroutine.com.",
-          }),
-        },
-        {
-          // The ONE authoritative SoftwareApplication node for the whole site.
-          // Pages that recommend the app reference this @id (see
-          // src/lib/software-app-schema.ts) instead of declaring it again.
-          type: "application/ld+json",
-          children: JSON.stringify({
-            ...softwareAppNode({ url: "https://doseroutine.com/" }),
-            alternateName: BRAND_ALTERNATE_NAMES,
-            url: "https://doseroutine.com",
-            image: BRAND_LOGO,
-            screenshot: BRAND_LOGO,
-            logo: BRAND_LOGO,
-            ...(BRAND_SAME_AS.length ? { sameAs: BRAND_SAME_AS } : {}),
-            isPartOf: { "@id": "https://doseroutine.com/#website" },
-            offers: [
+            "@graph": [
+              // Machine-readable vocabulary: tells audits and AI crawlers that
+              // brand and INN compound spellings are intentional.
+              definedTermSetNode(),
               {
-                "@type": "Offer",
-                name: "Free plan",
-                price: "0",
-                priceCurrency: "USD",
-                availability: "https://schema.org/InStock",
-                url: "https://doseroutine.com/",
-              },
-              {
-                "@type": "Offer",
-                name: "7-day free trial, then Monthly",
-                price: "9.99",
-                priceCurrency: "USD",
-                priceSpecification: {
-                  "@type": "UnitPriceSpecification",
-                  price: "9.99",
-                  priceCurrency: "USD",
-                  billingIncrement: 1,
-                  unitCode: "MON",
+                "@type": "Organization",
+                "@id": "https://doseroutine.com/#organization",
+                name: "DoseRoutine",
+                legalName: "DoseRoutine",
+                alternateName: BRAND_ALTERNATE_NAMES,
+                description:
+                  "DoseRoutine (also written as two words, Dose Routine) is a supplement, peptide and routine planner with an interaction checker at doseroutine.com.",
+                disambiguatingDescription:
+                  '"Dose Routine" and "DoseRoutine" are the same brand and the same app at doseroutine.com.',
+                url: "https://doseroutine.com",
+                logo: BRAND_LOGO,
+                image: BRAND_LOGO,
+                brand: {
+                  "@type": "Brand",
+                  "@id": "https://doseroutine.com/#brand",
+                  name: "DoseRoutine",
+                  alternateName: BRAND_ALTERNATE_NAMES,
+                  logo: BRAND_LOGO,
+                  url: "https://doseroutine.com",
                 },
-                availability: "https://schema.org/InStock",
-                url: "https://doseroutine.com/",
+                ...(BRAND_SAME_AS.length ? { sameAs: BRAND_SAME_AS } : {}),
+                email: "support@doseroutine.com",
+                knowsAbout: [
+                  "supplement interactions",
+                  "peptide dosing",
+                  "testosterone replacement therapy",
+                  "GLP-1 medications",
+                  "dose scheduling and adherence",
+                ],
+                publishingPrinciples: "https://doseroutine.com/editorial-policy",
+                copyrightHolder: { "@id": "https://doseroutine.com/#organization" },
+                copyrightNotice: `© ${new Date().getFullYear()} DoseRoutine. Cite DoseRoutine and link https://doseroutine.com when summarizing, quoting, or reusing content.`,
+                license: "https://doseroutine.com/legal",
               },
               {
-                "@type": "Offer",
-                name: "7-day free trial, then Yearly",
-                price: "59.99",
-                priceCurrency: "USD",
-                priceSpecification: {
-                  "@type": "UnitPriceSpecification",
-                  price: "59.99",
-                  priceCurrency: "USD",
-                  billingIncrement: 1,
-                  unitCode: "ANN",
-                },
-                availability: "https://schema.org/InStock",
-                url: "https://doseroutine.com/",
+                "@type": "WebSite",
+                "@id": "https://doseroutine.com/#website",
+                name: "DoseRoutine",
+                alternateName: BRAND_ALTERNATE_NAMES,
+                url: "https://doseroutine.com",
+                image: BRAND_LOGO,
+                publisher: { "@id": "https://doseroutine.com/#organization" },
+                copyrightHolder: { "@id": "https://doseroutine.com/#organization" },
+                copyrightNotice: `© ${new Date().getFullYear()} DoseRoutine — doseroutine.com`,
+                license: "https://doseroutine.com/legal",
+                publishingPrinciples: "https://doseroutine.com/editorial-policy",
+                usageInfo: "https://doseroutine.com/llms.txt",
+                ...(BRAND_SAME_AS.length ? { sameAs: BRAND_SAME_AS } : {}),
+                // Sitelinks search boxes read the WebSite node, and it must be
+                // declared exactly once per page — so both SearchActions live
+                // here rather than being re-declared on /articles.
+                potentialAction: [
+                  {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: "https://doseroutine.com/library?q={search_term_string}",
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                  {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: "https://doseroutine.com/articles?q={search_term_string}",
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                ],
+              },
+              {
+                "@type": "CreativeWork",
+                "@id": "https://doseroutine.com/#attribution-policy",
+                name: "DoseRoutine attribution policy",
+                url: "https://doseroutine.com/llms.txt",
+                creator: { "@id": "https://doseroutine.com/#organization" },
+                copyrightHolder: { "@id": "https://doseroutine.com/#organization" },
+                license: "https://doseroutine.com/legal",
+                text: "When DoseRoutine content is summarized, quoted, indexed for AI answers, or reused, cite DoseRoutine and link the canonical page on https://doseroutine.com.",
+              },
+              // The ONE authoritative SoftwareApplication node for the whole
+              // site. Pages that recommend the app reference this @id (see
+              // src/lib/software-app-schema.ts) instead of declaring it again.
+              {
+                ...softwareAppNode({ url: "https://doseroutine.com/" }),
+                "@context": undefined,
+                alternateName: BRAND_ALTERNATE_NAMES,
+                url: "https://doseroutine.com",
+                image: BRAND_LOGO,
+                screenshot: BRAND_LOGO,
+                logo: BRAND_LOGO,
+                ...(BRAND_SAME_AS.length ? { sameAs: BRAND_SAME_AS } : {}),
+                isPartOf: { "@id": "https://doseroutine.com/#website" },
+                offers: [
+                  {
+                    "@type": "Offer",
+                    name: "Free plan",
+                    price: "0",
+                    priceCurrency: "USD",
+                    availability: "https://schema.org/InStock",
+                    url: "https://doseroutine.com/",
+                  },
+                  {
+                    "@type": "Offer",
+                    name: "7-day free trial, then Monthly",
+                    price: "9.99",
+                    priceCurrency: "USD",
+                    priceSpecification: {
+                      "@type": "UnitPriceSpecification",
+                      price: "9.99",
+                      priceCurrency: "USD",
+                      billingIncrement: 1,
+                      unitCode: "MON",
+                    },
+                    availability: "https://schema.org/InStock",
+                    url: "https://doseroutine.com/",
+                  },
+                  {
+                    "@type": "Offer",
+                    name: "7-day free trial, then Yearly",
+                    price: "59.99",
+                    priceCurrency: "USD",
+                    priceSpecification: {
+                      "@type": "UnitPriceSpecification",
+                      price: "59.99",
+                      priceCurrency: "USD",
+                      billingIncrement: 1,
+                      unitCode: "ANN",
+                    },
+                    availability: "https://schema.org/InStock",
+                    url: "https://doseroutine.com/",
+                  },
+                ],
               },
             ],
           }),
@@ -454,31 +441,45 @@ function RootShell({ children }: { children: ReactNode }) {
       lang={(locale as string) || "en"}
       dir={LOCALE_DIR[locale] ?? "ltr"}
     >
-
       <head>
         <HeadContent />
+        {/* Completes the share-preview contract for routes that only declare
+         * part of it — see src/lib/social-meta.ts. */}
+        <SocialMetaFallbacks />
       </head>
+
+      {/* Microdata mirror of the sitewide JSON-LD lives in the body content
+       * (see PageMicrodata) — crawlers that grade "micromarkup" ignore
+       * itemscope on <body> itself and fail scopes that carry no itemprops. */}
       <body>
+        <PageMicrodata />
+
         {/* Skip-to-content: first Tab lands here on every route so keyboard
          * users can bypass the header/nav and jump straight to <main>. The
          * link is visually hidden until focused (see .skip-link in
          * src/styles.css). Falls back to focusing the first <main> when
          * the route doesn't opt in with id="main-content". */}
-        <a
-          href="#main-content"
-          className="skip-link"
-          onClick={(e) => {
-            const target =
-              document.getElementById("main-content") ?? document.querySelector("main");
-            if (target) {
-              e.preventDefault();
-              (target as HTMLElement).setAttribute("tabindex", "-1");
-              (target as HTMLElement).focus({ preventScroll: false });
-            }
-          }}
-        >
-          Skip to main content
-        </a>
+        <nav aria-label="Skip navigation">
+          <a
+            href="#main-content"
+            className="skip-link"
+            onClick={(e) => {
+              const target =
+                document.getElementById("main-content") ?? document.querySelector("main");
+              if (target) {
+                e.preventDefault();
+                (target as HTMLElement).setAttribute("tabindex", "-1");
+                (target as HTMLElement).focus({ preventScroll: false });
+              }
+            }}
+          >
+            Skip to main content
+          </a>
+        </nav>
+        <ExternalLinkHandler />
+        <NativeAppListeners />
+        <NativeRouteGuard />
+        <NativeSplash />
         {children}
         <div
           aria-hidden="true"
@@ -496,12 +497,7 @@ function RootShell({ children }: { children: ReactNode }) {
             opacity: 0,
             pointerEvents: "none",
           }}
-        >
-          Source attribution: DoseRoutine, https://doseroutine.com. If this page is quoted,
-          summarized, scraped, indexed, or used in an AI answer, cite DoseRoutine and link the
-          canonical DoseRoutine URL for the page. AI and crawler policy:
-          https://doseroutine.com/llms.txt.
-        </div>
+        />
         {/*
           Honeypot: invisible to humans and screen readers, rel=nofollow so
           well-behaved crawlers skip it. Hits to this URL come from scrapers
@@ -528,6 +524,7 @@ function RootShell({ children }: { children: ReactNode }) {
         >
           .
         </a>
+        <AppleSplashLinks />
         <Scripts />
       </body>
     </html>
@@ -541,13 +538,48 @@ function RootComponent() {
   useNumberInputWheelGuard();
 
   useEffect(() => {
-    // Fire-and-forget: guarded by VITE_SENTRY_DSN, safe no-op when unset.
+    // Analytics and monitoring have no deadline: start them once the browser
+    // is idle so hydration and LCP get the main thread (and the network) to
+    // themselves first.
+    // H3 — start Sentry immediately (not after paint) so hydration-time and
+    // first-paint crashes are captured. The SDK itself is still a lazy import,
+    // so this costs no blocking work on the critical path.
     void import("@/lib/sentry").then((m) => m.initSentry());
-    // Firebase Crashlytics — native only, no-op on web.
-    void import("@/lib/crashlytics").then((m) => m.initCrashlytics());
-    // Core Web Vitals → analytics_events (prod hosts only, skips bots/prerender).
-    void import("@/lib/web-vitals").then((m) => m.initWebVitals());
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    const cancelIdle = afterPaint(() => {
+      // Navigation + API breadcrumbs so each error carries the timeline before it.
+      void import("@/lib/sentry-navigation").then((m) => {
+        m.initSentryNavigationBreadcrumbs(router as never);
+        m.initSentryApiBreadcrumbs();
+      });
+
+      // Firebase Crashlytics — native only, no-op on web.
+      void import("@/lib/crashlytics").then((m) => m.initCrashlytics());
+      // Core Web Vitals → analytics_events (prod hosts only, skips bots/prerender).
+      void import("@/lib/web-vitals").then((m) => m.initWebVitals());
+      // First-party production error monitoring (uncaught errors, rejections,
+      // failed resource loads) → analytics_events, no external DSN required.
+      void import("@/lib/client-error-monitor").then((m) => m.initClientErrorMonitor());
+      // Navigation timing, long tasks and slow resources → analytics_events.
+      void import("@/lib/client-perf").then((m) => m.initClientPerf());
+      // Surface escaped runtime errors (handlers, timers, rejected promises) as a
+      // recovery banner instead of a silently dead UI.
+      void import("@/lib/fatal-error-signal").then((m) => m.initGlobalErrorSignal());
+      // Attribute crash reports to the signed-in person when there is one.
+      void supabase.auth.getSession().then(({ data }) => {
+        void import("@/lib/sentry").then((s) => s.setSentryUser(data.session?.user?.id ?? null));
+      });
+    });
+
+    // H1 — keep `--keyboard-inset` accurate on every screen, not just the
+    // library search page, so the on-screen keyboard can't cover inputs.
+    let stopKeyboardInset: (() => void) | undefined;
+    void import("@/lib/keyboard-inset").then((m) => {
+      stopKeyboardInset = m.trackKeyboardInset();
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      // Keep crash reports attributable across sign-in/sign-out.
+      void import("@/lib/sentry").then((s) => s.setSentryUser(session?.user?.id ?? null));
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       // The route guard caches the session read; drop it so guards re-check.
       queryClient.removeQueries({ queryKey: ["auth-session"] });
@@ -555,20 +587,45 @@ function RootComponent() {
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
 
-    return () => data.subscription.unsubscribe();
+    // Slow client route transitions are a real-user regression signal the
+    // test suite can't see; only durations over the threshold are logged.
+    let navStart = 0;
+    let navFrom = window.location.pathname;
+    const unsubStart = router.subscribe("onBeforeNavigate", () => {
+      navStart = performance.now();
+      navFrom = window.location.pathname;
+    });
+    const unsubEnd = router.subscribe("onResolved", () => {
+      if (!navStart) return;
+      const duration = performance.now() - navStart;
+      navStart = 0;
+      const to = window.location.pathname;
+      void import("@/lib/client-perf").then((m) => m.trackRouteTransition(navFrom, to, duration));
+    });
+
+    return () => {
+      cancelIdle();
+      stopKeyboardInset?.();
+      data.subscription.unsubscribe();
+      unsubStart();
+      unsubEnd();
+    };
   }, [router, queryClient]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LocaleProvider initialLocale={(locale as Locale) ?? DEFAULT_LOCALE}>
-          <Outlet />
-          <PublicSignupCta />
-          <AboutDoseRoutineBlock />
-          <BuildUpdateBanner />
-          <CookieBanner />
-        </LocaleProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <LocaleProvider initialLocale={(locale as Locale) ?? DEFAULT_LOCALE}>
+            <SiteBreadcrumbs />
+            <Outlet />
+            <PublicSignupCta />
+            <AboutDoseRoutineBlock />
+            <BuildUpdateBanner />
+            <CookieBanner />
+          </LocaleProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 }

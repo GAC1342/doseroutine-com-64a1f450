@@ -6,6 +6,7 @@ import { articleScript } from "@/lib/article-schema";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
 export const CANONICAL = "https://doseroutine.com/trt-supplement-interactions";
 export const TITLE = "TRT & Supplement Stack Checker — What Mixes Safely";
@@ -85,7 +86,7 @@ export const Route = createFileRoute("/trt-supplement-interactions")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/trt-supplement-interactions"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       breadcrumbScript(CANONICAL, [
         { name: "Interaction Checker", path: "/interaction-checker" },
         { name: "TRT & Supplement Interactions", path: "/trt-supplement-interactions" },
@@ -128,7 +129,7 @@ export const Route = createFileRoute("/trt-supplement-interactions")({
           })),
         }),
       },
-    ],
+    ]),
   }),
   component: TrtSupplementInteractionsPage,
 });
@@ -137,7 +138,7 @@ function TrtSupplementInteractionsPage() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <div className="mx-auto max-w-3xl px-4 pb-24 pt-8">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 pb-24 pt-8">
         <nav className="mb-4 text-xs text-muted-foreground">
           <Link to="/interaction-checker" className="hover:text-foreground">
             ← Interaction Checker
@@ -162,11 +163,14 @@ function TrtSupplementInteractionsPage() {
           </p>
         </header>
 
-        <aside className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-xs leading-relaxed text-foreground/90">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+        <aside
+          aria-label="Safety notice"
+          className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-xs leading-relaxed text-foreground/90"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
-            <strong>DoseRoutine is a tracking and organisation tool.</strong> This page is general
-            information to help you organise a routine — it is not advice and not a recommendation
+            <strong>DoseRoutine is a tracking and organization tool.</strong> This page is general
+            information to help you organize a routine — it is not advice and not a recommendation
             to use anything listed. TRT is prescriber-managed: talk to your doctor before you start,
             stop, or change anything.
           </div>
@@ -251,7 +255,7 @@ function TrtSupplementInteractionsPage() {
         </section>
 
         <DisclaimerFooter variant="safety" />
-      </div>
+      </main>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>
   );

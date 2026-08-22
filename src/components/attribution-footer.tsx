@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { EDITORIAL_AUTHOR } from "@/lib/editorial-author";
 
 /**
@@ -15,6 +15,17 @@ import { EDITORIAL_AUTHOR } from "@/lib/editorial-author";
  * `editorial={false}` is used on pages that already render a full
  * "About the author" card (blog posts) to avoid duplicating the same claims.
  */
+/** Turns an absolute doseroutine.com source URL into an in-app path. */
+function sameSitePath(sourceUrl?: string) {
+  if (!sourceUrl) return "/";
+  try {
+    const url = new URL(sourceUrl, "https://doseroutine.com");
+    return `${url.pathname}${url.search}${url.hash}` || "/";
+  } catch {
+    return "/";
+  }
+}
+
 export function AttributionFooter({
   sourceUrl,
   editorial = true,
@@ -65,14 +76,16 @@ export function AttributionFooter({
               </a>
             </li>
           </ul>
-
         </div>
       ) : null}
       <p>
         <strong>Original editorial compilation by DoseRoutine.</strong> © {year} DoseRoutine (
-        <a href={sourceUrl ?? "https://doseroutine.com"} className="underline" rel="canonical">
-          {sourceUrl ?? "doseroutine.com"}
-        </a>
+        {/* Self-referencing canonical link. In the native shell an absolute
+            doseroutine.com URL would bounce the reviewer out to Safari, so the
+            same-site path is navigated in-app while keeping rel="canonical". */}
+        <Link to={sameSitePath(sourceUrl) as LinkProps["to"]} className="underline" rel="canonical">
+          DoseRoutine
+        </Link>
         ).
       </p>
     </aside>

@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { DEFAULT_LOCALE, type Locale, LOCALE_DIR, getStoredLocale, storeLocale } from "./i18n";
-import { t } from "./i18n";
+import { DEFAULT_LOCALE, type Locale, LOCALE_DIR, getStoredLocale, storeLocale, t } from "./i18n";
 
 interface LocaleContextValue {
   locale: Locale;
@@ -20,8 +19,9 @@ export function LocaleProvider({
   const [locale, setLocaleState] = useState<Locale>(initialLocale ?? DEFAULT_LOCALE);
 
   useEffect(() => {
+    // Runs once on mount: adopt a previously stored locale preference.
     const stored = getStoredLocale();
-    if (stored && stored !== locale) setLocaleState(stored);
+    setLocaleState((current) => (stored && stored !== current ? stored : current));
   }, []);
 
   useEffect(() => {

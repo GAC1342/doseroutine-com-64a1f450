@@ -7,6 +7,7 @@ import {
   type SharedProtocolItem,
   type SharedProtocolSnapshot,
 } from "@/lib/shared-protocol";
+import { useConfirm } from "@/components/confirm-dialog";
 
 type UC = Database["public"]["Tables"]["user_compounds"]["Row"] & {
   compound: Database["public"]["Tables"]["compounds"]["Row"] | null;
@@ -60,6 +61,7 @@ export function ShareStackButton({ rows }: { rows: UC[] }) {
 }
 
 function ShareSheet({ rows, onClose }: { rows: UC[]; onClose: () => void }) {
+  const [confirmAction, confirmUi] = useConfirm();
   const [title, setTitle] = useState("My stack");
   const [links, setLinks] = useState<SharedRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,7 +129,12 @@ function ShareSheet({ rows, onClose }: { rows: UC[]; onClose: () => void }) {
   }
 
   async function revoke(token: string) {
-    if (!confirm("Revoke this link? Anyone with it will no longer be able to view.")) return;
+    const ok = await confirmAction({
+      title: "Revoke this link?",
+      description: "Anyone with it will no longer be able to view your stack.",
+      confirmLabel: "Revoke",
+    });
+    if (!ok) return;
     const { error } = await (
       supabase.from("shared_protocols" as never) as unknown as {
         delete: () => { eq: (col: string, val: string) => Promise<{ error: unknown }> };
@@ -149,6 +156,7 @@ function ShareSheet({ rows, onClose }: { rows: UC[]; onClose: () => void }) {
         className="w-full max-w-lg overflow-hidden rounded-t-3xl bg-background shadow-xl sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {confirmUi}
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="font-display text-lg font-semibold">Share your stack</h2>
           <button

@@ -4,10 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LayoutList } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { DEVICE_LABELS, type DeviceKind } from "@/lib/bot-sessions";
-import {
-  getLandingConversions,
-  type LandingWindow,
-} from "@/lib/landing-conversions.functions";
+import { getLandingConversions, type LandingWindow } from "@/lib/landing-conversions.functions";
 
 const DEVICE_FILTERS: { key: "all" | DeviceKind; label: string }[] = [
   { key: "all", label: "All devices" },
@@ -21,7 +18,7 @@ function pct(n: number) {
 }
 
 /**
- * Admin report: bounce rate and "save this result" / signup conversions split
+ * Admin report: bounce rate and "save this result" / sign-up conversions split
  * by the page a visitor landed on and the device they used.
  */
 export function LandingConversionsCard({
@@ -99,7 +96,7 @@ export function LandingConversionsCard({
         <div
           role="tablist"
           aria-label="Device filter"
-          className="inline-flex rounded-full border border-border bg-muted/40 p-0.5 text-xs"
+          className="inline-flex rounded-full border border-border bg-surface-track p-1 text-xs"
         >
           {DEVICE_FILTERS.map((d) => (
             <button

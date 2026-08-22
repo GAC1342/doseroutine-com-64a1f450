@@ -58,7 +58,9 @@ const BASELINE_TOLERANCE_PX = 4;
 const ASPECT_TOLERANCE = 0.02;
 
 if (!existsSync(DIR)) {
-  console.error(`No landscape ledgers found at ${DIR}. Run e2e/exercise-art-landscape.spec.ts first.`);
+  console.error(
+    `No landscape ledgers found at ${DIR}. Run e2e/exercise-art-landscape.spec.ts first.`,
+  );
   process.exit(1);
 }
 
@@ -77,7 +79,9 @@ const failures = [];
 
 for (const required of REQUIRED) {
   if (!projects.includes(required)) {
-    failures.push(`missing ledger for required project "${required}" (have: ${projects.join(", ") || "none"})`);
+    failures.push(
+      `missing ledger for required project "${required}" (have: ${projects.join(", ") || "none"})`,
+    );
   }
 }
 
@@ -87,7 +91,15 @@ for (const required of REQUIRED) {
 for (const ledger of ledgers) {
   for (const [viewport, entry] of Object.entries(ledger.viewports)) {
     const where = `${ledger.project}/${viewport}`;
-    const { dialog, image, viewport: vp, aspect, visualViewport: vv, bottomGap, pageOverflowX } = entry;
+    const {
+      dialog,
+      image,
+      viewport: vp,
+      aspect,
+      visualViewport: vv,
+      bottomGap,
+      pageOverflowX,
+    } = entry;
 
     if (!dialog || !image || !vp) {
       failures.push(`${where}: ledger is missing dialog/image/viewport — regenerate the ledger`);
@@ -112,7 +124,10 @@ for (const ledger of ledgers) {
     }
 
     // Horizontal containment + no page scroll.
-    if (image.x < dialog.x - SLACK_PX || image.x + image.width > dialog.x + dialog.width + SLACK_PX) {
+    if (
+      image.x < dialog.x - SLACK_PX ||
+      image.x + image.width > dialog.x + dialog.width + SLACK_PX
+    ) {
       failures.push(`${where}: image escapes the dialog horizontally`);
     }
     if (typeof pageOverflowX === "number" && pageOverflowX > SLACK_PX) {
@@ -121,7 +136,8 @@ for (const ledger of ledgers) {
 
     // Visual viewport (iOS Safari collapsing toolbars).
     if (vv) {
-      if (vv.top < -SLACK_PX) failures.push(`${where}: image top ${vv.top}px above the visual viewport`);
+      if (vv.top < -SLACK_PX)
+        failures.push(`${where}: image top ${vv.top}px above the visual viewport`);
       if (vv.bottom > vv.height + SLACK_PX) {
         failures.push(
           `${where}: image bottom ${vv.bottom}px below the ${vv.height}px visual viewport by ${vv.bottom - vv.height}px`,
@@ -172,7 +188,8 @@ if (ledgers.length > 1) {
       .map((l) => ({ project: l.project, value: l.viewports[viewport].aspect?.rendered }))
       .filter((v) => typeof v.value === "number");
     if (ratios.length > 1) {
-      const spread = Math.max(...ratios.map((r) => r.value)) - Math.min(...ratios.map((r) => r.value));
+      const spread =
+        Math.max(...ratios.map((r) => r.value)) - Math.min(...ratios.map((r) => r.value));
       if (spread > ASPECT_TOLERANCE) {
         failures.push(
           `${viewport}/aspect: cross-project spread ${spread.toFixed(4)} > ${ASPECT_TOLERANCE} (` +
@@ -200,7 +217,9 @@ const snapshot = {
             dialog: e.dialog,
             image: e.image,
             viewport: e.viewport,
-            aspect: e.aspect ? { rendered: e.aspect.rendered, natural: e.aspect.natural } : undefined,
+            aspect: e.aspect
+              ? { rendered: e.aspect.rendered, natural: e.aspect.natural }
+              : undefined,
           },
         ]),
       ),
@@ -234,7 +253,11 @@ if (UPDATE) {
       }
       const now = entry.aspect?.rendered;
       const then = baseEntry.aspect?.rendered;
-      if (typeof now === "number" && typeof then === "number" && Math.abs(now - then) > ASPECT_TOLERANCE) {
+      if (
+        typeof now === "number" &&
+        typeof then === "number" &&
+        Math.abs(now - then) > ASPECT_TOLERANCE
+      ) {
         failures.push(
           `${project}/${viewport}/aspect: drifted ${(now - then).toFixed(4)} from baseline (${then} -> ${now})`,
         );

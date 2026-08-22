@@ -4,13 +4,14 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/guides/erectile-dysfunction-supplements";
+export const CANONICAL = "https://doseroutine.com/library/guides/erectile-dysfunction-supplements";
 const TITLE = "ED Supplements: What Actually Has Evidence | DoseRoutine";
 const DESC =
   "Evidence-based supplements for mild erectile dysfunction: L-citrulline, pine bark extract, horny goat weed, plus when to skip them and see a doctor.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "Should I try supplements before seeing a doctor about ED?",
     a: "No. New-onset ED is often the earliest warning sign of cardiovascular disease. Get a full cardiovascular and hormone workup first. Supplements are for mild, situational issues — not for cardiac red flags.",
@@ -103,7 +104,7 @@ export const Route = createFileRoute("/library/guides/erectile-dysfunction-suppl
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/guides/erectile-dysfunction-supplements"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -118,8 +119,15 @@ export const Route = createFileRoute("/library/guides/erectile-dysfunction-suppl
           url: CANONICAL,
           image: ["https://doseroutine.com/og/guide-ed.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -161,7 +169,7 @@ export const Route = createFileRoute("/library/guides/erectile-dysfunction-suppl
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });

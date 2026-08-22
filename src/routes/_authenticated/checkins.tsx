@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { CardListSkeleton } from "@/components/skeletons";
+import { CardListSkeleton, LoadingStatus } from "@/components/skeletons";
 import { PageHeader } from "@/components/page-header";
 import { CheckinSheet, type CheckinValues } from "@/components/checkin-sheet";
 import { CHECKINS_KEY } from "@/components/stats-trend-card";
@@ -15,8 +15,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { reconcileRow } from "@/lib/reconcile";
 import { Card } from "@/components/ui/card";
+import { useConfirm } from "@/components/confirm-dialog";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/checkins")({
+  errorComponent: routeErrorComponent("checkins"),
   head: () => ({
     meta: [
       { title: "Check-ins — DoseRoutine" },
@@ -33,6 +36,7 @@ const KG_PER_LB = 0.45359237;
 const CM_PER_IN = 2.54;
 
 function CheckinsPage() {
+  const [confirmAction, confirmUi] = useConfirm();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Checkin | null>(null);
   const [newOpen, setNewOpen] = useState(false);
@@ -122,12 +126,17 @@ function CheckinsPage() {
   });
 
   async function onDelete(id: string) {
-    if (!confirm("Delete this check-in?")) return;
+    const ok = await confirmAction({
+      title: "Delete this check-in?",
+      description: "This entry will be removed from your history.",
+    });
+    if (!ok) return;
     deleteMutation.mutate(id);
   }
 
   return (
     <div>
+      {confirmUi}
       <PageHeader
         hideBack
         title="Check-ins"
@@ -146,7 +155,10 @@ function CheckinsPage() {
 
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-4 sm:px-6">
         {isLoading ? (
-          <CardListSkeleton count={5} itemClassName="h-16 w-full rounded-2xl" />
+          <div aria-busy="true">
+            <LoadingStatus label="Loading your check-ins…" />
+            <CardListSkeleton count={5} itemClassName="h-16 w-full rounded-2xl" />
+          </div>
         ) : checkins.length === 0 ? (
           <Card className="rounded-2xl border-dashed border-border p-8 text-center">
             <p className="font-display text-lg font-semibold">No check-ins yet</p>

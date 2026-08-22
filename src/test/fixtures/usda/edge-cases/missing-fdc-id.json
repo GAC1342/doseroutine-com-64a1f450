@@ -1,0 +1,10 @@
+{
+  "description": "Food with no FDC id",
+  "dataType": "Foundation",
+  "foodNutrients": [
+    {
+      "nutrientId": 1008,
+      "value": 100
+    }
+  ]
+}

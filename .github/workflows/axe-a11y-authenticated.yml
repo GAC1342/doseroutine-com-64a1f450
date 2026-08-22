@@ -1,0 +1,79 @@
+name: a11y-axe-authenticated
+
+# Signs into the app and runs axe-core against every authenticated route in
+# both light and dark mode. Fails when any violation has impact `critical` or
+# `serious`.
+#
+# Requires the TEST_USER_EMAIL / TEST_USER_PASSWORD repo secrets; without them
+# the spec skips (it cannot reach signed-in screens).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+
+concurrency:
+  group: axe-authenticated-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe-authenticated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Start app
+        run: |
+          npm run dev -- --port 8080 > dev-server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:8080/ && exit 0
+            sleep 2
+          done
+          echo "app did not boot"; cat dev-server.log; exit 1
+
+      - name: axe scan of authenticated routes (light + dark)
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:8080
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: npm run test:e2e:axe-authenticated
+
+      - name: Upload axe reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authenticated-axe-reports
+          path: |
+            test-results/authenticated-axe/
+            playwright-report/
+          retention-days: 7
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## ♿ Authenticated route accessibility"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ No critical/serious axe violations across authenticated routes (light + dark)."
+            else
+              echo "❌ Major accessibility violations found — see the uploaded reports."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

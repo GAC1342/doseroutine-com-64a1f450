@@ -22,6 +22,30 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>DoseRoutine uses the camera to scan supplement barcodes and photograph meals so it can log your nutrition.</string>
+	<!-- Used by the WKWebView file input on the meal logging screen ("Choose
+	     photo"). There is no native photo plugin; iOS still shows this string
+	     when the in-webview picker reads the photo library. -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DoseRoutine lets you choose an existing meal photo from your library to log its nutrition.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>DoseRoutine reads body weight, steps, active energy, and heart rate from Apple Health to enrich your dashboard.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>DoseRoutine writes completed workouts and logged nutrition to Apple Health so they show up alongside your other data.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.doseroutine.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.doseroutine.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
@@ -32,13 +56,11 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

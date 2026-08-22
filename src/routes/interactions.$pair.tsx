@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/accordion";
 import { ArrowRight, Clock, FlaskConical, ShieldQuestion } from "lucide-react";
 
-const SITE = "https://doseroutine.com";
+export const SITE = "https://doseroutine.com";
 
 export const Route = createFileRoute("/interactions/$pair")({
   loader: async ({ params, context }) => {
@@ -148,7 +148,12 @@ export const Route = createFileRoute("/interactions/$pair")({
                 image: socialImage,
                 datePublished: "2026-08-01T00:00:00Z",
                 dateModified: "2026-08-01T00:00:00Z",
-                author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine", url: SITE },
+                author: {
+                  "@type": "Organization",
+                  "@id": "https://doseroutine.com/#organization",
+                  name: "DoseRoutine",
+                  url: SITE,
+                },
                 publisher,
                 mainEntityOfPage: { "@type": "WebPage", "@id": url },
                 isPartOf: { "@id": `${url}#page` },

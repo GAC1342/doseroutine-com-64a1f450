@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Crown, X, ArrowRight } from "lucide-react";
 import { useAccess } from "@/hooks/use-access";
+import { useEntitlementSettled } from "@/hooks/use-entitlement-settled";
 import { trackEvent } from "@/lib/analytics";
 
 /**
@@ -12,9 +13,12 @@ import { trackEvent } from "@/lib/analytics";
 export function TrialExpiredBanner() {
   const navigate = useNavigate();
   const access = useAccess();
+  // Hold the render until entitlement is final — otherwise this banner flashes
+  // during the post-login / post-checkout entitlement refresh.
+  const settled = useEntitlementSettled();
   const [dismissed, setDismissed] = useState(false);
 
-  if (access.loading) return null;
+  if (!settled) return null;
   // Only show when the user has consumed their trial but currently has no
   // active subscription and is not grandfathered.
   if (access.fullAccess) return null;
@@ -39,7 +43,10 @@ export function TrialExpiredBanner() {
               type="button"
               onClick={() => {
                 trackEvent("trial_expired_upgrade_click", { source: "today_banner" });
-                navigate({ to: "/upgrade", search: { checkout: "1" as const, plan: "monthly" as const } });
+                navigate({
+                  to: "/upgrade",
+                  search: { checkout: "1" as const, plan: "monthly" as const },
+                });
               }}
               className="tap-target inline-flex items-center gap-1.5 rounded-xl bg-cta px-4 py-2 text-sm font-semibold text-cta-foreground hover:bg-cta-hover"
             >

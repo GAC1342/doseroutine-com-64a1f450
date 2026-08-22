@@ -1,0 +1,64 @@
+name: Dark mode contrast lint
+
+# Design-time token guard. Fails the build when a severity/chip/status colour,
+# link, muted helper text, skeleton placeholder or hover/focus state is written
+# as a light-only Tailwind palette class with no `dark:` counterpart, or when a
+# severity CSS variable is malformed.
+#
+# Every failure is annotated inline on the pull request with the file, line and
+# suggested replacement token, and summarised in a sticky PR comment.
+#
+# Mark this workflow as a REQUIRED status check on `main` so unreadable
+# dark-mode UI cannot merge.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**/*.tsx"
+      - "src/**/*.ts"
+      - "src/styles.css"
+      - "scripts/check-dark-contrast.mjs"
+      - "scripts/dark-contrast-token-map.mjs"
+      - "scripts/dark-contrast-allowlist.json"
+      - ".github/workflows/dark-contrast-lint.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint dark-mode contrast (inline PR annotations)
+        id: lint
+        run: bun run lint:dark-contrast:ci
+
+      - name: Build PR comment body
+        if: always() && github.event_name == 'pull_request'
+        run: node scripts/dark-contrast-pr-comment.mjs dark-contrast-report.json > dark-contrast-comment.md
+
+      - name: Comment findings on the pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: dark-contrast-lint
+          path: dark-contrast-comment.md
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dark-contrast-report
+          path: dark-contrast-report.json
+          retention-days: 7
+
+      - name: Unit tests for the contrast lint rules
+        run: bun run test:dark-contrast

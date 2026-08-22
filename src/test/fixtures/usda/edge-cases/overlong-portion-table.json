@@ -1,0 +1,77 @@
+{
+  "fdcId": 7000006,
+  "description": "Rice, brown, cooked (13 portions, one duplicate label)",
+  "dataType": "Survey (FNDDS)",
+  "foodNutrients": [
+    {
+      "nutrientNumber": "1008",
+      "value": 123
+    },
+    {
+      "nutrientNumber": "1003",
+      "value": 2.74
+    },
+    {
+      "nutrientNumber": "1005",
+      "value": 25.6
+    },
+    {
+      "nutrientNumber": "1004",
+      "value": 0.97
+    }
+  ],
+  "foodPortions": [
+    {
+      "gramWeight": 10,
+      "portionDescription": "portion 0"
+    },
+    {
+      "gramWeight": 11,
+      "portionDescription": "portion 1"
+    },
+    {
+      "gramWeight": 12,
+      "portionDescription": "portion 2"
+    },
+    {
+      "gramWeight": 13,
+      "portionDescription": "portion 3"
+    },
+    {
+      "gramWeight": 14,
+      "portionDescription": "portion 4"
+    },
+    {
+      "gramWeight": 15,
+      "portionDescription": "portion 5"
+    },
+    {
+      "gramWeight": 16,
+      "portionDescription": "portion 6"
+    },
+    {
+      "gramWeight": 17,
+      "portionDescription": "portion 7"
+    },
+    {
+      "gramWeight": 18,
+      "portionDescription": "portion 8"
+    },
+    {
+      "gramWeight": 19,
+      "portionDescription": "portion 9"
+    },
+    {
+      "gramWeight": 20,
+      "portionDescription": "portion 10"
+    },
+    {
+      "gramWeight": 21,
+      "portionDescription": "portion 11"
+    },
+    {
+      "gramWeight": 999,
+      "portionDescription": "portion 0"
+    }
+  ]
+}

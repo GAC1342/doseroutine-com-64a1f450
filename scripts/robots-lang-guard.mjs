@@ -13,10 +13,7 @@
  *         ROBOTS_HOSTS="https://a.com,https://b.com" node scripts/robots-lang-guard.mjs
  */
 
-export const DEFAULT_HOSTS = [
-  "https://doseroutine.com",
-  "https://www.doseroutine.com",
-];
+export const DEFAULT_HOSTS = ["https://doseroutine.com", "https://www.doseroutine.com"];
 
 /**
  * Returns every offending Disallow line that would block a lang-parameter URL.
@@ -111,8 +108,7 @@ async function main() {
   console.log("\nAll hosts pass the robots lang guard.");
 }
 
-const isDirectRun =
-  process.argv[1] && process.argv[1].endsWith("robots-lang-guard.mjs");
+const isDirectRun = process.argv[1] && process.argv[1].endsWith("robots-lang-guard.mjs");
 if (isDirectRun) {
   main().catch((err) => {
     console.error(err);

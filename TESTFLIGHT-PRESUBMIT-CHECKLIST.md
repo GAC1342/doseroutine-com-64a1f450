@@ -137,3 +137,47 @@ Only after every box above is checked:
 App Store Version page → **Add for Review** → **Submit for Review**.
 
 Expected review time: **24–48 hours** for a first submission of a health app. If rejected, the resolution note tells you exactly what to fix — reply in Resolution Center same day to keep momentum.
+
+## Native build parity & deep links (added after the Aug 2026 audit)
+
+- [ ] Run `npm run build && npx cap sync`, then `npm run verify:native-plugins`.
+      It fails if any installed Capacitor plugin is missing from
+      `ios/App/CapApp-SPM/Package.swift` or `android/app/capacitor.build.gradle`.
+      (`@capacitor-mlkit/barcode-scanning` is a documented iOS exception — it is
+      CocoaPods-only, so iOS falls back to the in-webview scanner.)
+- [ ] Confirm the `APPLE_TEAM_ID` environment variable is set on the production
+      deployment. Without it `https://doseroutine.com/.well-known/apple-app-site-association`
+      returns 404 and Universal Links silently open Safari instead of the app.
+      Verify with: `curl -I https://doseroutine.com/.well-known/apple-app-site-association`
+      (expect `200` and `content-type: application/json`).
+- [ ] Sign in with Apple and with Google on a real device — the system browser
+      must open; failures now surface a recovery message on `/auth`.
+
+## Build numbers (local archives)
+
+CI derives the build number from the release tag. If you archive locally from
+Xcode or Gradle instead, run `npm run bump:build` first — it increments
+`CURRENT_PROJECT_VERSION` (iOS) and `versionCode` (Android) together, so App
+Store Connect / Play never sees a duplicate build. `npm run bump:build -- --check`
+prints the current values and fails if the two platforms drift apart.
+
+## Webview navigation (no allowlist — on purpose)
+
+`capacitor.config.ts` sets **no** `server.allowNavigation`. Capacitor's default
+empty allowlist means every off-origin navigation is handed to the system
+browser, which is the behavior we want: `src/lib/external-link.ts` treats even
+our own subdomains as external so nobody gets trapped in the chromeless app
+shell (Apple Guideline 4.2). Adding hosts here would undo that — don't.
+
+`limitsNavigationsToAppBoundDomains` stays `false` because the OAuth round trip
+leaves the app-bound domain, but the sign-in pages open through the Browser
+plugin (`src/lib/native-oauth.ts`), never inside this webview.
+
+## iPad keyboard insets (known cosmetic limit)
+
+Keyboard avoidance uses `window.visualViewport` (`src/lib/keyboard-inset.ts`)
+rather than `@capacitor/keyboard`. This is accurate on iPhone and for the
+docked iPad keyboard, but split/floating iPad keyboards report no viewport
+change, so an input can sit behind a floating keyboard. Accepted as cosmetic;
+adding the plugin would require a native re-sync and a new parity entry.
+Re-evaluate if a reviewer or user reports it.

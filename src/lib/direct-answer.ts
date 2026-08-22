@@ -11,6 +11,7 @@
  */
 
 import { halfLifeLabel } from "./half-life-label";
+import { splitProseSentences } from "./compound-definition";
 
 export interface DirectAnswerCompound {
   name: string;
@@ -67,9 +68,9 @@ function joinList(items: string[]): string {
 }
 
 function splitSentences(text: string): string[] {
-  return (text.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [text])
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !MARKETING.test(s));
+  // Abbreviation-aware so "(e.g., barberry)" and "examine.com" never split a
+  // sentence into fragments that would later be published out of order.
+  return splitProseSentences(text).filter((s) => s.length > 0 && !MARKETING.test(s));
 }
 
 function humanCategory(cat: string | null | undefined): string {
@@ -135,21 +136,29 @@ export function buildDirectAnswer(c: DirectAnswerCompound, lead: string): string
   let count = 0;
 
   const push = (sentence: string) => {
-    if (count >= MIN_WORDS) return;
+    if (count >= MIN_WORDS) return false;
     const n = wordCount(sentence);
     // Never blow past the ceiling by more than the tail of one sentence.
-    if (count > 0 && count + n > MAX_WORDS + 8) return;
+    if (count > 0 && count + n > MAX_WORDS + 8) return false;
     picked.push(sentence);
     count += n;
+    return true;
   };
 
-  for (const s of splitSentences(lead || "")) push(s);
+  // Prose sentences must stay contiguous: skipping one and then appending a
+  // later one produces a paragraph that reads as a broken quote.
+  for (const s of splitSentences(lead || "")) {
+    if (!push(s)) break;
+  }
   if (picked.length === 0) {
     push(`${c.name} is a ${humanCategory(c.category)}.`);
   }
   for (const s of structuredFacts(c)) push(s);
 
-  let out = picked.join(" ").replace(/\s{2,}/g, " ").trim();
+  let out = picked
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   // Hard ceiling: trim whole sentences from the end, never mid-sentence.
   while (wordCount(out) > MAX_WORDS + 8 && picked.length > 1) {

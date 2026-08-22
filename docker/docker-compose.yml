@@ -23,6 +23,11 @@ services:
       TEST_USER_EMAIL: "${TEST_USER_EMAIL:-}"
       TEST_USER_PASSWORD: "${TEST_USER_PASSWORD:-}"
       PW_FULL_ARTIFACTS: "${PW_FULL_ARTIFACTS:-}"
+      # Pixel-diff tolerance for screenshot regression specs.
+      VISUAL_DIFF_PROFILE: "${VISUAL_DIFF_PROFILE:-}"
+      VISUAL_MAX_DIFF_PIXEL_RATIO: "${VISUAL_MAX_DIFF_PIXEL_RATIO:-}"
+      VISUAL_MAX_DIFF_PIXELS: "${VISUAL_MAX_DIFF_PIXELS:-}"
+      VISUAL_PIXEL_THRESHOLD: "${VISUAL_PIXEL_THRESHOLD:-}"
       CI: "${CI:-}"
       HOME: /tmp
     volumes:

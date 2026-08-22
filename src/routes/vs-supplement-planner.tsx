@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowRight, Check, X, Layers } from "lucide-react";
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
@@ -6,6 +8,9 @@ import { articleScript } from "@/lib/article-schema";
 import { RelatedLinks } from "@/components/related-links";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { VS_SUPPLEMENT_PLANNER_FAQ } from "@/lib/aeo-faqs-hubs";
 
 export const Route = createFileRoute("/vs-supplement-planner")({
   head: () => ({
@@ -44,6 +49,7 @@ export const Route = createFileRoute("/vs-supplement-planner")({
       ...hreflangLinks("/vs-supplement-planner"),
     ],
     scripts: [
+      aeoFaqScript("https://doseroutine.com/vs-supplement-planner", VS_SUPPLEMENT_PLANNER_FAQ),
       breadcrumbScript("https://doseroutine.com/vs-supplement-planner", [
         { name: "Compare", path: "/compare" },
         { name: "vs. Supplement Planner", path: "/vs-supplement-planner" },
@@ -193,6 +199,16 @@ function ComparePage() {
           </Link>
         </div>
       </section>
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="vs-supplement-planner" />
+        </ProseContainer>
+      </ProseContainer>
+
+      <section className="mx-auto max-w-3xl px-6">
+        <AeoFaq pairs={VS_SUPPLEMENT_PLANNER_FAQ} />
+      </section>
+
       <RelatedLinks currentPath="/vs-supplement-planner" kind="comparisons" />
       <AttributionFooter sourceUrl="https://doseroutine.com/vs-supplement-planner" />
     </main>

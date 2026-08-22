@@ -27,7 +27,7 @@ describe("trust badges near primary CTAs", () => {
 
   it("badge copy covers no-card trial, cancellation and privacy promises", () => {
     const src = readFileSync("src/components/trust-badges.tsx", "utf8");
-    expect(src).toContain("Free trial — no credit card");
+    expect(src).toContain("Free to start — no card needed");
     expect(src).toContain("Secure checkout by Stripe");
     expect(src).toContain("Cancel anytime");
     expect(src.toLowerCase()).toContain("privacy respected");

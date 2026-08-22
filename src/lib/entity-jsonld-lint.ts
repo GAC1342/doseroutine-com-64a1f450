@@ -73,7 +73,6 @@ export type EntityLintOptions = {
   brandNames?: string[];
 };
 
-
 const ORGANIZATION_TYPES = new Set([
   "Organization",
   "Corporation",
@@ -163,8 +162,7 @@ function checkSameAs(
 ): void {
   if (!("sameAs" in node)) return;
   const value = node["sameAs"];
-  const push = (message: string) =>
-    issues.push({ subject, entityType, field: "sameAs", message });
+  const push = (message: string) => issues.push({ subject, entityType, field: "sameAs", message });
 
   if (typeof value === "string") {
     if (!isAbsoluteHttps(value)) push(`sameAs is not an absolute https URL: ${value}`);
@@ -269,7 +267,6 @@ function checkOrganization(
   }
 }
 
-
 function checkPerson(node: JsonLdNode, subject: string, issues: EntityIssue[]): void {
   const push = (field: string, message: string) =>
     issues.push({ subject, entityType: "Person", field, message });
@@ -337,7 +334,5 @@ export function findEntityIssues(
 }
 
 export function formatEntityIssues(issues: EntityIssue[]): string {
-  return issues
-    .map((i) => `[${i.entityType}:${i.field}] ${i.subject} — ${i.message}`)
-    .join("\n");
+  return issues.map((i) => `[${i.entityType}:${i.field}] ${i.subject} — ${i.message}`).join("\n");
 }

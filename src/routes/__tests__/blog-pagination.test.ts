@@ -1,7 +1,7 @@
 /**
  * Blog pagination regression test.
  *
- * Covers the paging behaviour the /blog list actually performs — page counts,
+ * Covers the paging behavior the /blog list actually performs — page counts,
  * slicing, rel=prev/next chains, canonical URLs and the robots rule — for the
  * default page size and every supported custom page size.
  *
@@ -111,9 +111,10 @@ describe("blog pagination", () => {
         let page = 1;
         let hops = 0;
         while (hops < totalPages + 5) {
-          const next = buildBlogPaginationLinks(page, totalPages, { pageSize, sort: "newest" }).find(
-            (l) => l.rel === "next",
-          );
+          const next = buildBlogPaginationLinks(page, totalPages, {
+            pageSize,
+            sort: "newest",
+          }).find((l) => l.rel === "next");
           if (!next) break;
           page = Number(new URL(next.href).searchParams.get("page") ?? 1);
           hops++;

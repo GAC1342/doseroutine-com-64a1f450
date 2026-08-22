@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireFullAccess } from "@/lib/entitlement.server";
 import {
   PLAN_INSTRUCTIONS,
   PLAN_OUTPUT_SCHEMA,
@@ -23,6 +24,10 @@ export const generatePlan = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { goal } = data;
 
+    // Paid feature: verify entitlement server-side. The /plan route guard is
+    // client-side only and can be bypassed by calling this function directly.
+    await requireFullAccess(supabase, userId);
+
     // Load user's ACTIVE stack + curated rules for those compounds only.
     const { data: ucs, error: ucErr } = await supabase
       .from("user_compounds")
@@ -33,6 +38,7 @@ export const generatePlan = createServerFn({ method: "POST" })
       .eq("active", true);
     if (ucErr) throw ucErr;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const stack = (ucs ?? []).map((u: any) => ({
       user_compound_id: u.id,
       name: u.custom_name || u.compound?.name || "Compound",
@@ -56,6 +62,7 @@ export const generatePlan = createServerFn({ method: "POST" })
     const { data: allRules } = await supabase.from("interaction_rules").select("*");
     const compoundIds = new Set(stack.map((s) => s.user_compound_id));
     const compoundNames = new Set(stack.map((s) => s.name.toLowerCase()));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const relevant = (allRules ?? []).filter((r: any) => {
       const a = String(r.a_name ?? "").toLowerCase();
       const b = String(r.b_name ?? "").toLowerCase();
@@ -73,6 +80,7 @@ export const generatePlan = createServerFn({ method: "POST" })
     try {
       const cutoff = new Date(Date.now() - 8 * 7 * 86_400_000).toISOString().slice(0, 10);
       const { data: cks } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         .from("body_checkins" as any)
         .select("checked_at, weight_kg, body_fat_pct, waist_cm")
         .eq("user_id", userId)
@@ -125,7 +133,7 @@ export const generatePlan = createServerFn({ method: "POST" })
     }
 
     // Post-filter: strip any block item that isn't in the user's stack
-    // (defence in depth), and back-fill user_compound_id from the name when
+    // (defense in depth), and back-fill user_compound_id from the name when
     // the model omitted it — "Apply to my stack" needs that id to work.
     const stackById = new Map(stack.map((s) => [s.user_compound_id, s]));
     const stackByName = new Map(stack.map((s) => [s.name.toLowerCase(), s]));
@@ -180,7 +188,9 @@ export const generatePlan = createServerFn({ method: "POST" })
       .insert({
         user_id: userId,
         goal,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         plan_json: parsed as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         warnings_json: (parsed.warnings ?? []) as any,
       })
       .select("id, generated_at")

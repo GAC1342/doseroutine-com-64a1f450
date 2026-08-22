@@ -30,12 +30,9 @@ describe("brandedImageAlt", () => {
 });
 
 describe("isGenericImageAlt", () => {
-  it.each(["", "image", "og image", "preview", "banner", "DoseRoutine"])(
-    "rejects %s",
-    (value) => {
-      expect(isGenericImageAlt(value)).toBe(true);
-    },
-  );
+  it.each(["", "image", "og image", "preview", "banner", "DoseRoutine"])("rejects %s", (value) => {
+    expect(isGenericImageAlt(value)).toBe(true);
+  });
 });
 
 describe("socialImageMeta", () => {

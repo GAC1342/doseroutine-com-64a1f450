@@ -41,15 +41,15 @@ const SEV_STYLE: Record<Severity, { chip: string; label: string; ring: string }>
     ring: "border-destructive/40",
   },
   caution: {
-    chip: "bg-amber-500/15 text-amber-700",
+    chip: "bg-[color:var(--caution)]/15 text-[color:var(--caution)]",
     label: "Caution",
-    ring: "border-amber-500/40",
+    ring: "border-[color:var(--caution)]/40",
   },
   note: { chip: "bg-primary/10 text-primary", label: "Note", ring: "border-primary/30" },
   synergy: {
-    chip: "bg-emerald-500/15 text-emerald-700",
+    chip: "bg-[color:var(--severity-synergy-bg)] text-[color:var(--severity-synergy)]",
     label: "Synergy",
-    ring: "border-emerald-500/30",
+    ring: "border-[color:var(--severity-synergy)]/30",
   },
 };
 
@@ -231,18 +231,25 @@ function AckPanel({ detail }: { detail: InteractionDetail }) {
 
   if (acked) {
     return (
-      <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3">
+      <div className="rounded-2xl border border-[color:var(--severity-synergy)]/40 bg-[color:var(--severity-synergy-bg)] p-3">
         <div className="flex items-start gap-2">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden />
+          <ShieldCheck
+            className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--severity-synergy)]"
+            aria-hidden
+          />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-emerald-800">Reviewed and resolved</p>
+            <p className="text-sm font-semibold text-[color:var(--severity-synergy)]">
+              Reviewed and resolved
+            </p>
             {whenText && (
-              <p className="mt-0.5 text-[11px] text-emerald-800/80">Acknowledged {whenText}</p>
+              <p className="mt-0.5 text-[11px] text-[color:var(--severity-synergy)]/80">
+                Acknowledged {whenText}
+              </p>
             )}
             <button
               type="button"
               onClick={() => unacknowledge(detail.ackKey)}
-              className="tap-target mt-2 inline-flex h-9 items-center rounded-lg border border-emerald-500/40 bg-background px-3 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-500/10"
+              className="tap-target mt-2 inline-flex h-9 items-center rounded-lg border border-[color:var(--severity-synergy)]/40 bg-background px-3 text-[11px] font-semibold text-[color:var(--severity-synergy)] hover:bg-[color:var(--severity-synergy-bg)]"
             >
               Undo acknowledgement
             </button>

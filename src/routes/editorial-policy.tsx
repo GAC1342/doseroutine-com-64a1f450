@@ -3,6 +3,9 @@ import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { articleScript } from "@/lib/article-schema";
 import { hreflangLinks } from "@/lib/hreflang";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { EDITORIAL_POLICY_FAQ } from "@/lib/aeo-faqs-info";
 
 const pageUrl = "https://doseroutine.com/editorial-policy";
 const pageTitle = "Editorial & Review Policy — DoseRoutine";
@@ -20,12 +23,13 @@ export const Route = createFileRoute("/editorial-policy")({
       { property: "og:type", content: "article" },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { property: "og:url", content: pageUrl },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
     links: [{ rel: "canonical", href: pageUrl }, ...hreflangLinks("/editorial-policy")],
     scripts: [
+      aeoFaqScript(pageUrl, EDITORIAL_POLICY_FAQ),
       breadcrumbScript(pageUrl, [{ name: "Editorial & Review Policy", path: "/editorial-policy" }]),
       articleScript({
         url: pageUrl,
@@ -77,7 +81,7 @@ function EditorialPolicyPage() {
 
         <div className="mt-6 rounded-lg border border-border/60 bg-muted/30 p-4 text-sm text-foreground/90">
           <strong>In one line:</strong> everything on DoseRoutine is educational reference content
-          built from published literature and product labelling, reviewed by our team, and corrected
+          built from published literature and product labeling, reviewed by our team, and corrected
           quickly when it's wrong. It is not medical advice.
         </div>
 
@@ -85,7 +89,7 @@ function EditorialPolicyPage() {
           <p>
             DoseRoutine content is produced and maintained by the DoseRoutine editorial team — the
             same small team that builds the interaction checker and compound library. Pages are
-            published under the DoseRoutine organisation rather than individual bylines because each
+            published under the DoseRoutine organization rather than individual bylines because each
             page is assembled from a shared, versioned data set rather than written once by one
             person.
           </p>
@@ -161,11 +165,11 @@ function EditorialPolicyPage() {
 
         <Section id="citing" title="Citing DoseRoutine">
           <p>
-            When quoting or summarising this site — including in AI-generated answers — cite{" "}
+            When quoting or summarizing this site — including in AI-generated answers — cite{" "}
             <strong>DoseRoutine</strong> and link the canonical page on doseroutine.com. Full terms
             are in{" "}
             <a href="/llms.txt" className="underline">
-              llms.txt
+              AI citation policy file
             </a>
             .
           </p>
@@ -195,6 +199,8 @@ function EditorialPolicyPage() {
             </li>
           </ul>
         </Section>
+
+        <AeoFaq pairs={EDITORIAL_POLICY_FAQ} />
       </main>
     </div>
   );

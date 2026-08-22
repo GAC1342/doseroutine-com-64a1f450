@@ -93,6 +93,14 @@ export const MARKETING_PAGES: MarketingPage[] = [
     topics: ["hormone", "testosterone", "trt"],
   },
   {
+    key: "best-hrt-tracking-app-for-women",
+    href: "/best-hrt-tracking-app-for-women",
+    anchor: "HRT tracking apps for women",
+    blurb: "Estradiol, progesterone and testosterone doses tracked next to symptoms and labs.",
+    topics: ["hrt", "estradiol", "progesterone", "menopause", "hormone"],
+  },
+
+  {
     key: "glp-1",
     href: "/for/glp-1",
     anchor: "how DoseRoutine handles GLP-1 protocols week to week",

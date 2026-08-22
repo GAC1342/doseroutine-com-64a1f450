@@ -39,6 +39,9 @@ export function articleSchema(input: ArticleSchemaInput) {
     "@id": `${url}#article`,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     headline,
+    // MedicalWebPage is a WebPage subtype: Google's Rich Results Test wants
+    // `name`, not `headline`, so emit both for that type.
+    ...(type === "MedicalWebPage" ? { name: headline } : {}),
     description,
     url,
     inLanguage: "en",

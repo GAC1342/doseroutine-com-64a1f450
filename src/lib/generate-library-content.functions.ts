@@ -43,7 +43,7 @@ RULES — non-negotiable:
    Supplements", "meta-analyses in Cochrane", "Mayo Clinic's patient monograph",
    "the FDA prescribing information", etc.). Do NOT fabricate specific paper
    titles, DOIs, or URLs. Do include a plain-text "sources" list naming ONLY
-   recognised authority publishers, drawn from this set (pick the ones actually
+   recognized authority publishers, drawn from this set (pick the ones actually
    relevant to this compound, 4–7 entries, most authoritative first):
    NIH Office of Dietary Supplements (ODS), MedlinePlus, PubChem, PubMed,
    DailyMed, FDA prescribing information, EMA SmPC, Cochrane Library,
@@ -200,6 +200,7 @@ async function fetchPubChem(name: string): Promise<{ cid: string; imageUrl: stri
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function requireAdmin(supabase: any): Promise<void> {
   const { data } = await supabase.rpc("is_admin");
   if (!data) throw new Error("Forbidden — admin only");
@@ -228,11 +229,14 @@ export const generateLibraryContent = createServerFn({ method: "POST" })
       .select("compound_id, benefits_md");
     const done = new Set(
       (existing ?? [])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         .filter((r: any) => r.benefits_md && r.benefits_md.length > 100)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         .map((r: any) => r.compound_id),
     );
 
     const todo = (compounds ?? [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       .filter((c: any) => data.force || !done.has(c.id))
       .slice(0, data.limit);
 

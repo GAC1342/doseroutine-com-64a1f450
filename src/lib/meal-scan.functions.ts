@@ -34,7 +34,9 @@ export const lookupFoodLabel = createServerFn({ method: "POST" })
 export const searchFoodLabels = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { query: string }) => ({
-    query: String(input?.query ?? "").trim().slice(0, 80),
+    query: String(input?.query ?? "")
+      .trim()
+      .slice(0, 80),
   }))
   .handler(async ({ data }) => {
     const { searchFoodProducts } = await import("@/lib/meal-scan.server");
@@ -53,20 +55,48 @@ export const scanMealInput = createServerFn({ method: "POST" })
       imageDataUrl?: string | null;
       barcode?: string | null;
       mode?: "both" | "barcode" | "photo";
+      reference?: string | null;
+      hint?: string | null;
     }) => {
       const url = typeof input?.imageDataUrl === "string" ? input.imageDataUrl : "";
       if (url && !url.startsWith("data:image/")) throw new Error("Send an image.");
       if (url.length > 6_000_000) throw new Error("That photo is too large. Try a smaller one.");
-      const barcode = String(input?.barcode ?? "").replace(/\D/g, "").slice(0, 20);
+      const barcode = String(input?.barcode ?? "")
+        .replace(/\D/g, "")
+        .slice(0, 20);
       const mode =
         input?.mode === "barcode" || input?.mode === "photo" ? input.mode : ("both" as const);
       if (mode === "barcode" && barcode.length < 8) throw new Error("Send a barcode.");
       if (mode === "photo" && !url) throw new Error("Send a photo.");
       if (!url && barcode.length < 8) throw new Error("Send a photo or a barcode.");
-      return { imageDataUrl: url || null, barcode: barcode || null, mode };
+      const references = ["none", "card", "quarter", "fork", "spoon", "thumb", "plate", "bowl"];
+      const reference = references.includes(String(input?.reference))
+        ? (String(input?.reference) as "none")
+        : null;
+      const hint =
+        String(input?.hint ?? "")
+          .trim()
+          .slice(0, 200) || null;
+      return { imageDataUrl: url || null, barcode: barcode || null, mode, reference, hint };
     },
   )
   .handler(async ({ data }) => {
     const { scanMeal } = await import("@/lib/meal-scan.server");
     return scanMeal(data);
+  });
+
+/**
+ * Barcode lookup with a confidence score and ranked alternates, so the UI can
+ * say how sure we are and offer the runner-up when the top hit looks wrong.
+ */
+export const lookupFoodBarcodeDetailed = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { barcode: string }) => ({
+    barcode: String(input?.barcode ?? "")
+      .trim()
+      .slice(0, 32),
+  }))
+  .handler(async ({ data }) => {
+    const { lookupFoodBarcodeSmart } = await import("@/lib/meal-scan.server");
+    return lookupFoodBarcodeSmart(data.barcode);
   });

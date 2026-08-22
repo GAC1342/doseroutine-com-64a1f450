@@ -13,7 +13,7 @@ import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 const TITLE = `Research topics by compound & trial phase | ${BLOG_SITE.name}`;
 const DESCRIPTION =
   "Every compound, mechanism and trial phase we track, each with its own shareable archive of sourced peptide, GLP-1 and longevity research updates.";
-const CANONICAL = `${BLOG_SITE.base}/blog/tag`;
+export const CANONICAL = `${BLOG_SITE.base}/blog/tag`;
 
 export const Route = createFileRoute("/blog/tag/")({
   head: () => ({

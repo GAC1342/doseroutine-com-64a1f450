@@ -49,6 +49,8 @@ export const REGULATORY_HOSTS: ReadonlySet<string> = new Set([
   "www.cdc.gov",
   "dailymed.nlm.nih.gov",
   "medlineplus.gov",
+  "www.nhs.uk",
+  "www.nice.org.uk",
   "ods.od.nih.gov",
   "pi.lilly.com",
   "investor.regeneron.com",

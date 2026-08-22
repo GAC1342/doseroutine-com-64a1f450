@@ -20,6 +20,28 @@ export const MEAL_SLOT_LABELS: Record<MealSlot, string> = {
 export type MealSource = "photo" | "barcode" | "manual";
 export type MealConfidence = "high" | "medium" | "low";
 
+/**
+ * Where an individual item's macros came from once the scan has been grounded
+ * against the food database, best first.
+ */
+export type FoodDataSource = "barcode" | "label" | "database" | "usda" | "ai";
+
+export const FOOD_SOURCE_LABELS: Record<FoodDataSource, string> = {
+  barcode: "Product panel",
+  label: "Label in photo",
+  database: "Food database",
+  usda: "USDA data",
+  ai: "AI estimate",
+};
+
+export const FOOD_SOURCE_COPY: Record<FoodDataSource, string> = {
+  barcode: "Numbers come from the manufacturer's published panel.",
+  label: "Numbers were transcribed from the Nutrition Facts panel in your photo.",
+  database: "Matched to our food database and scaled to this portion.",
+  usda: "Matched to USDA FoodData Central and scaled to this portion.",
+  ai: "Estimated by the AI from the photo — no database match was found.",
+};
+
 export type MealItem = {
   name: string;
   portion: string;
@@ -27,6 +49,26 @@ export type MealItem = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  /** Portion weight in grams, once known. */
+  grams?: number | null;
+  /** Honest low/high bounds the vision model gave for this portion, in grams. */
+  gramsLow?: number | null;
+  gramsHigh?: number | null;
+  /** How sure the vision model was about this single item's portion. */
+  itemConfidence?: MealConfidence | null;
+  /** Food database row these macros were scaled from. */
+  foodId?: string | null;
+  /** Where this item's numbers came from. */
+  dataSource?: FoodDataSource;
+  /** Name of the matched catalog/USDA/product entry behind the numbers. */
+  sourceName?: string | null;
+  /** Human-readable basis, e.g. "165 kcal per 100 g". */
+  sourceBasis?: string | null;
+  /** Extended nutrition for this portion, when the source publishes it. */
+  fiber_g?: number | null;
+  sugar_g?: number | null;
+  sodium_mg?: number | null;
+  satfat_g?: number | null;
 };
 
 export type MealTotals = {
@@ -65,6 +107,12 @@ export type MealEstimate = {
   readFrom?: MealReadSource;
   /** Set when a barcode drove (or was read from) the scan. */
   barcode?: string | null;
+  /**
+   * What the model sized the portions against ("26 cm dinner plate", "fork in
+   * frame"). Empty when it had nothing of known size to scale from, which is
+   * the single biggest driver of bad photo portion estimates.
+   */
+  scaleBasis?: string | null;
 };
 
 export const EMPTY_TOTALS: MealTotals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
@@ -191,6 +239,60 @@ export function totalsFor(items: MealItem[]): MealTotals {
   );
 }
 
+/**
+ * Fiber / sugars / sodium / saturated fat for a set of items.
+ *
+ * These only exist when the matched food publishes them, so each field is
+ * null when nothing in the meal carried a value — the UI renders "—" instead
+ * of a misleading zero.
+ */
+export type ExtendedNutrients = {
+  fiber_g: number | null;
+  sugar_g: number | null;
+  sodium_mg: number | null;
+  satfat_g: number | null;
+};
+
+export const EMPTY_EXTENDED: ExtendedNutrients = {
+  fiber_g: null,
+  sugar_g: null,
+  sodium_mg: null,
+  satfat_g: null,
+};
+
+export function extendedTotalsFor(items: MealItem[]): ExtendedNutrients {
+  const sum = (key: "fiber_g" | "sugar_g" | "sodium_mg" | "satfat_g") => {
+    let total = 0;
+    let seen = false;
+    for (const item of items) {
+      const value = Number(item[key]);
+      if (item[key] == null || !Number.isFinite(value)) continue;
+      seen = true;
+      total += value;
+    }
+    if (!seen) return null;
+    return key === "sodium_mg" ? Math.round(total) : roundMacro(total);
+  };
+  return {
+    fiber_g: sum("fiber_g"),
+    sugar_g: sum("sugar_g"),
+    sodium_mg: sum("sodium_mg"),
+    satfat_g: sum("satfat_g"),
+  };
+}
+
+/** Add two extended-nutrient sets, keeping null when neither side has data. */
+export function addExtended(a: ExtendedNutrients, b: ExtendedNutrients): ExtendedNutrients {
+  const merge = (x: number | null, y: number | null) =>
+    x == null && y == null ? null : (x ?? 0) + (y ?? 0);
+  return {
+    fiber_g: merge(a.fiber_g, b.fiber_g),
+    sugar_g: merge(a.sugar_g, b.sugar_g),
+    sodium_mg: merge(a.sodium_mg, b.sodium_mg),
+    satfat_g: merge(a.satfat_g, b.satfat_g),
+  };
+}
+
 export function roundTotals(totals: MealTotals): MealTotals {
   return {
     calories: roundMacro(totals.calories, "kcal"),
@@ -244,6 +346,10 @@ export function normalizeEstimate(raw: unknown): MealEstimate {
       const n = Number(it[key]);
       return Number.isFinite(n) && n >= 0 ? n : 0;
     };
+    const grams = Number(it["grams"]);
+    const low = Number(it["grams_low"] ?? it["gramsLow"]);
+    const high = Number(it["grams_high"] ?? it["gramsHigh"]);
+    const itemConfRaw = String(it["confidence"] ?? "").toLowerCase();
     return {
       name: String(it["name"] ?? "Item").slice(0, 80),
       portion: String(it["portion"] ?? "1 serving").slice(0, 60),
@@ -251,6 +357,14 @@ export function normalizeEstimate(raw: unknown): MealEstimate {
       protein_g: roundMacro(num("protein_g")),
       carbs_g: roundMacro(num("carbs_g")),
       fat_g: roundMacro(num("fat_g")),
+      grams: Number.isFinite(grams) && grams > 0 ? roundMacro(grams) : null,
+      gramsLow: Number.isFinite(low) && low > 0 ? roundMacro(low) : null,
+      gramsHigh: Number.isFinite(high) && high > 0 ? roundMacro(high) : null,
+      itemConfidence:
+        itemConfRaw === "high" || itemConfRaw === "medium" || itemConfRaw === "low"
+          ? (itemConfRaw as MealConfidence)
+          : null,
+      dataSource: "ai" as const,
     };
   });
   const readRaw = String(obj["read_from"] ?? obj["readFrom"] ?? "visual").toLowerCase();
@@ -267,6 +381,7 @@ export function normalizeEstimate(raw: unknown): MealEstimate {
     confidence,
     note: String(obj["note"] ?? "").slice(0, 300),
     readFrom,
+    scaleBasis: String(obj["scale_basis"] ?? obj["scaleBasis"] ?? "").slice(0, 160) || null,
   };
 }
 
@@ -342,6 +457,7 @@ export function provenanceFactors(input: {
   if (input.source === "manual") {
     factors.push("Every number was typed in by hand.");
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
     factors.push(READ_SOURCE_COPY[readFrom]);
   }
 
@@ -466,7 +582,6 @@ export function buildScaleBreakdown(input: {
   });
   return { servings, macros, items, anyRounded: macros.some((row) => row.rounded) };
 }
-
 
 /** One field an auto-fix pass corrected, in plain English. */
 export type AutoFixChange = {

@@ -58,12 +58,7 @@ export const ALL_VIEWPORTS: readonly ArtViewport[] = [
  * dialog vertically. Used as the default keyboard-suite matrix so that suite
  * stays fast while still covering the tight cases.
  */
-export const SHORT_VIEWPORT_NAMES = [
-  "phone-320x568",
-  "phone-360x640",
-  "phone-375x667",
-] as const;
-
+export const SHORT_VIEWPORT_NAMES = ["phone-320x568", "phone-360x640", "phone-375x667"] as const;
 
 /** Retina and high-density Android, with 1x as the control. */
 export const ALL_DPRS = [1, 2, 3] as const;
@@ -97,7 +92,6 @@ export function selectedLandscapeViewports(): readonly ArtViewport[] {
     v.class === "mobile" ? landscape(v) : { ...v, name: `${v.name}-landscape` },
   );
 }
-
 
 function parseList(value: string | undefined): string[] {
   return (value ?? "")

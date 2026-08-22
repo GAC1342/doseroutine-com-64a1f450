@@ -1,5 +1,5 @@
 /**
- * Half-life labelling.
+ * Half-life labeling.
  *
  * `compounds.half_life_hours` stores a single number with no recorded type, so
  * rendering it as a bare "Half-life" implies a plasma (elimination) half-life

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireFullAccess } from "@/lib/entitlement.server";
 import { buildPlanTimeMap, diffSchedule, type ScheduleSnapshotRow } from "@/lib/apply-plan-logic";
 
 export type { ScheduleChange, ScheduleSnapshotRow } from "@/lib/apply-plan-logic";
@@ -25,12 +26,14 @@ export const getPlanApplyPreview = createServerFn({ method: "GET" })
       .eq("active", true);
     if (error) throw error;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const current: ScheduleSnapshotRow[] = (ucs ?? []).map((u: any) => ({
       id: u.id,
       name: u.custom_name || u.compound?.name || "Compound",
       times_of_day: Array.isArray(u.times_of_day) ? u.times_of_day : [],
     }));
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const target = buildPlanTimeMap((plan?.plan_json as any) ?? null);
     const changes = diffSchedule(current, target);
 
@@ -43,6 +46,7 @@ export const getPlanApplyPreview = createServerFn({ method: "GET" })
       hasPlan: Boolean(plan),
       goal: plan?.goal ?? null,
       changes,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       snapshots: (snaps ?? []).map((s: any) => ({
         kind: s.kind as "original" | "previous",
         goal: s.goal as string | null,
@@ -56,6 +60,9 @@ export const applyPlanToStack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+
+    // Applying an AI-generated plan is a Pro feature — verify server-side.
+    await requireFullAccess(supabase, userId);
 
     const { data: plan } = await supabase
       .from("plans")
@@ -73,12 +80,14 @@ export const applyPlanToStack = createServerFn({ method: "POST" })
       .eq("active", true);
     if (error) throw error;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const current: ScheduleSnapshotRow[] = (ucs ?? []).map((u: any) => ({
       id: u.id,
       name: u.custom_name || u.compound?.name || "Compound",
       times_of_day: Array.isArray(u.times_of_day) ? u.times_of_day : [],
     }));
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const target = buildPlanTimeMap(plan.plan_json as any);
     const changes = diffSchedule(current, target);
     if (changes.length === 0) {
@@ -99,6 +108,7 @@ export const applyPlanToStack = createServerFn({ method: "POST" })
         user_id: userId,
         kind: "original",
         goal: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         snapshot_json: current as any,
       });
       if (origErr) throw origErr;
@@ -109,6 +119,7 @@ export const applyPlanToStack = createServerFn({ method: "POST" })
         user_id: userId,
         kind: "previous",
         goal: plan.goal,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         snapshot_json: current as any,
         updated_at: new Date().toISOString(),
       },

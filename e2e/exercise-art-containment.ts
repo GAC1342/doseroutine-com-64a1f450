@@ -1,5 +1,4 @@
-import { expect } from "@playwright/test";
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Shared "nothing is cut off" assertions for the workout-type illustration.

@@ -83,9 +83,7 @@ export function insightUnits(source: InsightUnitsSource): InsightUnits {
     percent: (value, digits = 0) =>
       value == null || !Number.isFinite(value) ? DASH : `${round(value, digits).toLocaleString()}%`,
     minutes: (value) =>
-      value == null || !Number.isFinite(value)
-        ? DASH
-        : `${Math.round(value).toLocaleString()} min`,
+      value == null || !Number.isFinite(value) ? DASH : `${Math.round(value).toLocaleString()} min`,
     duration: (value) => {
       if (value == null || !Number.isFinite(value)) return DASH;
       const mins = Math.round(value);
@@ -97,7 +95,9 @@ export function insightUnits(source: InsightUnitsSource): InsightUnits {
     count: (value, noun) => {
       if (value == null || !Number.isFinite(value)) return DASH;
       const n = Math.round(value);
-      return noun ? `${n.toLocaleString()} ${noun}${Math.abs(n) === 1 ? "" : "s"}` : n.toLocaleString();
+      return noun
+        ? `${n.toLocaleString()} ${noun}${Math.abs(n) === 1 ? "" : "s"}`
+        : n.toLocaleString();
     },
     money: (value) => (value == null || !Number.isFinite(value) ? DASH : money.format(value)),
     moneyPerMonth: (value) =>

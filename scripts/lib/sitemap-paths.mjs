@@ -15,14 +15,10 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const contract = JSON.parse(
-  readFileSync(resolve(HERE, "..", "deployed-markers.json"), "utf8"),
-);
+const contract = JSON.parse(readFileSync(resolve(HERE, "..", "deployed-markers.json"), "utf8"));
 
 /** Single-segment /library/<slug> pages that are NOT compound pages. */
-export const NON_COMPOUND_LIBRARY_SLUGS = new Set(
-  contract.discovery?.excludeSlugs ?? [],
-);
+export const NON_COMPOUND_LIBRARY_SLUGS = new Set(contract.discovery?.excludeSlugs ?? []);
 
 function decompress(buf, contentEncoding = "") {
   const enc = contentEncoding.toLowerCase();

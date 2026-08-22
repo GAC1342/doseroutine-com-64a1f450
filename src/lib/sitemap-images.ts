@@ -12,6 +12,7 @@
 import { ROUNDUP_LIST, USE_CASE_LIST } from "@/lib/app-roundups";
 import { CALCULATOR_PAGES } from "@/lib/compound-calculators";
 import { PAGE_OG_CARD_SLUGS } from "@/lib/page-og-manifest";
+import { FEATURE_VISUALS, absolute } from "@/lib/feature-visuals";
 
 export const BASE_URL = "https://doseroutine.com";
 
@@ -43,22 +44,26 @@ const EDITORIAL_CARDS: Record<string, SitemapImage> = {
   "/compare": {
     loc: `${BASE_URL}/og/compare-default.jpg`,
     title: "Compare compounds side by side",
-    caption: "Side-by-side comparisons of peptides and supplements: dosing, evidence and interactions.",
+    caption:
+      "Side-by-side comparisons of peptides and supplements: dosing, evidence and interactions.",
   },
   "/library/mens-health": {
     loc: `${BASE_URL}/og/hub-mens-health.jpg`,
     title: "Men's health compound library",
-    caption: "Evidence summaries for men's health compounds: testosterone support, prostate, libido and recovery.",
+    caption:
+      "Evidence summaries for men's health compounds: testosterone support, prostate, libido and recovery.",
   },
   "/library/prostate-health": {
     loc: `${BASE_URL}/og/hub-prostate.jpg`,
     title: "Prostate health supplements",
-    caption: "What the evidence says about saw palmetto, beta-sitosterol and other prostate support supplements.",
+    caption:
+      "What the evidence says about saw palmetto, beta-sitosterol and other prostate support supplements.",
   },
   "/library/testosterone-support": {
     loc: `${BASE_URL}/og/hub-testosterone.jpg`,
     title: "Testosterone support supplements",
-    caption: "Testosterone support compounds ranked by evidence quality, with dosing and interaction notes.",
+    caption:
+      "Testosterone support compounds ranked by evidence quality, with dosing and interaction notes.",
   },
   "/library/guides/bph-natural-support": {
     loc: `${BASE_URL}/og/guide-bph.jpg`,
@@ -93,7 +98,8 @@ const EDITORIAL_CARDS: Record<string, SitemapImage> = {
   "/library/compare/semaglutide-vs-tirzepatide": {
     loc: `${BASE_URL}/og/compare-sema-tirz.jpg`,
     title: "Semaglutide vs tirzepatide",
-    caption: "Semaglutide and tirzepatide compared on trial weight loss, dosing schedules and side effects.",
+    caption:
+      "Semaglutide and tirzepatide compared on trial weight loss, dosing schedules and side effects.",
   },
   "/library/compare/bpc-157-vs-tb-500": {
     loc: `${BASE_URL}/og/bpc-157-vs-tb-500.jpg`,
@@ -108,12 +114,14 @@ const EDITORIAL_CARDS: Record<string, SitemapImage> = {
   "/library/cjc-1295-ipamorelin": {
     loc: `${BASE_URL}/og/cjc-1295-ipamorelin.jpg`,
     title: "CJC-1295 and ipamorelin guide",
-    caption: "CJC-1295 / ipamorelin protocols, dosing and what the growth hormone evidence supports.",
+    caption:
+      "CJC-1295 / ipamorelin protocols, dosing and what the growth hormone evidence supports.",
   },
   "/library/peptide-stacks-for-muscle-growth": {
     loc: `${BASE_URL}/og/peptide-stacks-for-muscle-growth.jpg`,
     title: "Peptide stacks for muscle growth",
-    caption: "Peptide stacks used for muscle growth, with evidence grades and interaction warnings.",
+    caption:
+      "Peptide stacks used for muscle growth, with evidence grades and interaction warnings.",
   },
 };
 
@@ -150,6 +158,18 @@ const IMAGE_BY_PATH: Map<string, SitemapImage> = (() => {
         loc,
         title: page.h1,
         caption: caption(page.description),
+      });
+    }
+  }
+
+  // Feature visuals win over a generated card: they are bespoke artwork and
+  // show the actual feature the URL is about.
+  for (const visual of FEATURE_VISUALS) {
+    for (const path of visual.socialPaths) {
+      map.set(path, {
+        loc: absolute(visual.jpg),
+        title: visual.title,
+        caption: caption(visual.caption),
       });
     }
   }

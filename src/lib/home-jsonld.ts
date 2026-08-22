@@ -7,7 +7,6 @@
  */
 import { TRUST_FAQ } from "@/lib/trust-faq";
 
-
 const SPEAKABLE = {
   "@type": "SpeakableSpecification",
   cssSelector: [".dr-speakable-answer", ".dr-speakable-intro", "h1"],

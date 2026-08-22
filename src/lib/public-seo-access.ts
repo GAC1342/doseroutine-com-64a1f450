@@ -59,17 +59,15 @@ export function isNoindexValue(value: string): boolean {
 
 /** Robots meta value declared in a route file's head(), if any. */
 export function robotsMetaFromSource(source: string): string | null {
-  const match = source.match(
-    /name:\s*["'`]robots["'`]\s*,\s*content:\s*["'`]([^"'`]+)["'`]/,
-  );
+  const match = source.match(/name:\s*["'`]robots["'`]\s*,\s*content:\s*["'`]([^"'`]+)["'`]/);
   return match ? match[1] : null;
 }
 
 /** Robots meta value found in rendered HTML, if any. */
 export function robotsMetaFromHtml(html: string): string | null {
-  const match = html.match(
-    /<meta[^>]+name=["']robots["'][^>]*content=["']([^"']*)["']/i,
-  ) ?? html.match(/<meta[^>]+content=["']([^"']*)["'][^>]*name=["']robots["']/i);
+  const match =
+    html.match(/<meta[^>]+name=["']robots["'][^>]*content=["']([^"']*)["']/i) ??
+    html.match(/<meta[^>]+content=["']([^"']*)["'][^>]*name=["']robots["']/i);
   return match ? match[1] : null;
 }
 

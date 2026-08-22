@@ -1,0 +1,27 @@
+{
+  "fdcId": 7000011,
+  "description": "Rice, brown, cooked (sugars reported as 1063)",
+  "dataType": "Survey (FNDDS)",
+  "foodNutrients": [
+    {
+      "nutrientNumber": "1008",
+      "value": 123
+    },
+    {
+      "nutrientNumber": "1003",
+      "value": 2.74
+    },
+    {
+      "nutrientNumber": "1005",
+      "value": 25.6
+    },
+    {
+      "nutrientNumber": "1004",
+      "value": 0.97
+    },
+    {
+      "nutrientNumber": "1063",
+      "value": 0.4
+    }
+  ]
+}

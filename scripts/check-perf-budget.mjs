@@ -241,11 +241,7 @@ function main() {
         // noise floor per metric before it fails the build.
         const floor =
           BASELINES.metricNoiseFloor?.[id] ??
-          (id === "cumulative-layout-shift"
-            ? 0.02
-            : id === "total-blocking-time"
-              ? 100
-              : 200);
+          (id === "cumulative-layout-shift" ? 0.02 : id === "total-blocking-time" ? 100 : 200);
         const limit = base * (1 + metricTol) + (id === "cumulative-layout-shift" ? 0.01 : 25);
         if (value > limit && value - base > floor) {
           failures.push(
@@ -253,7 +249,6 @@ function main() {
           );
         }
       }
-
     } else if (!baseline && !updateBaselines) {
       console.warn(
         `! ${key}: no recorded baseline — run \`npm run perf:baseline:update\` to record one.`,

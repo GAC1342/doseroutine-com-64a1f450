@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,15 +13,15 @@ import { aeoFaqScript, answerPageScript } from "@/lib/aeo";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
 import { USE_CASE_LIST } from "@/lib/app-roundups";
 
-const CANONICAL = "https://doseroutine.com/for";
+export const CANONICAL = "https://doseroutine.com/for";
 const TITLE = "DoseRoutine Use Cases — TRT, Peptides, GLP-1";
 const DESC = withDoseRoutineDescriptionSuffix(
   "See what DoseRoutine does for TRT, peptides, GLP-1 medications and biohacking stacks",
 );
-const SHORT_ANSWER =
+export const SHORT_ANSWER =
   "DoseRoutine is an app for adults tracking supplements, peptides, hormones (TRT/HRT) and GLP-1 medications in one routine, with interaction checks across everything they take. These pages describe what it does for each use case.";
 
-const FAQ = [
+export const FAQ = [
   {
     q: "Who is DoseRoutine for?",
     a: "DoseRoutine is for adults whose routine has outgrown a pill reminder: people on TRT or HRT, people running peptide protocols, people on GLP-1 medications, and biohackers managing multi-compound stacks.",
@@ -73,7 +75,11 @@ function ForIndex() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <main id="main-content" tabIndex={-1} className="container mx-auto max-w-3xl px-4 py-10 md:py-16">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="container mx-auto max-w-3xl px-4 py-10 md:py-16"
+      >
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Who DoseRoutine is for</h1>
         <p className="dr-speakable-intro mt-4 text-lg text-muted-foreground">
           DoseRoutine is an app for people tracking supplements, peptides, hormones and GLP-1
@@ -92,10 +98,9 @@ function ForIndex() {
                 <p className="text-sm text-muted-foreground">{u.lead}</p>
                 <a
                   href={`/for/${u.slug}`}
-                  aria-label={u.h1}
                   className="inline-block text-sm font-medium text-primary underline"
                 >
-                  Read more
+                  Read about {u.h1}
                 </a>
               </CardContent>
             </Card>
@@ -123,6 +128,9 @@ function ForIndex() {
             </a>
           </p>
         </section>
+        <ProseContainer>
+          <PageProse id="for-index" />
+        </ProseContainer>
       </main>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>

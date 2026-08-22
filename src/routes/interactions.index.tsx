@@ -15,8 +15,8 @@ import { aeoFaqScript, aeoPageFields } from "@/lib/aeo";
 import { INTERACTIONS_INDEX_FAQ, LAST_REVIEWED } from "@/lib/aeo-page-faqs";
 import { pairPagesQuery, SEVERITY_LABEL, type Severity } from "@/lib/interaction-pairs";
 
-const SITE = "https://doseroutine.com";
-const URL = `${SITE}/interactions`;
+export const SITE = "https://doseroutine.com";
+export const URL = `${SITE}/interactions`;
 const TITLE = "Supplement & Peptide Interaction Pairs | DoseRoutine";
 const DESCRIPTION = withDoseRoutineDescriptionSuffix(
   "Plain-English answers to 300+ 'can you take X with Y?' questions across supplements, hormones, peptides and GLP-1s",

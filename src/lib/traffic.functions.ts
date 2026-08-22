@@ -19,7 +19,7 @@ export type TrafficSummary = {
   botHits: number;
   botVisitors: number;
   aiCrawlerHits: number;
-  /** Sessions caught by behaviour (crawl rate) rather than user-agent. */
+  /** Sessions caught by behavior (crawl rate) rather than user-agent. */
   behavioralBotVisitors: number;
   behavioralBotHits: number;
   topBotAgent: string | null;
@@ -58,14 +58,13 @@ export const getTrafficSummary = createServerFn({ method: "GET" })
       const props = (r.properties ?? {}) as Record<string, unknown>;
       const referrer = typeof props.referrer === "string" ? props.referrer : "";
       // Referral spam presents a normal UA and reads one page, so neither the
-      // UA nor the behavioural pass catches it. Flag it on the referrer host.
+      // UA nor the behavioral pass catches it. Flag it on the referrer host.
       const spamReferral = isSpamReferrer(referrer);
       return {
         sessionId: r.session_id ?? "",
         path: r.path ?? "/",
         ts: r.created_at ? Date.parse(r.created_at) : 0,
-        uaFlagged:
-          props.is_bot === true || props.is_bot_inferred === true || spamReferral,
+        uaFlagged: props.is_bot === true || props.is_bot_inferred === true || spamReferral,
         isAI: props.is_ai_crawler === true,
         ua: typeof props.ua === "string" ? props.ua : "",
         source:
@@ -76,7 +75,6 @@ export const getTrafficSummary = createServerFn({ method: "GET" })
               : "direct",
       };
     });
-
 
     // Behavioural pass: user-agent checks miss headless crawlers that present a
     // normal desktop UA and no referrer. Those sessions give themselves away by

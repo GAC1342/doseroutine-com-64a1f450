@@ -32,11 +32,13 @@ export type BrandLogoProps = {
   /** Rendered CSS size in px (square). Drives the srcset density buckets. */
   size?: number;
   alt: string;
+  /** Tooltip text; audits flag images without a title attribute. */
+  title?: string;
   className?: string;
   priority?: boolean;
 };
 
-export function BrandLogo({ size = 32, alt, className, priority = false }: BrandLogoProps) {
+export function BrandLogo({ size = 32, alt, title, className, priority = false }: BrandLogoProps) {
   const sizes = `${size}px`;
   return (
     <picture>
@@ -45,6 +47,7 @@ export function BrandLogo({ size = 32, alt, className, priority = false }: Brand
       <img
         src={assetUrl("/logo-64.png")}
         alt={alt}
+        title={title ?? alt}
         width={size}
         height={size}
         sizes={sizes}

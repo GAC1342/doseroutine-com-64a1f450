@@ -128,7 +128,7 @@ function validateSoftwareApplication(node: JsonLdNode, issues: string[]) {
 
 /**
  * Validate a set of JSON-LD nodes.
- * `requiredTypes` must each appear at least once; every recognised node is
+ * `requiredTypes` must each appear at least once; every recognized node is
  * shape-checked whether required or not.
  */
 export function validateJsonLd(input: unknown, requiredTypes: string[] = []): string[] {

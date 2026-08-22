@@ -1,12 +1,7 @@
 import { useCallback, useId, useRef, useState, cloneElement, isValidElement } from "react";
 import { exerciseArt, exerciseArtAlt, EXERCISE_ART_SIZE } from "@/lib/exercise-art";
 import { warmImage, useWarmOnIntentRef } from "@/lib/image-warm";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type OpenFn = (trigger?: HTMLElement | null) => void;
 
@@ -24,7 +19,6 @@ export function ExerciseArtLightbox({
   const captionId = useId();
   const triggerRef = useRef<HTMLElement | null>(null);
   const art = exerciseArt(exercise);
-
 
   const onOpen = useCallback((trigger?: HTMLElement | null) => {
     if (trigger) triggerRef.current = trigger;
@@ -60,9 +54,10 @@ export function ExerciseArtLightbox({
 
   const name = (label ?? exercise ?? "Exercise").trim();
   const baseAlt = exerciseArtAlt(exercise);
-  const alt = label && label.trim() && label.trim().toLowerCase() !== (exercise ?? "").trim().toLowerCase()
-    ? `${name}: ${baseAlt}`
-    : baseAlt;
+  const alt =
+    label && label.trim() && label.trim().toLowerCase() !== (exercise ?? "").trim().toLowerCase()
+      ? `${name}: ${baseAlt}`
+      : baseAlt;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,7 +74,7 @@ export function ExerciseArtLightbox({
         // DialogTitle) rather than aria-label. A referenced title is the one
         // pattern every screen reader handles the same way: VoiceOver, TalkBack,
         // NVDA and JAWS all announce it on entry, and it keeps Radix's own
-        // labelling contract and the exposed name from drifting apart — with a
+        // labeling contract and the exposed name from drifting apart — with a
         // bare aria-label the hidden title was a competing, unannounced name.
         aria-labelledby={`${captionId}-title`}
         // Described by the visible caption text, so the anatomical detail is
@@ -120,7 +115,7 @@ export function ExerciseArtLightbox({
             src={art}
             // The caption below carries the same text and is the dialog's
             // description, so the image itself is decorative to a screen
-            // reader; labelling it too would read the sentence three times.
+            // reader; labeling it too would read the sentence three times.
             alt=""
             aria-hidden="true"
             width={EXERCISE_ART_SIZE}
@@ -146,7 +141,6 @@ export function ExerciseArtLightbox({
             </span>
           </figcaption>
         </figure>
-
       </DialogContent>
     </Dialog>
   );
@@ -288,5 +282,4 @@ export function ExerciseArtThumbnail({
       </button>
     </ExerciseArtLightbox>
   );
-
 }

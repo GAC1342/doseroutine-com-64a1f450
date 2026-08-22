@@ -1,7 +1,7 @@
 /**
  * Shared bot-detection helpers for admin analytics reports.
  *
- * User-agent flags catch declared crawlers; the behavioural pass catches
+ * User-agent flags catch declared crawlers; the behavioral pass catches
  * headless crawlers that present a normal desktop UA and no referrer but
  * sweep far more pages, far faster, than a person reads.
  */
@@ -18,7 +18,7 @@ export type SessionTimedEvent = {
 
 /**
  * Returns the set of session ids that look automated purely from crawl
- * behaviour (page count / burst rate). Pass every event in the window.
+ * behavior (page count / burst rate). Pass every event in the window.
  */
 export function findBehavioralBotSessions(events: SessionTimedEvent[]): Set<string> {
   const perSession = new Map<string, number[]>();

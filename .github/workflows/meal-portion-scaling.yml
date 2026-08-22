@@ -1,0 +1,71 @@
+name: Meal portion scaling regression
+
+# Verifies end-to-end portion scaling (preset chips + free-typed grams) and the
+# food-aware size cues, and publishes the step-by-step screenshots so a human
+# can eyeball staging without rerunning anything.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: App URL to test (defaults to the staging preview)
+        default: https://id-preview--b76a384e-67c0-4f04-b53e-b70d374f6ac7.lovable.app
+        required: false
+  push:
+    branches: [main]
+    paths:
+      - "src/lib/portion-units.ts"
+      - "src/components/food-portion-picker.tsx"
+      - "src/components/meal-review-sheet.tsx"
+      - "e2e/meal-portion-scaling.spec.ts"
+      - ".github/workflows/meal-portion-scaling.yml"
+
+concurrency:
+  group: meal-portion-scaling-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  units:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Cue mapping + scaling unit and component checks
+        run: bun run test:portion-scaling
+
+  staging-screenshots:
+    runs-on: ubuntu-latest
+    needs: units
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+
+      - name: Run the portion scaling flow against staging
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base_url || 'https://id-preview--b76a384e-67c0-4f04-b53e-b70d374f6ac7.lovable.app' }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          PW_FULL_ARTIFACTS: "1"
+        run: bunx playwright test e2e/meal-portion-scaling.spec.ts --project=chromium
+
+      - name: Upload step-by-step screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meal-portion-scaling-screenshots-${{ github.run_attempt }}
+          path: test-results/meal-portion-scaling/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload the Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meal-portion-scaling-report-${{ github.run_attempt }}
+          path: playwright-report/
+          if-no-files-found: warn
+          retention-days: 14

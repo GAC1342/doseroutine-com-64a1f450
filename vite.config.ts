@@ -5,6 +5,8 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
+import { stripDebugRoutes } from "./scripts/vite-strip-debug-routes.mjs";
 
 // Unique per-build ID used to cache-bust /public assets (icons, manifest,
 // splash screens, sw-push.js) via a `?v=<BUILD_ID>` query string.
@@ -27,11 +29,15 @@ export default defineConfig({
     router: { routeFileIgnorePattern: "(__tests__|\\.test\\.tsx?)" },
   },
   vite: {
+    plugins: [mcpPlugin(), stripDebugRoutes()],
     define: {
       __BUILD_ID__: JSON.stringify(BUILD_ID),
       __BUILT_AT__: JSON.stringify(BUILT_AT),
     },
     build: {
+      // Hidden source maps: emitted for Sentry symbolication, but no
+      // //# sourceMappingURL comment, so browsers never fetch them.
+      sourcemap: "hidden",
       rollupOptions: {
         output: {
           // Split the vendor half of the entry bundle into stable, separately
@@ -60,6 +66,8 @@ export default defineConfig({
                 test: /node_modules[\\/](recharts|recharts-scale|victory-vendor|react-smooth|internmap|decimal\.js-light|d3-[a-z-]+)[\\/]/,
               },
               { name: "vendor-radix", test: /node_modules[\\/]@radix-ui[\\/]/ },
+              // Icons: one shared chunk instead of a modulepreload link per icon.
+              { name: "vendor-icons", test: /node_modules[\\/]lucide-react[\\/]/ },
               { name: "vendor-zod", test: /node_modules[\\/]zod[\\/]/ },
               { name: "vendor-date", test: /node_modules[\\/]date-fns[\\/]/ },
             ],
@@ -67,6 +75,5 @@ export default defineConfig({
         },
       },
     },
-
   },
 });

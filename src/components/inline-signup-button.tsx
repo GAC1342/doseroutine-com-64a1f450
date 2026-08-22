@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useSessionState } from "@/hooks/use-session";
 
 /**
- * Compact coral (CTA-token) signup button for high-visibility spots:
+ * Compact coral (CTA-token) sign-up button for high-visibility spots:
  * the sticky public header and the top of long article pages.
  *
  * Deliberately small and single — the page-level pitch stays in

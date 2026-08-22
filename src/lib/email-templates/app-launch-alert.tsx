@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing violations in this file; new files must not add these. */
 import * as React from "react";
 import {
   Body,
@@ -22,10 +23,10 @@ interface Props {
 const AppLaunchAlert = ({ email, platform, signedUpAt, totalWaitlist }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>New DoseRoutine app-launch waitlist signup</Preview>
+    <Preview>New DoseRoutine app-launch waitlist sign-up</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>New app-launch waitlist signup</Heading>
+        <Heading style={h1}>New app-launch waitlist sign-up</Heading>
         <Text style={text}>
           Someone just joined the list to be notified when DoseRoutine launches on the App Store and
           Google Play.
@@ -87,7 +88,7 @@ const muted = { color: "#888", fontSize: "12px", lineHeight: "20px" };
 
 export const template: TemplateEntry = {
   component: AppLaunchAlert,
-  subject: "New DoseRoutine app-launch waitlist signup",
+  subject: "New DoseRoutine app-launch waitlist sign-up",
   displayName: "App launch waitlist alert",
   to:
     process.env.APP_LAUNCH_NOTIFY_EMAIL ||

@@ -125,7 +125,11 @@ async function main() {
       base: BASE,
       generatedAt: new Date().toISOString(),
       pageSet: { source: discovered.source, reason: discovered.reason },
-      totals: { checked: paths.length, passed: paths.length - failures.length, failed: failures.length },
+      totals: {
+        checked: paths.length,
+        passed: paths.length - failures.length,
+        failed: failures.length,
+      },
       paths: paths.slice().sort(),
       failures: failures.map((f) => ({ path: f.path, reasons: f.reasons.slice().sort() })),
     };

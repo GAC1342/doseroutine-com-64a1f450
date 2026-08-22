@@ -1,0 +1,45 @@
+{
+  "fdcId": 7000010,
+  "description": "Broccoli, raw (corrupt gram weight)",
+  "dataType": "SR Legacy",
+  "foodNutrients": [
+    {
+      "nutrient": {
+        "id": 1008
+      },
+      "amount": 34
+    },
+    {
+      "nutrient": {
+        "id": 1003
+      },
+      "amount": 2.82
+    },
+    {
+      "nutrient": {
+        "id": 1005
+      },
+      "amount": 6.64
+    },
+    {
+      "nutrient": {
+        "id": 1004
+      },
+      "amount": 0.37
+    }
+  ],
+  "foodPortions": [
+    {
+      "gramWeight": 999999,
+      "portionDescription": "1 pallet"
+    },
+    {
+      "gramWeight": -91,
+      "portionDescription": "1 cup chopped"
+    },
+    {
+      "gramWeight": 148,
+      "portionDescription": "1 stalk, large"
+    }
+  ]
+}

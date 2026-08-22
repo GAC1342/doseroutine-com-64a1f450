@@ -83,7 +83,9 @@ if (rows.length === 0) {
     .filter((s) => counts[s])
     .map((s) => `${counts[s]} ${s}`)
     .join(" · ");
-  lines.push(`**${rows.length} package(s) need attention** — ${summary} (threshold: ${threshold}).`);
+  lines.push(
+    `**${rows.length} package(s) need attention** — ${summary} (threshold: ${threshold}).`,
+  );
   lines.push("");
   lines.push("| Package | Severity | Affected | Type | Fix |");
   lines.push("| --- | --- | --- | --- | --- |");
@@ -106,7 +108,9 @@ if (rows.length === 0) {
   lines.push("### How to fix");
   lines.push("1. `npm audit fix` for non-breaking upgrades.");
   lines.push("2. `npm audit fix --force` only after checking the breaking changes listed above.");
-  lines.push("3. Transitive-only issues with no fix: pin via an `overrides` entry in `package.json`.");
+  lines.push(
+    "3. Transitive-only issues with no fix: pin via an `overrides` entry in `package.json`.",
+  );
 }
 
 const output = lines.join("\n");

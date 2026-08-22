@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { listGscSnapshots } from "@/lib/gsc-monitor.functions";
+import { routeErrorComponent } from "@/components/route-error-panel";
 import {
   buildPublishImpactReport,
   buildPublishImpactSeries,
@@ -30,8 +31,8 @@ import {
   type PublishImpactSnapshot,
 } from "@/lib/publish-impact";
 
-
 export const Route = createFileRoute("/_authenticated/admin/publish-impact")({
+  errorComponent: routeErrorComponent("admin-publish-impact"),
   head: () => ({
     meta: [
       { title: "Publish impact report — DoseRoutine" },
@@ -102,9 +103,9 @@ function PublishImpactPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Publish impact report</h1>
         <p className="text-sm text-muted-foreground">
-          Pick the day you published. This compares the daily Search Console snapshots from the
-          days before that date against the days since, so you can see whether crawling and
-          impressions actually moved.
+          Pick the day you published. This compares the daily Search Console snapshots from the days
+          before that date against the days since, so you can see whether crawling and impressions
+          actually moved.
         </p>
       </header>
 
@@ -157,9 +158,12 @@ function PublishImpactPage() {
             <p className="text-sm">{report.summary}</p>
             <p className="text-xs text-muted-foreground">
               {report.beforeCount} snapshot{report.beforeCount === 1 ? "" : "s"} before (
-              {report.beforeRange ? `${report.beforeRange.start} → ${report.beforeRange.end}` : "none"}
+              {report.beforeRange
+                ? `${report.beforeRange.start} → ${report.beforeRange.end}`
+                : "none"}
               ) · {report.afterCount} snapshot{report.afterCount === 1 ? "" : "s"} after (
-              {report.afterRange ? `${report.afterRange.start} → ${report.afterRange.end}` : "none"})
+              {report.afterRange ? `${report.afterRange.start} → ${report.afterRange.end}` : "none"}
+              )
             </p>
           </Card>
 
@@ -169,8 +173,6 @@ function PublishImpactPage() {
             publishDate={publishDate}
             windowDays={windowDays}
           />
-
-
 
           <Card className="overflow-x-auto p-0">
             <table className="w-full text-left text-sm">
@@ -212,8 +214,7 @@ function ChangeCell({ metric }: { metric: MetricComparison }) {
   if (metric.change === null) return <span className="text-muted-foreground">—</span>;
   const good = isImprovement(metric);
   const Icon = metric.change === 0 ? ArrowRight : metric.change > 0 ? ArrowUpRight : ArrowDownRight;
-  const tone =
-    good === null ? "text-muted-foreground" : good ? "text-primary" : "text-destructive";
+  const tone = good === null ? "text-muted-foreground" : good ? "text-primary" : "text-destructive";
   return (
     <span className={`inline-flex items-center gap-1 font-medium ${tone}`}>
       <Icon className="size-3.5" aria-hidden="true" />

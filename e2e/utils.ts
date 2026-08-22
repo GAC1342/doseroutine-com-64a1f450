@@ -25,6 +25,19 @@ export async function dismissFirstRunOverlays(page: Page): Promise<void> {
     .catch(() => undefined);
 }
 
+/**
+ * Accepts the one-time medical disclaimer overlay when it is on screen. It is
+ * a `fixed inset-0 z-[100]` backdrop, so it swallows every click until dealt
+ * with. No-ops when the account already acknowledged it.
+ */
+export async function acceptMedicalDisclaimer(page: Page): Promise<void> {
+  const accept = page.getByRole("button", { name: /i understand and accept/i });
+  if (await accept.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await accept.click();
+    await accept.waitFor({ state: "hidden", timeout: 10_000 }).catch(() => undefined);
+  }
+}
+
 /** @deprecated use dismissFirstRunOverlays */
 export const dismissCookieBanner = dismissFirstRunOverlays;
 
@@ -109,13 +122,13 @@ export async function signOut(page: Page): Promise<void> {
 }
 
 export const test = base.extend<{ authedPage: Page }>({
-  authedPage: async ({ page }, use) => {
+  authedPage: async ({ page }, runTest) => {
     test.skip(
       !AUTH_AVAILABLE,
       "Set TEST_USER_EMAIL and TEST_USER_PASSWORD to run authenticated E2E tests",
     );
     await signIn(page);
-    await use(page);
+    await runTest(page);
   },
 });
 

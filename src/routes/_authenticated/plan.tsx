@@ -13,8 +13,10 @@ import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PageHeader } from "@/components/page-header";
 import { Card, cardClassName } from "@/components/ui/card";
 import { ApplyPlanCard } from "@/components/apply-plan-card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/plan")({
+  errorComponent: routeErrorComponent("plan"),
   head: () => ({
     meta: [
       { title: "Plan — DoseRoutine" },
@@ -100,6 +102,7 @@ function PlanPage() {
       const res = await gen({ data: { goal: chosen } });
       setPlan(res.plan);
       setGenAt(res.generated_at);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     } catch (e: any) {
       setError(e?.message || "Could not generate plan.");
     } finally {
@@ -171,7 +174,7 @@ function PlanPage() {
             {plan ? "Regenerate plan" : "Generate plan"}
           </button>
           {error && (
-            <div className="mt-3 flex items-start gap-2 rounded-xl bg-[color:var(--severity-avoid-bg))] p-3 text-sm text-[color:var(--severity-avoid)]">
+            <div className="mt-3 flex items-start gap-2 rounded-xl bg-[color:var(--severity-avoid-bg)] p-3 text-sm text-[color:var(--severity-avoid)]">
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>

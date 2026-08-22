@@ -385,7 +385,28 @@ definitions:
         echo ""
         echo "--- Google Play publishing ---"
         require GCLOUD_SERVICE_ACCOUNT_CREDENTIALS "Codemagic → App settings → Environment variables → google_play. Paste the full JSON of your Play Console service account."
+
+        echo ""
+        echo "--- Android subscriptions ---"
+        require REVENUECAT_GOOGLE_KEY "Codemagic → App settings → Environment variables → doseroutine_env → add the Android RevenueCat public SDK key."
       fi
+
+      echo ""
+      echo "--- Crash reporting (required for store builds) ---"
+      # Baked into the bundle at build time so a fresh install still reports
+      # crashes when the runtime config fetch fails (offline / cold start).
+      # A store binary with no DSN gives us zero visibility if App Review hits
+      # a crash, so this is a hard failure rather than a warning.
+      require VITE_SENTRY_DSN "Codemagic → App settings → Environment variables → doseroutine_env → add VITE_SENTRY_DSN (the Sentry project DSN URL). Mark 'include in build', leave 'secret' unchecked."
+      case "${VITE_SENTRY_DSN:-}" in
+        https://*ingest*sentry.io/*) : ;;
+        "") : ;;
+        *)
+          printf 'FAIL %-38s does not look like a Sentry DSN URL\n' "VITE_SENTRY_DSN"
+          echo "     expected: https://<key>@<org>.ingest.<region>.sentry.io/<project-id>"
+          MISSING=$((MISSING + 1))
+          ;;
+      esac
 
       echo ""
       echo "--- Environment preflight summary ---"
@@ -402,7 +423,9 @@ definitions:
     name: Build web bundle
     script: |
       set -e
-      npm run build
+      # NATIVE_BUILD=1 strips internal /debug/* screens from the shipped
+      # binary (App Review guideline 2.3.1).
+      NATIVE_BUILD=1 npm run build
       # TanStack Start's Cloudflare target is SSR-only and does NOT emit a
       # static dist/client/index.html. For the Capacitor native shell we
       # generate one that boots the client entry as an SPA.

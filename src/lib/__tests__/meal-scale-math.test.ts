@@ -1,5 +1,5 @@
 /**
- * Unit coverage for the maths behind the review sheet's live recalculation:
+ * Unit coverage for the math behind the review sheet's live recalculation:
  * scaling items by servings, rounding totals, and the displayed breakdown.
  */
 import { describe, expect, it } from "vitest";
@@ -10,13 +10,11 @@ import {
   totalsFor,
   type MealItem,
 } from "@/lib/meal-nutrition";
+import { makeMeal } from "@/test/fixtures/foods";
 
-const ITEMS: MealItem[] = [
-  { name: "Greek yogurt", portion: "170 g", calories: 100, protein_g: 17, carbs_g: 6, fat_g: 0 },
-  { name: "Granola", portion: "30 g", calories: 140, protein_g: 3, carbs_g: 20, fat_g: 5 },
-];
+const ITEMS: MealItem[] = makeMeal(["yogurt", "granola"]);
 
-describe("meal scaling maths", () => {
+describe("meal scaling math", () => {
   it("sums item macros into totals", () => {
     expect(roundTotals(totalsFor(ITEMS))).toEqual({
       calories: 240,

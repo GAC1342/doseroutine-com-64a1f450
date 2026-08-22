@@ -28,7 +28,9 @@ export type FunnelStep =
 function getSeen(): Record<string, number> {
   if (typeof window === "undefined") return {};
   try {
-    return JSON.parse(window.localStorage.getItem(KEY) || "{}") as Record<string, number>;
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(KEY) || "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return parsed as Record<string, number>;
   } catch {
     return {};
   }

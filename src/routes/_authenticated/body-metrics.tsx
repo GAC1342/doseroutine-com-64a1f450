@@ -1,8 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/body-metrics")({
+  errorComponent: routeErrorComponent("body-metrics"),
   beforeLoad: () => {
-    throw redirect({ to: "/fitness", search: { view: "workouts" } });
+    throw redirect({ to: "/fitness", search: { view: "workout" } });
   },
   head: () => ({
     meta: [

@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { authPrewarmProps } from "@/lib/auth-prewarm";
 
 type NavItem = { to: string; label: string; description: string };
 
 const TOOLS: NavItem[] = [
   { to: "/calculators", label: "All calculators", description: "Every dosing tool in one place" },
+  {
+    to: "/peptides",
+    label: "What are peptides?",
+    description: "Plain-English guide to peptides and how they're dosed",
+  },
+  {
+    to: "/peptides-calculator",
+    label: "Peptides calculator",
+    description: "Reconstitution math and syringe units",
+  },
+
   {
     to: "/trt-dosage-calculator",
     label: "TRT dosage calculator",
@@ -34,6 +46,13 @@ const TOOLS: NavItem[] = [
     description: "475+ supplements, peptides and hormones",
   },
   { to: "/help", label: "Help Center", description: "Setup guides and troubleshooting" },
+  {
+    to: "/articles",
+    label: "Articles",
+    description: "Guides on reminders, adherence and longevity",
+  },
+  { to: "/blog", label: "Research & Updates", description: "New studies and product notes" },
+
   {
     to: "/manual",
     label: "Instruction manual",
@@ -87,15 +106,32 @@ export function HomeSiteNav({
   signInLabel: string;
 }) {
   const [open, setOpen] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSection, setMobileSection] = useState<string | null>(null);
+
   const wrapRef = useRef<HTMLDivElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
+  /** Set when Escape / outside click closed the drawer, so focus returns to the toggle. */
+  const restoreFocusRef = useRef(false);
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(null);
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(null);
+        setMobileOpen(false);
+      }
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(null);
+      if (e.key === "Escape") {
+        setOpen(null);
+        setMobileOpen((wasOpen) => {
+          if (wasOpen) restoreFocusRef.current = true;
+          return false;
+        });
+      }
     }
+
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -104,14 +140,62 @@ export function HomeSiteNav({
     };
   }, []);
 
-  const activeMenu = MENUS.find((m) => m.id === open) ?? null;
+  // Move focus into the drawer when it opens, and back to the toggle when a
+  // keyboard user dismisses it.
+  useEffect(() => {
+    if (mobileOpen) {
+      const first = mobilePanelRef.current?.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), select, input, [tabindex]:not([tabindex="-1"])',
+      );
+      first?.focus();
+      return;
+    }
+    if (restoreFocusRef.current) {
+      restoreFocusRef.current = false;
+      mobileToggleRef.current?.focus();
+    }
+  }, [mobileOpen]);
+
+  // Focus trap: Tab cycles within the drawer (toggle button included) while open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const panel = mobilePanelRef.current;
+      const toggle = mobileToggleRef.current;
+      if (!panel) return;
+      const focusables = [
+        ...(toggle ? [toggle] : []),
+        ...Array.from(
+          panel.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), select, input, [tabindex]:not([tabindex="-1"])',
+          ),
+        ),
+      ].filter((el) => el.offsetParent !== null || el === toggle);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !active || !focusables.includes(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
+
+  const activeMobileMenu = MENUS.find((m) => m.id === mobileSection) ?? null;
 
   return (
     <div
       ref={wrapRef}
       className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md"
     >
-      <header className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 sm:px-6">
+      <header className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2">
           <BrandLogo
             size={32}
@@ -125,26 +209,27 @@ export function HomeSiteNav({
         </Link>
 
         <nav
-          className="flex w-full min-w-0 items-center justify-between gap-0.5 md:w-auto md:flex-1 md:justify-end md:gap-1"
+          className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex"
           aria-label="Main"
         >
           {MENUS.map((menu) => (
-            <div key={menu.id} className="relative">
+            <div key={menu.id} className="relative min-w-0">
               <button
                 type="button"
                 aria-expanded={open === menu.id}
                 aria-haspopup="true"
                 onClick={() => setOpen((v) => (v === menu.id ? null : menu.id))}
-                className="tap-target inline-flex items-center gap-1 rounded-lg px-2 text-sm font-medium text-foreground hover:bg-card sm:px-3"
+                className="tap-target inline-flex max-w-full items-center gap-1 rounded-lg px-3 text-sm font-medium text-foreground hover:bg-card"
               >
-                {menu.label}
+                <span className="truncate">{menu.label}</span>
                 <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform ${open === menu.id ? "rotate-180" : ""}`}
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform ${open === menu.id ? "rotate-180" : ""}`}
                   aria-hidden="true"
                 />
               </button>
+
               {open === menu.id ? (
-                <div className="absolute left-0 top-full z-50 mt-2 hidden w-80 rounded-2xl border border-border bg-card p-2 shadow-xl md:block">
+                <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-2xl border border-border bg-card p-2 shadow-xl">
                   {menu.items.map((item) => (
                     <Link
                       key={item.to}
@@ -171,15 +256,17 @@ export function HomeSiteNav({
           <Link
             to="/manual"
             onClick={() => onCta("nav_manual")}
-            className="tap-target inline-flex shrink-0 items-center rounded-lg px-2 text-sm font-medium text-foreground hover:bg-card sm:px-3"
+            className="tap-target inline-flex shrink-0 items-center rounded-lg px-3 text-sm font-medium text-foreground hover:bg-card"
           >
             Manual
           </Link>
 
-          <LanguageSwitcher variant="minimal" />
-
+          <span className="inline-flex">
+            <LanguageSwitcher variant="minimal" />
+          </span>
 
           <Link
+            {...authPrewarmProps}
             to={signedIn ? "/today" : "/auth"}
             onClick={() => {
               setOpen(null);
@@ -194,31 +281,114 @@ export function HomeSiteNav({
             {signedIn ? "Open app" : signInLabel}
           </Link>
         </nav>
+
+        {/* Mobile: only the primary CTA plus a menu button, so the row can never
+            overflow on narrow phones or at large iOS text sizes. */}
+        <div className="flex shrink-0 items-center gap-1.5 md:hidden">
+          <Link
+            {...authPrewarmProps}
+            to={signedIn ? "/today" : "/auth"}
+            onClick={() => {
+              setMobileOpen(false);
+              onCta("nav_signin");
+            }}
+            className={`tap-target inline-flex shrink-0 items-center rounded-lg px-3 text-sm font-semibold ${
+              signedIn
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-cta text-cta-foreground hover:bg-cta-hover"
+            }`}
+          >
+            {signedIn ? "Open app" : signInLabel}
+          </Link>
+          <button
+            type="button"
+            ref={mobileToggleRef}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-haspopup="dialog"
+            aria-controls="home-mobile-menu"
+            onClick={() => {
+              setMobileOpen((v) => {
+                if (v) restoreFocusRef.current = true;
+                return !v;
+              });
+              setOpen(null);
+            }}
+            className="tap-target inline-flex shrink-0 items-center justify-center rounded-lg border border-border px-2 text-foreground hover:bg-card"
+          >
+            {mobileOpen ? (
+              <X className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Menu className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
+        </div>
       </header>
 
-      {activeMenu ? (
+      {mobileOpen ? (
         <div
-          id={`mobile-section-${activeMenu.id}`}
-          className="max-h-[70vh] overflow-y-auto overscroll-contain border-t border-border bg-background px-4 pb-6 pt-2 md:hidden"
+          id="home-mobile-menu"
+          ref={mobilePanelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site menu"
+          className="max-h-[75vh] overflow-y-auto overscroll-contain border-t border-border bg-background px-4 pb-6 pt-2 md:hidden"
         >
-          <p className="px-1 pb-1 text-xs text-muted-foreground">{activeMenu.hint}</p>
-          <ul>
-            {activeMenu.items.map((item) => (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  onClick={() => {
-                    setOpen(null);
-                    onCta(`nav_mobile_${activeMenu.id}`);
-                  }}
-                  className="block rounded-xl px-3 py-3 hover:bg-card active:bg-card"
-                >
-                  <span className="block text-sm font-medium text-foreground">{item.label}</span>
-                  <span className="block text-xs text-muted-foreground">{item.description}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {MENUS.map((menu) => (
+            <div key={menu.id} className="border-b border-border/60 last:border-b-0">
+              <button
+                type="button"
+                aria-expanded={mobileSection === menu.id}
+                onClick={() => setMobileSection((v) => (v === menu.id ? null : menu.id))}
+                className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-3 text-left text-sm font-semibold text-foreground hover:bg-card"
+              >
+                <span className="min-w-0 truncate">{menu.label}</span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 transition-transform ${mobileSection === menu.id ? "rotate-180" : ""}`}
+                  aria-hidden="true"
+                />
+              </button>
+              {activeMobileMenu?.id === menu.id ? (
+                <ul className="pb-2">
+                  {menu.items.map((item) => (
+                    <li key={item.to}>
+                      <Link
+                        to={item.to}
+                        onClick={() => {
+                          setMobileOpen(false);
+                          setMobileSection(null);
+                          onCta(`nav_mobile_${menu.id}`);
+                        }}
+                        className="block rounded-xl px-3 py-3 hover:bg-card active:bg-card"
+                      >
+                        <span className="block text-sm font-medium text-foreground">
+                          {item.label}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {item.description}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ))}
+
+          <Link
+            to="/manual"
+            onClick={() => {
+              setMobileOpen(false);
+              onCta("nav_mobile_manual");
+            }}
+            className="mt-1 block rounded-xl px-3 py-3 text-sm font-semibold text-foreground hover:bg-card"
+          >
+            Manual
+          </Link>
+
+          <div className="mt-2 border-t border-border px-3 pt-3">
+            <LanguageSwitcher variant="minimal" />
+          </div>
         </div>
       ) : null}
     </div>

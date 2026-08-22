@@ -55,7 +55,7 @@ describe("CapsuleQuickSet label reader", () => {
     expect(onApply).toHaveBeenCalledWith(2000);
   });
 
-  it("explains when nothing is recognised", () => {
+  it("explains when nothing is recognized", () => {
     setup();
     fireEvent.click(screen.getByRole("button", { name: /Paste label/i }));
     fireEvent.change(screen.getByLabelText(/Paste supplement label text/i), {

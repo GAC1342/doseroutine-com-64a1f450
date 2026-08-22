@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getSessionSafe } from "@/lib/auth-session";
+import { getSessionSafe, readStoredSession } from "@/lib/auth-session";
 
 export type SessionState = "unknown" | "signed-in" | "signed-out";
 
@@ -14,6 +14,11 @@ export function useSessionState(): SessionState {
 
   useEffect(() => {
     let active = true;
+
+    // Silent restore: reflect the persisted session immediately so the header
+    // never shows "Sign in" to an already signed-in visitor while the SDK
+    // resolves. The awaited call below corrects it if the session is gone.
+    if (readStoredSession()) setState("signed-in");
 
     getSessionSafe().then((session) => {
       if (!active) return;

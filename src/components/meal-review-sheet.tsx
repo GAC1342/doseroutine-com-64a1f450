@@ -8,7 +8,6 @@ import {
   Camera,
   ChevronDown,
   Crop,
-
   Loader2,
   Plus,
   RotateCcw,
@@ -19,26 +18,41 @@ import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MealPhotoEditor } from "@/components/meal-photo-editor";
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { supabase } from "@/integrations/supabase/client";
 import { scanMealInput } from "@/lib/meal-scan.functions";
 import { scanBarcodeFromImage } from "@/lib/barcode-scanner";
 import { dataUrlToBlob, fileToDownscaledDataUrl } from "@/lib/image-downscale";
+import { FoodPortionPicker, rescaleItemToGrams } from "@/components/food-portion-picker";
+import { parsePortionGrams } from "@/lib/portion-units";
+import { recordScanCorrections } from "@/lib/food-db.functions";
 import { MealProvenance } from "@/components/meal-provenance";
+
+import {
+  trackReviewOpened,
+  trackScanSaved,
+  trackSaveError,
+  trackItemEdit,
+  trackItemAdded,
+  trackItemRemoved,
+  trackPortionSwap,
+  trackTotalEdit,
+  trackTotalReset,
+  trackServingsRecalc,
+  trackAutoFix,
+  trackEditUndo,
+  trackCorrectionSummary,
+  trackCorrectionsPersisted,
+  trackCorrectionsError,
+  cancelPendingEditEvents,
+  flushPendingEditEvents,
+  type MealEditField,
+} from "@/lib/meal-scan-analytics";
 import {
   CONFIDENCE_COPY,
   MEAL_SLOTS,
@@ -48,13 +62,16 @@ import {
   buildScaleBreakdown,
   describeAutoFix,
   emptyItem,
-
+  extendedTotalsFor,
+  roundMacro,
   roundTotals,
   scaleItems,
   slotForHour,
   totalsFor,
   validateMealItem,
   validateMealTotals,
+  FOOD_SOURCE_LABELS,
+  type FoodDataSource,
   type MacroValidationIssue,
   type MealConfidence,
   type MealItem,
@@ -62,6 +79,8 @@ import {
   type MealSource,
   type MealTotals,
 } from "@/lib/meal-nutrition";
+import { PortionConfidenceGate } from "@/components/portion-confidence-gate";
+import { assessPortionConfidence } from "@/lib/portion-confidence";
 
 export type MealDraft = {
   /** Present when editing an already-saved meal. */
@@ -82,6 +101,8 @@ export type MealDraft = {
   time?: string;
   /** Original estimate kept so edits stay comparable to the first scan. */
   estimateItems?: MealItem[];
+  /** What the vision model sized the portions against, when it said. */
+  scaleBasis?: string | null;
 };
 
 /** Shared empty bucket so rows without issues never allocate a new array. */
@@ -111,7 +132,10 @@ function describeRescanError(err: unknown, mode: RescanMode): { title: string; d
   const title = `${RESCAN_LABELS[mode]} scan failed`;
 
   if (text.includes("add a photo")) {
-    return { title, detail: "There is no photo to read yet. Take or pick a photo, then scan again." };
+    return {
+      title,
+      detail: "There is no photo to read yet. Take or pick a photo, then scan again.",
+    };
   }
   if (text.includes("no barcode")) {
     return {
@@ -127,16 +151,25 @@ function describeRescanError(err: unknown, mode: RescanMode): { title: string; d
     return { title, detail: "The scanner is busy right now. Wait a few seconds, then retry." };
   }
   if (text.includes("timeout") || text.includes("timed out")) {
-    return { title, detail: "The scan took too long to answer. Retry — it usually works second time." };
+    return {
+      title,
+      detail: "The scan took too long to answer. Retry — it usually works second time.",
+    };
   }
   if (text.includes("401") || text.includes("unauthorized") || text.includes("sign in")) {
     return { title, detail: "Your session expired. Sign in again, then re-run the scan." };
   }
   if (text.includes("payment") || text.includes("402") || text.includes("credit")) {
-    return { title, detail: "The AI scanner is temporarily unavailable. Enter the numbers by hand for now." };
+    return {
+      title,
+      detail: "The AI scanner is temporarily unavailable. Enter the numbers by hand for now.",
+    };
   }
   if (text.includes("too large") || text.includes("413")) {
-    return { title, detail: "That photo was too large. Retake it a bit further back and scan again." };
+    return {
+      title,
+      detail: "That photo was too large. Retake it a bit further back and scan again.",
+    };
   }
   return {
     title,
@@ -146,13 +179,13 @@ function describeRescanError(err: unknown, mode: RescanMode): { title: string; d
   };
 }
 
-
 export function MealReviewSheet({
   open,
   onOpenChange,
   draft,
   dayKey,
   onSaved,
+  scanId = null,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -160,12 +193,32 @@ export function MealReviewSheet({
   /** yyyy-MM-dd the meal belongs to. Defaults to today. */
   dayKey?: string;
   onSaved?: () => void;
+  /** Scanner attempt id so review/save events join the capture + parse events. */
+  scanId?: string | null;
 }) {
   const [label, setLabel] = useState("");
   const [items, setItems] = useState<MealItem[]>([]);
   const [baseItems, setBaseItems] = useState<MealItem[]>([]);
   const [estimateItems, setEstimateItems] = useState<MealItem[]>([]);
   const [portion, setPortion] = useState(1);
+  /** Review-only view filter: show every item, or only one nutrition source. */
+  const [sourceFilter, setSourceFilter] = useState<FoodDataSource | "all">("all");
+  const sourceCounts = useMemo(() => {
+    const counts = new Map<FoodDataSource, number>();
+    for (const item of items) {
+      const key = (item.dataSource ?? "ai") as FoodDataSource;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [items]);
+  const visibleCount =
+    sourceFilter === "all"
+      ? items.length
+      : (sourceCounts.find(([key]) => key === sourceFilter)?.[1] ?? 0);
+  // Never strand the user on an empty list when edits remove the last item of a source.
+  useEffect(() => {
+    if (sourceFilter !== "all" && visibleCount === 0) setSourceFilter("all");
+  }, [sourceFilter, visibleCount]);
   const [slot, setSlot] = useState<MealSlot>("other");
   const [time, setTime] = useState("12:00");
   const [saving, setSaving] = useState(false);
@@ -186,6 +239,10 @@ export function MealReviewSheet({
     null,
   );
   const [source, setSource] = useState<MealSource>("manual");
+  /** What the vision model scaled portions against — drives the accuracy gate. */
+  const [scaleBasis, setScaleBasis] = useState<string | null>(null);
+  /** Set once the user acknowledges a shaky photo estimate and edits it anyway. */
+  const [gateDismissed, setGateDismissed] = useState(false);
   const [barcode, setBarcode] = useState<string | null>(null);
   /** Hand-corrected meal totals that win over the summed item macros. */
   const [override, setOverride] = useState<MealTotals | null>(null);
@@ -209,6 +266,8 @@ export function MealReviewSheet({
 
   /** One-serving snapshot every servings recalculation scales from. */
   const servingsBase = useRef<{ items: MealItem[]; totals: MealTotals } | null>(null);
+  /** Per-item snapshot the free-typed portion field rescales from. */
+  const portionBase = useRef<Map<number, MealItem>>(new Map());
   /** Snapshot of what the last auto-fix replaced, for one-step undo. */
   const [lastAutoFix, setLastAutoFix] = useState<{
     items: MealItem[];
@@ -231,10 +290,10 @@ export function MealReviewSheet({
   const [warningConfirmed, setWarningConfirmed] = useState(false);
   const rescanRef = useRef<HTMLInputElement>(null);
 
-
   const pendingMode = useRef<RescanMode>("both");
   const navigate = useNavigate();
   const analyze = useServerFn(scanMealInput);
+  const sendCorrections = useServerFn(recordScanCorrections);
 
   const isEditing = Boolean(draft?.id);
 
@@ -261,12 +320,13 @@ export function MealReviewSheet({
     setLastRecalc(null);
     setLastAutoFix(null);
 
-
     setConfidence(draft.confidence);
     setNote(draft.note ?? "");
     setNewPhoto(draft.photoDataUrl ?? null);
     setRemovedStoragePath(null);
     setReadFrom(draft.readFrom ?? null);
+    setScaleBasis(draft.scaleBasis ?? null);
+    setGateDismissed(false);
     setSource(draft.source);
     setBarcode(draft.barcode ?? null);
     setSlot(draft.slot ?? slotForHour(now.getHours()));
@@ -274,9 +334,23 @@ export function MealReviewSheet({
       draft.time ??
         `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
     );
-  }, [open, draft]);
+    trackReviewOpened(scanId, {
+      source: draft.source,
+      itemCount: draft.items.length,
+      isEdit: Boolean(draft.id),
+      hasPhoto: Boolean(draft.photoDataUrl || draft.storagePath),
+    });
+  }, [open, draft, scanId]);
+
+  // Buffered (debounced) edit events must not leak across sheet sessions.
+  useEffect(() => {
+    if (!open) cancelPendingEditEvents();
+    return () => cancelPendingEditEvents();
+  }, [open]);
 
   const itemTotals = useMemo(() => roundTotals(totalsFor(items)), [items]);
+  /** Fiber / sugars / sodium / sat fat, when the matched foods publish them. */
+  const extended = useMemo(() => extendedTotalsFor(items), [items]);
   const totals = override ?? itemTotals;
   const validationSource = override ?? itemTotals;
   const totalIssues = useMemo(() => validateMealTotals(validationSource), [validationSource]);
@@ -323,6 +397,22 @@ export function MealReviewSheet({
       totals.fat_g !== aiTotals.fat_g,
     [totals, aiTotals],
   );
+  /**
+   * How defensible the photo portions are. Scored from the estimate as it
+   * arrived (not the user's edits), so correcting an item doesn't hide the
+   * warning that prompted the correction.
+   */
+  const portionAssessment = useMemo(
+    () =>
+      assessPortionConfidence({
+        items: estimateItems.length > 0 ? estimateItems : items,
+        confidence: confidence ?? "medium",
+        note,
+        readFrom,
+        scaleBasis,
+      }),
+    [estimateItems, items, confidence, note, readFrom, scaleBasis],
+  );
   /** Display-only explanation of how per-serving values became the shown numbers. */
   const scaleBreakdown = useMemo(() => {
     if (!perServingBase) return null;
@@ -335,8 +425,6 @@ export function MealReviewSheet({
       items,
     });
   }, [perServingBase, appliedServings, totals, items]);
-
-
 
   function applyPortion(next: number) {
     setPortion(next);
@@ -356,6 +444,54 @@ export function MealReviewSheet({
     // A hand-edited item list becomes the new one-serving basis.
     servingsBase.current = null;
     setLastRecalc(null);
+  }
+
+  /**
+   * Item edit + instrumentation in one call so every hand correction is
+   * measured (debounced, so a typed number reports once it settles).
+   */
+  function editItemField(index: number, field: MealEditField, value: string | number) {
+    const before = items[index];
+    updateItem(index, { [field]: value } as Partial<MealItem>);
+    trackItemEdit(scanId, {
+      index,
+      field,
+      from: (before?.[field] as string | number | undefined) ?? null,
+      to: value,
+      dataSource: before?.dataSource ?? null,
+      foodId: before?.foodId ?? null,
+      itemName: before?.name ?? null,
+    });
+  }
+
+  /**
+   * Free-typed portion ("200 g", "2 tbsp", "1 cup (158 g)"). The typed text is
+   * always kept; when it carries a measurable amount we rescale grams and the
+   * macros from the portion's original basis, so typing digit by digit never
+   * compounds rounding.
+   */
+  function editPortionField(index: number, value: string) {
+    const before = items[index];
+    if (!before) return;
+    if (!portionBase.current.has(index)) portionBase.current.set(index, before);
+    const base = portionBase.current.get(index) ?? before;
+
+    const grams = parsePortionGrams(value);
+    const patch: Partial<MealItem> =
+      grams && grams > 0
+        ? { ...rescaleItemToGrams(base, grams), grams: roundMacro(grams), portion: value }
+        : { portion: value };
+
+    updateItem(index, patch);
+    trackItemEdit(scanId, {
+      index,
+      field: "portion",
+      from: before.portion ?? null,
+      to: value,
+      dataSource: before.dataSource ?? null,
+      foodId: before.foodId ?? null,
+      itemName: before.name ?? null,
+    });
   }
 
   /**
@@ -384,9 +520,10 @@ export function MealReviewSheet({
       items: scaleItems(items, 1 / divisor),
       totals: perServing,
     };
+    trackTotalEdit(scanId, { field: key, from: (override ?? itemTotals)[key], to: numeric });
   }
 
-  /** Clear a hand-typed total and any servings maths built on top of it. */
+  /** Clear a hand-typed total and any servings math built on top of it. */
   function resetToItems() {
     setOverride(null);
     setOverrideRaw({
@@ -401,6 +538,7 @@ export function MealReviewSheet({
     setAppliedServings(1);
     setServings("1");
     setLastRecalc(null);
+    trackTotalReset(scanId);
   }
 
   /** Put back exactly what the most recent servings recalculation replaced. */
@@ -416,6 +554,7 @@ export function MealReviewSheet({
     setServings(lastRecalc.servings);
     setWarningConfirmed(false);
     setLastRecalc(null);
+    trackEditUndo(scanId, "recalc", { scaled_to: lastRecalc.scaledTo });
     toast.success("Recalculation undone", {
       description: "Your previous totals and items are back.",
     });
@@ -454,6 +593,7 @@ export function MealReviewSheet({
     setWarningConfirmed(false);
     setLastRecalc(null);
     servingsBase.current = null;
+    trackAutoFix(scanId, changes.length);
     toast.success(`Fixed ${changes.length} value${changes.length === 1 ? "" : "s"}`, {
       description: describeAutoFix(changes),
     });
@@ -468,6 +608,7 @@ export function MealReviewSheet({
     setWarningConfirmed(false);
     setLastAutoFix(null);
     servingsBase.current = null;
+    trackEditUndo(scanId, "autofix", { change_count: lastAutoFix.count });
     toast.success("Auto-fix undone", { description: "Your original numbers are back." });
   }
 
@@ -534,12 +675,11 @@ export function MealReviewSheet({
         setPerServingBase(base.totals);
         setAppliedServings(parsed);
       });
+      trackServingsRecalc(scanId, appliedServings, parsed);
     }, 350);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [servings, appliedServings]);
-
-
 
   /**
    * Re-read the numbers without touching the saved items: a rescan updates the
@@ -581,6 +721,8 @@ export function MealReviewSheet({
       setConfidence(estimate.confidence);
       setNote(estimate.note);
       setReadFrom(estimate.readFrom ?? "visual");
+      setScaleBasis(estimate.scaleBasis ?? null);
+      setGateDismissed(false);
       setSource(estimate.readFrom === "barcode" ? "barcode" : "photo");
       setBarcode(estimate.barcode ?? detected ?? null);
       if (file && imageDataUrl) setNewPhoto(imageDataUrl);
@@ -630,6 +772,7 @@ export function MealReviewSheet({
 
   async function save(force = false) {
     if (!draft) return;
+    const saveStartedAt = performance.now();
     if (hardErrors.length > 0) {
       toast.error("Please fix the errors before saving", {
         description: hardErrors[0].message,
@@ -651,6 +794,8 @@ export function MealReviewSheet({
       return;
     }
     setSaving(true);
+    // Make sure the last typed correction is reported, not swallowed by close.
+    flushPendingEditEvents();
     try {
       const { data: userRes } = await supabase.auth.getUser();
       const uid = userRes.user?.id;
@@ -666,7 +811,15 @@ export function MealReviewSheet({
             upsert: false,
           });
         // A failed upload must not lose the macros the user just reviewed.
-        if (!uploadError) storagePath = path;
+        if (uploadError) {
+          trackSaveError(
+            scanId,
+            { source, isEdit: Boolean(draft.id), stage: "upload" },
+            uploadError,
+          );
+        } else {
+          storagePath = path;
+        }
       }
       if (removedStoragePath) {
         await supabase.storage.from("meal-photos").remove([removedStoragePath]);
@@ -709,7 +862,94 @@ export function MealReviewSheet({
         : await supabase
             .from("meals")
             .insert({ ...payload, user_id: uid, storage_path: storagePath });
-      if (error) throw error;
+      if (error) {
+        trackSaveError(scanId, { source, isEdit: Boolean(draft.id), stage: "write" }, error);
+        throw error;
+      }
+
+      trackScanSaved(scanId, {
+        source,
+        isEdit: Boolean(draft.id),
+        wasAdjusted,
+        calories: totals.calories,
+        protein_g: totals.protein_g,
+        carbs_g: totals.carbs_g,
+        fat_g: totals.fat_g,
+        photoUploaded: Boolean(storagePath),
+        durationMs: performance.now() - saveStartedAt,
+      });
+
+      // How much the human moved the machine's numbers, bucketed by the source
+      // that produced each item — the accuracy signal for the feedback loop.
+      trackCorrectionSummary(scanId, {
+        source,
+        isEdit: Boolean(draft.id),
+        totalsOverridden: Boolean(override),
+        aiTotals,
+        finalTotals: totals,
+        items: items.map((item, index) => {
+          const ai = estimateItems[index];
+          return {
+            dataSource: item.dataSource ?? null,
+            foodId: item.foodId ?? null,
+            portionChanged:
+              Boolean(ai) &&
+              (ai.portion !== item.portion || (ai.grams ?? null) !== (item.grams ?? null)),
+            ai: {
+              calories: ai?.calories ?? item.calories,
+              protein_g: ai?.protein_g ?? item.protein_g,
+              carbs_g: ai?.carbs_g ?? item.carbs_g,
+              fat_g: ai?.fat_g ?? item.fat_g,
+            },
+            user: {
+              calories: item.calories,
+              protein_g: item.protein_g,
+              carbs_g: item.carbs_g,
+              fat_g: item.fat_g,
+            },
+          };
+        }),
+      });
+
+      // Feedback loop: teach the food database from what the user corrected.
+      void sendCorrections({
+        data: {
+          mealId: draft.id ?? null,
+          scanId,
+          readFrom: source,
+          items: items.map((item, index) => {
+            const ai = estimateItems[index];
+            return {
+              name: item.name,
+              portion: item.portion,
+              grams: item.grams ?? null,
+              foodId: item.foodId ?? null,
+              dataSource: item.dataSource ?? null,
+              aiPortion: ai?.portion ?? null,
+              aiGrams: ai?.grams ?? null,
+              ai: {
+                calories: ai?.calories ?? item.calories,
+                protein_g: ai?.protein_g ?? item.protein_g,
+                carbs_g: ai?.carbs_g ?? item.carbs_g,
+                fat_g: ai?.fat_g ?? item.fat_g,
+              },
+              user: {
+                calories: item.calories,
+                protein_g: item.protein_g,
+                carbs_g: item.carbs_g,
+                fat_g: item.fat_g,
+              },
+            };
+          }),
+        },
+      })
+        .then((res) =>
+          trackCorrectionsPersisted(scanId, {
+            recorded: res?.recorded ?? 0,
+            promoted: res?.promoted ?? 0,
+          }),
+        )
+        .catch((err) => trackCorrectionsError(scanId, err));
 
       const savedLabel = label.trim().slice(0, 80) || "Meal";
       toast.success(draft.id ? "Meal updated" : "Meal saved", {
@@ -725,6 +965,7 @@ export function MealReviewSheet({
       onOpenChange(false);
       onSaved?.();
     } catch (err) {
+      trackSaveError(scanId, { source, isEdit: Boolean(draft.id), stage: "write" }, err);
       toast.error("Could not save that meal", {
         description: err instanceof Error ? err.message : "Please try again.",
       });
@@ -754,6 +995,7 @@ export function MealReviewSheet({
               <img
                 src={newPhoto}
                 alt="The meal photo you just took"
+                title="The meal photo you just took"
                 width={64}
                 height={64}
                 className="h-16 w-16 rounded-xl object-cover"
@@ -802,6 +1044,19 @@ export function MealReviewSheet({
                 </div>
               ))}
             </div>
+            {extended.fiber_g != null ||
+            extended.sugar_g != null ||
+            extended.sodium_mg != null ||
+            extended.satfat_g != null ? (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {extended.fiber_g != null ? `${extended.fiber_g}g fiber` : null}
+                {extended.sugar_g != null
+                  ? `${extended.fiber_g != null ? " · " : ""}${extended.sugar_g}g sugars`
+                  : null}
+                {extended.satfat_g != null ? ` · ${extended.satfat_g}g sat fat` : null}
+                {extended.sodium_mg != null ? ` · ${extended.sodium_mg}mg sodium` : null}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -858,7 +1113,6 @@ export function MealReviewSheet({
           }}
         />
 
-
         {rescanError && !rescanning ? (
           <div
             role="alert"
@@ -888,7 +1142,8 @@ export function MealReviewSheet({
                     variant="ghost"
                     disabled={saving}
                     onClick={() => {
-                      pendingMode.current = rescanError.mode === "barcode" ? "both" : rescanError.mode;
+                      pendingMode.current =
+                        rescanError.mode === "barcode" ? "both" : rescanError.mode;
                       setRescanError(null);
                       rescanRef.current?.click();
                     }}
@@ -910,11 +1165,11 @@ export function MealReviewSheet({
           </div>
         ) : null}
 
-
         <div className="mt-3 space-y-2">
           <input
             ref={rescanRef}
             type="file"
+            aria-label="Take or choose a photo to rescan this meal"
             accept="image/*"
             capture="environment"
             className="sr-only"
@@ -968,6 +1223,23 @@ export function MealReviewSheet({
             </Button>
           </details>
         </div>
+
+        {portionAssessment.verdict !== "trusted" && !gateDismissed && (
+          <PortionConfidenceGate
+            assessment={portionAssessment}
+            busy={Boolean(rescanning) || saving}
+            onRetake={() => {
+              pendingMode.current = "both";
+              rescanRef.current?.click();
+            }}
+            onSearchInstead={() => {
+              setGateDismissed(true);
+              toast.info("Search the food by name below", {
+                description: "Swap any item for a database match to get exact numbers.",
+              });
+            }}
+          />
+        )}
 
         <MealProvenance
           source={source}
@@ -1030,7 +1302,7 @@ export function MealReviewSheet({
                   className={`tap-target rounded-full border px-4 text-sm font-medium transition ${
                     portion === factor
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground hover:bg-muted"
+                      : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   {factor}x
@@ -1050,14 +1322,65 @@ export function MealReviewSheet({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setItems((prev) => [...prev, emptyItem()])}
+              onClick={() => {
+                setItems((prev) => [...prev, emptyItem()]);
+                trackItemAdded(scanId, items.length + 1);
+              }}
             >
               <Plus className="mr-1 h-4 w-4" />
               Add item
             </Button>
           </div>
 
+          {sourceCounts.length > 1 && (
+            <div
+              role="group"
+              aria-label="Filter items by nutrition source"
+              className="flex flex-wrap gap-2"
+            >
+              <button
+                type="button"
+                aria-pressed={sourceFilter === "all"}
+                onClick={() => setSourceFilter("all")}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                  sourceFilter === "all"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                All ({items.length})
+              </button>
+              {sourceCounts.map(([key, count]) => (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={sourceFilter === key}
+                  onClick={() => setSourceFilter((prev) => (prev === key ? "all" : key))}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                    sourceFilter === key
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {FOOD_SOURCE_LABELS[key]} ({count})
+                </button>
+              ))}
+            </div>
+          )}
+
+          {sourceFilter !== "all" && (
+            <p
+              className="text-xs text-muted-foreground"
+              role="status"
+              aria-label="Source filter status"
+            >
+              Showing {visibleCount} of {items.length} items from {FOOD_SOURCE_LABELS[sourceFilter]}
+              . Totals still cover every item.
+            </p>
+          )}
+
           {items.map((item, index) => {
+            if (sourceFilter !== "all" && (item.dataSource ?? "ai") !== sourceFilter) return null;
             const issuesForItem = issuesByItem.get(index) ?? EMPTY_ISSUES;
 
             const itemHasError = issuesForItem.some((issue) => issue.kind === "error");
@@ -1073,14 +1396,22 @@ export function MealReviewSheet({
                   <Input
                     aria-label={`Item ${index + 1} name`}
                     value={item.name}
-                    onChange={(e) => updateItem(index, { name: e.target.value })}
+                    onChange={(e) => editItemField(index, "name", e.target.value)}
                     placeholder="Food"
                   />
                   <button
                     type="button"
                     aria-label={`Remove ${item.name || "item"}`}
-                    onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
-                    className="tap-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted"
+                    onClick={() => {
+                      setItems((prev) => prev.filter((_, i) => i !== index));
+                      trackItemRemoved(scanId, {
+                        index,
+                        dataSource: item.dataSource ?? null,
+                        calories: item.calories,
+                        itemCount: items.length - 1,
+                      });
+                    }}
+                    className="tap-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -1088,10 +1419,26 @@ export function MealReviewSheet({
                 <Input
                   aria-label={`Item ${index + 1} portion`}
                   value={item.portion}
-                  onChange={(e) => updateItem(index, { portion: e.target.value })}
+                  onChange={(e) => editPortionField(index, e.target.value)}
+                  onBlur={() => portionBase.current.delete(index)}
                   placeholder="150 g"
                   className="mt-2"
                 />
+                <FoodPortionPicker
+                  item={item}
+                  onChange={(patch) => updateItem(index, patch)}
+                  onPortionPick={(picked) =>
+                    trackPortionSwap(scanId, {
+                      index,
+                      label: picked.label,
+                      fromGrams: picked.fromGrams,
+                      toGrams: picked.grams,
+                      dataSource: item.dataSource ?? null,
+                      foodId: item.foodId ?? null,
+                    })
+                  }
+                />
+
                 <div className="mt-2 grid grid-cols-4 gap-2">
                   {(
                     [
@@ -1115,16 +1462,12 @@ export function MealReviewSheet({
                           aria-label={`Item ${index + 1} ${labelText}`}
                           inputMode="decimal"
                           value={macroInput(item[key])}
-                          onChange={(e) =>
-                            updateItem(index, {
-                              [key]: Number(e.target.value) || 0,
-                            } as Partial<MealItem>)
-                          }
+                          onChange={(e) => editItemField(index, key, Number(e.target.value) || 0)}
                           className={`mt-0.5 px-2 text-sm ${
                             fieldError
                               ? "border-destructive text-destructive focus-visible:ring-destructive"
                               : fieldWarning
-                                ? "border-amber-500 text-amber-600 focus-visible:ring-amber-500"
+                                ? "border-amber-500 text-amber-600 dark:text-amber-400 focus-visible:ring-amber-500"
                                 : ""
                           }`}
                         />
@@ -1138,7 +1481,9 @@ export function MealReviewSheet({
                       <p
                         key={idx}
                         className={`flex items-start gap-1.5 text-[11px] ${
-                          issue.kind === "error" ? "text-destructive" : "text-amber-600"
+                          issue.kind === "error"
+                            ? "text-destructive"
+                            : "text-amber-600 dark:text-amber-400"
                         }`}
                       >
                         <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -1189,13 +1534,15 @@ export function MealReviewSheet({
                   <Input
                     aria-label={`Meal total ${name}`}
                     inputMode="decimal"
-                    value={overrideRaw[key]}
+                    // Until a total is hand-corrected, mirror the live item sum
+                    // so portion rescales show up in the totals immediately.
+                    value={override ? overrideRaw[key] : macroInput(totals[key])}
                     onChange={(e) => updateTotal(key, e.target.value)}
                     className={`px-2 text-center text-sm font-semibold tabular-nums ${
                       hasError
                         ? "border-destructive text-destructive focus-visible:ring-destructive"
                         : hasWarning
-                          ? "border-amber-500 text-amber-600 focus-visible:ring-amber-500"
+                          ? "border-amber-500 text-amber-600 dark:text-amber-400 focus-visible:ring-amber-500"
                           : ""
                     }`}
                   />
@@ -1212,7 +1559,9 @@ export function MealReviewSheet({
                 <p
                   key={idx}
                   className={`flex items-start gap-1.5 text-[11px] ${
-                    issue.kind === "error" ? "text-destructive" : "text-amber-600"
+                    issue.kind === "error"
+                      ? "text-destructive"
+                      : "text-amber-600 dark:text-amber-400"
                   }`}
                 >
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -1224,8 +1573,8 @@ export function MealReviewSheet({
           {hardErrors.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-2">
               <span className="text-[11px] text-muted-foreground">
-                Auto-fix sets negative or unreadable values to 0 and caps anything impossibly
-                high — everything else stays exactly as you typed it.
+                Auto-fix sets negative or unreadable values to 0 and caps anything impossibly high —
+                everything else stays exactly as you typed it.
               </span>
               <Button
                 type="button"
@@ -1279,7 +1628,6 @@ export function MealReviewSheet({
                 <Calculator className="h-3.5 w-3.5" />
                 {recalcPending ? "Updating…" : "Updates automatically"}
               </span>
-
             </div>
             {servings.trim() !== "" && !(Number(servings) > 0) && (
               <p className="mt-2 text-[11px] text-muted-foreground">
@@ -1321,8 +1669,8 @@ export function MealReviewSheet({
                 <CollapsibleContent className="mt-2 space-y-2 rounded-lg border border-border bg-muted/30 p-2.5">
                   <TooltipProvider delayDuration={200}>
                     <p className="text-[11px] text-muted-foreground">
-                      Every number is the per-serving value from the Nutrition Facts multiplied by the
-                      servings you ate.
+                      Every number is the per-serving value from the Nutrition Facts multiplied by
+                      the servings you ate.
                     </p>
                     <table className="w-full text-[11px] tabular-nums">
                       <tbody>
@@ -1343,7 +1691,8 @@ export function MealReviewSheet({
                                     {row.label} per serving ({row.perServing}
                                     {row.unit === "kcal" ? " kcal" : " g"}) ×{" "}
                                     {scaleBreakdown.servings} serving
-                                    {scaleBreakdown.servings === 1 ? "" : "s"} = total {row.label.toLowerCase()}.
+                                    {scaleBreakdown.servings === 1 ? "" : "s"} = total{" "}
+                                    {row.label.toLowerCase()}.
                                     {row.rounded
                                       ? " Rounded to the nearest whole unit for display."
                                       : ""}
@@ -1365,7 +1714,8 @@ export function MealReviewSheet({
                     </table>
                     {scaleBreakdown.anyRounded && (
                       <p className="text-[11px] text-muted-foreground">
-                        Some results are rounded for display, so a row may differ by less than a unit.
+                        Some results are rounded for display, so a row may differ by less than a
+                        unit.
                       </p>
                     )}
                     {override && (
@@ -1398,8 +1748,6 @@ export function MealReviewSheet({
                 </CollapsibleContent>
               </Collapsible>
             )}
-
-
           </div>
 
           {wasAdjusted && (
@@ -1421,7 +1769,7 @@ export function MealReviewSheet({
                   className={`tap-target rounded-full border px-3 text-xs font-medium capitalize transition ${
                     confidence === level
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground hover:bg-muted"
+                      : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   {level}

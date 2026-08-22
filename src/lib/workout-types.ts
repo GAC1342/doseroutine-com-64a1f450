@@ -1,5 +1,5 @@
 /**
- * Shared vocabulary + unit maths for fitness tracking.
+ * Shared vocabulary + unit math for fitness tracking.
  *
  * Storage is always metric and time-unit agnostic:
  *   distance -> metres, weight -> kg, pace -> seconds per km.

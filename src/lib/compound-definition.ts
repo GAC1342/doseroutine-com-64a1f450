@@ -66,6 +66,9 @@ function protectPeriods(text: string): string {
   // Single-letter initials ("U. S.", "A. Smith") and decimals ("0.5 mg").
   out = out.replace(/\b([A-Za-z])\.(?=\s?[A-Za-z]\.)/g, `$1${DOT}`);
   out = out.replace(/(\d)\.(?=\d)/g, `$1${DOT}`);
+  // Domains inside prose ("nih.gov", "examine.com") are not sentence ends.
+  out = out.replace(/\.(?=(?:com|org|gov|net|edu|io|co)\b)/gi, DOT);
+
   return out;
 }
 
@@ -73,21 +76,31 @@ function restorePeriods(text: string): string {
   return text.split(DOT).join(".");
 }
 
+/**
+ * Split prose into whole sentences without breaking on abbreviations
+ * ("e.g."), decimals ("0.5 mg") or domains ("nih.gov").
+ */
+export function splitProseSentences(text: string): string[] {
+  const clean = stripMarkdown(text);
+  if (!clean) return [];
+  const protectedText = protectPeriods(clean);
+  const parts = (protectedText.match(/[^.!?]+[.!?]+(?:\s|$)/g) ?? [protectedText])
+    .map((p) => restorePeriods(p).trim())
+    .filter(Boolean);
+  return parts;
+}
+
 /** Take at most the first two sentences, capped at MAX_CHARS. */
 function firstSentences(text: string, limit = 2): string {
-  const clean = stripMarkdown(text);
-  if (!clean) return "";
-  const protectedText = protectPeriods(clean);
-  const parts = (protectedText.match(/[^.!?]+[.!?]+(?:\s|$)/g) ?? [])
-    .map((p) => p.trim())
-    .filter(Boolean);
-  let out = parts.length > 0 ? parts.slice(0, limit).join(" ").trim() : protectedText;
+  const parts = splitProseSentences(text);
+  if (parts.length === 0) return "";
+  let out = parts.slice(0, limit).join(" ").trim();
   if (out.length > MAX_CHARS) {
     const cut = out.slice(0, MAX_CHARS);
     const lastStop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
     out = lastStop > 80 ? cut.slice(0, lastStop + 1) : `${cut.replace(/[\s,;:-]+$/, "")}…`;
   }
-  return restorePeriods(out).trim();
+  return out.trim();
 }
 
 function articleFor(word: string): string {

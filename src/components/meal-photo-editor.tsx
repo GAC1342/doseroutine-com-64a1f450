@@ -137,10 +137,12 @@ export function MealPhotoEditor({
             onPointerUp={() => setDrag(null)}
             onPointerCancel={() => setDrag(null)}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
               alt="Meal photo being cropped"
+              title="Meal photo being cropped"
+              width={1024}
+              height={1024}
               draggable={false}
               className="block max-h-[50vh] w-full select-none object-contain"
               style={{ transform: `rotate(${turns * 90}deg)` }}

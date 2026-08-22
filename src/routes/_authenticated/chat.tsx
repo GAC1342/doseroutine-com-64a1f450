@@ -10,9 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 import { listChatMessages, clearChatHistory } from "@/lib/chat.functions";
 import { PageHeader } from "@/components/page-header";
+import { useConfirm } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/chat")({
+  errorComponent: routeErrorComponent("chat"),
   head: () => ({
     meta: [
       { title: "Ask AI — DoseRoutine" },
@@ -42,6 +45,7 @@ function tierOf(sub: { isPro?: boolean; isPaid?: boolean } | undefined | null): 
 }
 
 function ChatPage() {
+  const [confirmAction, confirmUi] = useConfirm();
   const qc = useQueryClient();
   const { data: subscription } = useSubscription();
   const tier = tierOf(subscription);
@@ -49,7 +53,10 @@ function ChatPage() {
 
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setToken(data.session?.access_token ?? null));
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => setToken(data.session?.access_token ?? null))
+      .catch(() => setToken(null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => {
       setToken(sess?.access_token ?? null);
     });
@@ -140,16 +147,25 @@ function ChatPage() {
         title="Ask AI"
         actions={
           messages.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm("Clear this conversation?")) clearMut.mutate();
-              }}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Clear
-            </button>
+            <>
+              {confirmUi}
+              <button
+                type="button"
+                onClick={() => {
+                  void confirmAction({
+                    title: "Clear this conversation?",
+                    description: "Your chat history with the AI coach will be removed.",
+                    confirmLabel: "Clear",
+                  }).then((ok) => {
+                    if (ok) clearMut.mutate();
+                  });
+                }}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Clear
+              </button>
+            </>
           ) : undefined
         }
       />
@@ -223,8 +239,12 @@ function ChatPage() {
             {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
+        <p className="mx-auto mt-1.5 max-w-2xl text-[11px] leading-snug text-muted-foreground">
+          Educational information only — not medical advice, diagnosis or treatment. Talk to a
+          licensed clinician before changing anything you take.
+        </p>
         {Number.isFinite(limit) ? (
-          <div className="mx-auto mt-1.5 flex max-w-2xl items-center justify-between text-[11px] text-muted-foreground">
+          <div className="mx-auto mt-1 flex max-w-2xl items-center justify-between text-[11px] text-muted-foreground">
             <span>
               {tier === "free" ? "Free" : "Pro"} · {userMsgs}/{limit} today
             </span>
@@ -263,6 +283,9 @@ function MessageBubble({
         ) : (
           <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1.5 [&>ul]:my-1.5 [&>ol]:my-1.5">
             <ReactMarkdown>{text || "…"}</ReactMarkdown>
+            <p className="mt-2 border-t border-border/60 pt-1.5 text-[11px] not-prose text-muted-foreground">
+              Educational only — not medical advice.
+            </p>
           </div>
         )}
       </div>

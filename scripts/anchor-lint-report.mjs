@@ -29,7 +29,7 @@ const flag = (name, fallback) => {
 };
 const has = (name) => args.includes(`--${name}`);
 
-const BASE = (flag("base", process.env["ANCHOR_LINT_BASE_URL"] ?? "https://doseroutine.com")).replace(
+const BASE = flag("base", process.env["ANCHOR_LINT_BASE_URL"] ?? "https://doseroutine.com").replace(
   /\/+$/,
   "",
 );

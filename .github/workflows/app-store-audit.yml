@@ -1,0 +1,40 @@
+name: App Store pre-submission audit
+
+# Re-runs the regression tests that encode every Critical and High finding from
+# the Apple review audits. Runs on every main-branch build (and on PRs touching
+# app, native, or CI code) and fails the pipeline if any of them reappear.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "src/**"
+      - "ios/**"
+      - "android/**"
+      - "capacitor.config.ts"
+      - "codemagic.yaml"
+      - "scripts/app-store-audit.mjs"
+      - ".github/workflows/app-store-audit.yml"
+
+concurrency:
+  group: app-store-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Native plugin parity (C-2)
+        run: node scripts/check-native-plugin-parity.mjs
+      - name: Critical / High audit suite
+        run: node scripts/app-store-audit.mjs

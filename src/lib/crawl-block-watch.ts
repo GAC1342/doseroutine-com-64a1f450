@@ -36,12 +36,7 @@ export type AlertSeverity = "error" | "warning";
 
 export interface CrawlAlert {
   url: string;
-  code:
-    | "robots_blocked"
-    | "fetch_blocked"
-    | "fetch_error"
-    | "indexing_disallowed"
-    | "api_error";
+  code: "robots_blocked" | "fetch_blocked" | "fetch_error" | "indexing_disallowed" | "api_error";
   severity: AlertSeverity;
   message: string;
 }

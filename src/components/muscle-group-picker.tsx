@@ -25,11 +25,7 @@ import { exerciseArt, exerciseArtAlt } from "@/lib/exercise-art";
 import { exerciseHowTo } from "@/lib/exercise-howto";
 import { downloadPng, downloadSvg, slugify } from "@/lib/svg-export";
 
-import {
-  MUSCLE_GROUPS,
-  type MuscleGroupExercise,
-  type MuscleGroupKey,
-} from "@/lib/muscle-groups";
+import { MUSCLE_GROUPS, type MuscleGroupExercise, type MuscleGroupKey } from "@/lib/muscle-groups";
 
 function muscleList(regions: readonly string[] = []) {
   return regions.map((r) => MUSCLE_LABELS[r as keyof typeof MUSCLE_LABELS] ?? r).join(", ");
@@ -47,7 +43,6 @@ function haystack(exercise: MuscleGroupExercise, groupLabel: string) {
     .join(" ")
     .toLowerCase();
 }
-
 
 export function MuscleGroupPicker({
   onPick,
@@ -85,7 +80,6 @@ export function MuscleGroupPicker({
     return rows;
   }, [group, q]);
 
-
   async function saveImage(kind: "svg" | "png") {
     const el = mapRef.current;
     if (!el || !detail) return;
@@ -101,7 +95,6 @@ export function MuscleGroupPicker({
       setExporting(false);
     }
   }
-
 
   return (
     <div className="mb-2 rounded-xl border border-border p-3">
@@ -145,11 +138,7 @@ export function MuscleGroupPicker({
             )}
           </div>
 
-          <div
-            className="mt-2 flex flex-wrap gap-1.5"
-            role="tablist"
-            aria-label="Muscle groups"
-          >
+          <div className="mt-2 flex flex-wrap gap-1.5" role="tablist" aria-label="Muscle groups">
             {[{ key: "all" as const, label: "All" }, ...MUSCLE_GROUPS].map((g) => {
               const isActive = g.key === active;
               return (
@@ -162,7 +151,7 @@ export function MuscleGroupPicker({
                   className={`tap-target rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                     isActive
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground hover:bg-muted"
+                      : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   {g.label}
@@ -199,6 +188,7 @@ export function MuscleGroupPicker({
                         <img
                           src={exerciseArt(exercise.name)}
                           alt=""
+                          aria-hidden="true"
                           loading="lazy"
                           width={96}
                           height={96}
@@ -258,6 +248,7 @@ export function MuscleGroupPicker({
                   <img
                     src={exerciseArt(detail.name)}
                     alt={exerciseArtAlt(detail.name)}
+                    title={detail.name}
                     loading="lazy"
                     width={768}
                     height={768}
@@ -293,7 +284,6 @@ export function MuscleGroupPicker({
                   </p>
                 </div>
               </div>
-
 
               <div className="flex gap-2">
                 <button

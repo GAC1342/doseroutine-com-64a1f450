@@ -1,0 +1,24 @@
+{
+  "fdcId": 7000007,
+  "description": "Rice, brown, cooked (no portions published)",
+  "dataType": "Survey (FNDDS)",
+  "foodNutrients": [
+    {
+      "nutrientNumber": "1008",
+      "value": 123
+    },
+    {
+      "nutrientNumber": "1003",
+      "value": 2.74
+    },
+    {
+      "nutrientNumber": "1005",
+      "value": 25.6
+    },
+    {
+      "nutrientNumber": "1004",
+      "value": 0.97
+    }
+  ],
+  "foodPortions": []
+}

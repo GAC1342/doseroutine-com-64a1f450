@@ -1,8 +1,12 @@
 import { faqAnchorId } from "@/lib/faq-snippet";
+import { PublicBackHeader } from "@/components/public-back-header";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { articleScript } from "@/lib/article-schema";
 import { hreflangLinks } from "@/lib/hreflang";
+import { mergeLdScripts } from "@/lib/head-budget";
 
 const pageUrl = "https://doseroutine.com/dose-routine";
 const pageTitle = "Dose Routine or DoseRoutine? Same App — doseroutine.com";
@@ -11,7 +15,7 @@ const pageDescription =
 
 const LAST_REVIEWED = "2026-08-01";
 
-const DOSE_ROUTINE_FAQ: { q: string; a: string }[] = [
+export const DOSE_ROUTINE_FAQ: { q: string; a: string }[] = [
   {
     q: "Is Dose Routine the same as DoseRoutine?",
     a: "Yes. Dose Routine (two words) and DoseRoutine (one word) are the same app and the same company. The official website is doseroutine.com.",
@@ -41,15 +45,23 @@ export const Route = createFileRoute("/dose-routine")({
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { property: "og:url", content: pageUrl },
       { property: "og:image", content: "https://doseroutine.com/og/doseroutine-home.jpg" },
-      { property: "og:image:alt", content: "DoseRoutine app card — peptide, supplement and hormone tracking with interaction checks" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine app card — peptide, supplement and hormone tracking with interaction checks",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://doseroutine.com/og/doseroutine-home.jpg" },
-      { name: "twitter:image:alt", content: "DoseRoutine app card — peptide, supplement and hormone tracking with interaction checks" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine app card — peptide, supplement and hormone tracking with interaction checks",
+      },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
     links: [{ rel: "canonical", href: pageUrl }, ...hreflangLinks("/dose-routine")],
-    scripts: [
+    scripts: mergeLdScripts([
       breadcrumbScript(pageUrl, [{ name: "Dose Routine", path: "/dose-routine" }]),
       articleScript({
         url: pageUrl,
@@ -96,7 +108,7 @@ export const Route = createFileRoute("/dose-routine")({
           })),
         }),
       },
-    ],
+    ]),
   }),
   component: DoseRoutineBrandPage,
 });
@@ -104,6 +116,7 @@ export const Route = createFileRoute("/dose-routine")({
 function DoseRoutineBrandPage() {
   return (
     <div className="min-h-dvh bg-background">
+      <PublicBackHeader />
       <main id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-4 pb-24 pt-10">
         <h1 className="font-display text-3xl font-semibold tracking-tight">
           Dose Routine and DoseRoutine are the same app
@@ -117,9 +130,9 @@ function DoseRoutineBrandPage() {
           People write our name both ways. <strong>Dose Routine</strong> as two words and{" "}
           <strong>DoseRoutine</strong> as one word both refer to the same product, run by the same
           team, at the same official website:{" "}
-          <a href="https://doseroutine.com" className="underline">
+          <Link to="/" className="underline">
             doseroutine.com
-          </a>
+          </Link>
           . There is no separate "Dose Routine" app.
         </p>
 
@@ -187,6 +200,9 @@ function DoseRoutineBrandPage() {
             </dd>
           </div>
         </dl>
+        <ProseContainer>
+          <PageProse id="dose-routine" />
+        </ProseContainer>
       </main>
     </div>
   );

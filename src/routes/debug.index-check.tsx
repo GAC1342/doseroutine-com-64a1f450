@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 
 const TITLE = "Index Check — DoseRoutine";
@@ -193,6 +193,14 @@ function IndexCheckPage() {
         Internal build verification. Checks indexability (X-Robots-Tag + meta robots), the canonical
         tag, and sitemap.xml inclusion for the current URL and every library route.
       </p>
+      <div className="mt-3 flex flex-wrap gap-2 text-sm">
+        <Link
+          to="/debug/env"
+          className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-foreground hover:border-primary hover:text-primary"
+        >
+          Environment check →
+        </Link>
+      </div>
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 

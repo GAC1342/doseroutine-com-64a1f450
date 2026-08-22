@@ -55,7 +55,13 @@ export function slugFromPageUrl(url: string): string | null {
   return match ? match[1] : null;
 }
 
-export type RawRow = { keys?: string[]; clicks?: number; impressions?: number; ctr?: number; position?: number };
+export type RawRow = {
+  keys?: string[];
+  clicks?: number;
+  impressions?: number;
+  ctr?: number;
+  position?: number;
+};
 
 function metrics(row: RawRow): GscMetricRow {
   return {
@@ -145,15 +151,21 @@ export function buildBlogPerformance(
       ...cur,
       deltaClicks: prev ? cur.clicks - prev.clicks : null,
       deltaImpressions: prev ? cur.impressions - prev.impressions : null,
-      deltaPosition: prev && prev.position > 0 && cur.position > 0 ? cur.position - prev.position : null,
+      deltaPosition:
+        prev && prev.position > 0 && cur.position > 0 ? cur.position - prev.position : null,
       topQueries: queries.get(post.slug) ?? [],
     } satisfies BlogPostPerformance;
   });
-  rows.sort((a: BlogPostPerformance, b: BlogPostPerformance) => b.impressions - a.impressions || a.title.localeCompare(b.title));
+  rows.sort(
+    (a: BlogPostPerformance, b: BlogPostPerformance) =>
+      b.impressions - a.impressions || a.title.localeCompare(b.title),
+  );
   return rows;
 }
 
-export function totalsOf(rows: BlogPostPerformance[]): GscMetricRow & { posts: number; withData: number } {
+export function totalsOf(
+  rows: BlogPostPerformance[],
+): GscMetricRow & { posts: number; withData: number } {
   const clicks = rows.reduce((s, r) => s + r.clicks, 0);
   const impressions = rows.reduce((s, r) => s + r.impressions, 0);
   const weighted = rows.reduce((s, r) => s + r.position * r.impressions, 0);

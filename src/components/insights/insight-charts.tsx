@@ -5,6 +5,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  ComposedChart,
+  Scatter,
   Line,
   LineChart,
   ReferenceLine,
@@ -164,10 +166,7 @@ export const TrendMultiLineChart = memo(function TrendMultiLineChart({
     series.map((s) => [s.key, { label: s.label, color: s.color ?? ACCENT }]),
   );
   return (
-    <ChartContainer
-      config={config}
-      className={cn("aspect-auto w-full", CHART_HEIGHT, className)}
-    >
+    <ChartContainer config={config} className={cn("aspect-auto w-full", CHART_HEIGHT, className)}>
       <LineChart
         {...a11yChart(series.map((s) => s.label).join(", "))}
         data={data as Record<string, unknown>[]}
@@ -265,7 +264,12 @@ export const SupplyBars = memo(function SupplyBars({
           >
             <div className="flex items-baseline justify-between gap-2 text-xs">
               <span className="truncate font-medium">{row.label}</span>
-              <span className={cn("shrink-0 tabular-nums", low ? "text-destructive" : "text-muted-foreground")}>
+              <span
+                className={cn(
+                  "shrink-0 tabular-nums",
+                  low ? "text-destructive" : "text-muted-foreground",
+                )}
+              >
                 {row.note ?? `${Math.round(row.value)}${suffix ? ` ${suffix}` : ""}`}
               </span>
             </div>
@@ -330,6 +334,85 @@ export const RotationChart = memo(function RotationChart({
           />
         ))}
       </BarChart>
+    </ChartContainer>
+  );
+});
+
+/**
+ * Nutrition against the rest of the protocol: calories as bars, protein and
+ * training minutes as lines, and a marker for each bucket where doses were
+ * logged — all on one shared timeline so patterns line up visually.
+ */
+export const NutritionProtocolChart = memo(function NutritionProtocolChart({
+  data,
+  className,
+  animate = true,
+}: {
+  data: ReadonlyArray<Record<string, unknown>>;
+  className?: string;
+  animate?: boolean;
+}) {
+  const motion = useSeriesMotion(animate);
+  return (
+    <ChartContainer
+      config={{
+        calories: { label: "Calories", color: ACCENT },
+        protein: { label: "Protein (g)", color: "var(--chart-2)" },
+        training: { label: "Training (min)", color: "var(--chart-4)" },
+        doses: { label: "Doses logged", color: "var(--chart-5)" },
+      }}
+      className={cn("aspect-auto w-full h-[180px]", className)}
+    >
+      <ComposedChart
+        {...a11yChart("Nutrition against doses and training")}
+        data={data as Record<string, unknown>[]}
+        margin={{ top: 6, right: 6, bottom: 0, left: -8 }}
+      >
+        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke={MUTED} strokeOpacity={0.18} />
+        <XAxis dataKey="label" {...axisProps()} />
+        <YAxis yAxisId="left" width={46} {...axisProps()} />
+        <YAxis yAxisId="right" orientation="right" width={34} {...axisProps()} />
+        <ChartTooltip cursor={HOVER_CURSOR} content={<ChartTooltipContent labelKey="label" />} />
+        <Bar
+          yAxisId="left"
+          dataKey="calories"
+          name="Calories"
+          fill={ACCENT}
+          fillOpacity={0.25}
+          radius={[3, 3, 0, 0]}
+          {...motion(0)}
+        />
+        <Line
+          yAxisId="right"
+          type="monotone"
+          dataKey="protein"
+          name="Protein (g)"
+          stroke="var(--chart-2)"
+          strokeWidth={2}
+          dot={false}
+          connectNulls
+          {...motion(1)}
+        />
+        <Line
+          yAxisId="right"
+          type="monotone"
+          dataKey="training"
+          name="Training (min)"
+          stroke="var(--chart-4)"
+          strokeWidth={2}
+          strokeDasharray="4 3"
+          dot={false}
+          connectNulls
+          {...motion(2)}
+        />
+        <Scatter
+          yAxisId="right"
+          dataKey="doseMarker"
+          name="Doses logged"
+          fill="var(--chart-5)"
+          shape="circle"
+        />
+      </ComposedChart>
     </ChartContainer>
   );
 });

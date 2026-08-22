@@ -1,24 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertTriangle, Bug, CheckCircle2, Zap } from "lucide-react";
+import { AlertTriangle, Bug, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { forceCrashlyticsCrash, recordCrashlyticsError } from "@/lib/crashlytics";
+import { recordCrashlyticsError } from "@/lib/crashlytics";
 import { isNative } from "@/lib/platform";
 import { toast } from "sonner";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/debug/crashlytics")({
+  errorComponent: routeErrorComponent("debug-crashlytics"),
   head: () => ({
     meta: [
-      { title: "Crashlytics Debug — DoseRoutine" },
+      { title: "Crash reporting debug — DoseRoutine" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: CrashlyticsDebug,
+  component: CrashReportingDebug,
 });
 
-function CrashlyticsDebug() {
+function CrashReportingDebug() {
   const native = isNative();
-  const [armed, setArmed] = useState(false);
   const [sentNonFatal, setSentNonFatal] = useState(false);
 
   async function handleNonFatal() {
@@ -27,20 +28,7 @@ function CrashlyticsDebug() {
       timestamp: new Date().toISOString(),
     });
     setSentNonFatal(true);
-    toast.success(
-      native
-        ? "Non-fatal event sent. Check Firebase → Crashlytics in ~5 minutes."
-        : "Web build — call is a no-op. Run on a native TestFlight/Play build.",
-    );
-  }
-
-  async function handleCrash() {
-    if (!armed) {
-      setArmed(true);
-      toast.warning("Tap again to force the crash. The app will close.");
-      return;
-    }
-    await forceCrashlyticsCrash();
+    toast.success("Non-fatal event sent. Check Admin → Health in a few minutes.");
   }
 
   return (
@@ -48,11 +36,10 @@ function CrashlyticsDebug() {
       <header className="space-y-2">
         <div className="flex items-center gap-2">
           <Bug className="h-6 w-6 text-primary" aria-hidden />
-          <h1 className="text-2xl font-bold">Crashlytics Test</h1>
+          <h1 className="text-2xl font-bold">Crash reporting test</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Internal-only screen for confirming Firebase Crashlytics end-to-end reporting before real
-          users are affected. Not linked from any menu.
+          Internal-only screen for confirming error reporting end to end. Not linked from any menu.
         </p>
       </header>
 
@@ -60,10 +47,10 @@ function CrashlyticsDebug() {
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" aria-hidden />
           <div className="space-y-1">
-            <p className="font-semibold">Native builds only</p>
+            <p className="font-semibold">Firebase Crashlytics has been removed</p>
             <p>
-              Crashlytics reports come from the iOS/Android app. On the web preview both actions
-              safely no-op.
+              The native Firebase plugins aborted the app at launch when no Firebase config file was
+              bundled. Reporting now uses the first-party monitor shown in Admin → Health.
             </p>
             <p>
               Current runtime: <strong>{native ? "Native app" : "Web browser"}</strong>
@@ -74,52 +61,26 @@ function CrashlyticsDebug() {
 
       <section className="space-y-3 rounded-lg border bg-card p-4">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden />
-          <h2 className="text-lg font-semibold">1. Send non-fatal event</h2>
+          <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+          <h2 className="text-lg font-semibold">Send non-fatal event</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Safe first check — logs a handled error to Crashlytics without closing the app. Should
-          appear in the dashboard within ~5 minutes.
+          Logs a handled error without affecting the app. It should show up in the health dashboard
+          shortly.
         </p>
         <Button onClick={handleNonFatal} variant="outline" className="w-full sm:w-auto">
           Send test non-fatal
         </Button>
         {sentNonFatal ? (
           <p className="text-xs text-muted-foreground">
-            Sent. If it does not appear in Firebase within 10 minutes, verify
-            <code className="mx-1">GoogleService-Info.plist</code> /
-            <code className="mx-1">google-services.json</code> are in the build.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="space-y-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-        <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-destructive" aria-hidden />
-          <h2 className="text-lg font-semibold">2. Force a fatal crash</h2>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Terminates the app process on purpose. The crash uploads on the next launch, so{" "}
-          <strong>reopen the app after tapping</strong>. Only run this from an internal test device.
-        </p>
-        <Button
-          onClick={handleCrash}
-          variant="destructive"
-          className="w-full sm:w-auto"
-          disabled={!native}
-        >
-          {armed ? "Tap again to crash the app" : "Arm test crash"}
-        </Button>
-        {!native ? (
-          <p className="text-xs text-muted-foreground">
-            Disabled on web. Install a TestFlight or Play internal build.
+            Sent. View it under Admin → Health → recent client errors.
           </p>
         ) : null}
       </section>
 
       <p className="text-xs text-muted-foreground">
-        Route: <code className="rounded bg-muted px-1 py-0.5">/debug/crashlytics</code> — hidden by
-        design. Share the URL only with internal testers.
+        There is deliberately no “force a crash” action any more: shipping code must contain no path
+        that intentionally terminates the app.
       </p>
     </div>
   );

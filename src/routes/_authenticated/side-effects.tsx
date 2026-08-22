@@ -4,8 +4,11 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Plus, Check, Trash2, X } from "lucide-react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
+import { useConfirm } from "@/components/confirm-dialog";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/side-effects")({
+  errorComponent: routeErrorComponent("side-effects"),
   head: () => ({
     meta: [
       { title: "Side Effect Journal — DoseRoutine" },
@@ -66,6 +69,7 @@ type Entry = {
 };
 
 function SideEffectsPage() {
+  const [confirmAction, confirmUi] = useConfirm();
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
 
@@ -94,6 +98,7 @@ function SideEffectsPage() {
         .select("id, custom_name, compounds(name)")
         .eq("user_id", user.id)
         .eq("active", true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       return (data ?? []).map((u: any) => ({
         id: u.id,
         name: u.custom_name || u.compounds?.name || "Compound",
@@ -127,6 +132,7 @@ function SideEffectsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-8">
+      {confirmUi}
       <Link
         to="/more"
         className="tap-target inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -204,7 +210,12 @@ function SideEffectsPage() {
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm("Delete this entry?")) del.mutate(e.id);
+                    void confirmAction({
+                      title: "Delete this entry?",
+                      description: "This side effect log will be permanently removed.",
+                    }).then((ok) => {
+                      if (ok) del.mutate(e.id);
+                    });
                   }}
                   className="tap-target rounded-lg p-2 text-muted-foreground hover:text-rose-500"
                 >

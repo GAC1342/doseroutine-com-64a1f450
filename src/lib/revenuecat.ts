@@ -8,7 +8,10 @@
  *   - "pro"   → maps to Pro SKUs on both stores
  */
 import { isNative, getPlatform } from "./platform";
+import { resolvePublicConfig } from "./publishable-key-cache";
 import { getRevenueCatConfig, syncRevenueCatSubscription } from "./revenuecat.functions";
+
+const STORE_TIMEOUT_MS = 15_000;
 
 export type IAPEntitlement = "pro";
 
@@ -43,23 +46,46 @@ export async function initRevenueCat(supabaseUserId: string | null): Promise<voi
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    const mod = await loadPurchases();
-    if (!mod) return;
-    const { Purchases, LOG_LEVEL } = mod;
+    try {
+      const mod = await loadPurchases();
+      if (!mod) return;
+      const { Purchases, LOG_LEVEL } = mod;
 
-    const platform = getPlatform();
-    const { apiKey } = await getRevenueCatConfig({ data: { platform } });
+      const platform = getPlatform();
+      // C1 — the SDK key is publishable. Prefer the value baked in at build
+      // time, then the last known-good cached value, and only then the network.
+      // Without this, a single failed request on a cold start left in-app
+      // purchases permanently unavailable for that launch.
+      const buildTimeKey = (
+        platform === "ios"
+          ? (import.meta.env.VITE_REVENUECAT_APPLE_KEY as string | undefined)
+          : (import.meta.env.VITE_REVENUECAT_GOOGLE_KEY as string | undefined)
+      )?.trim();
 
-    if (import.meta.env.DEV) {
-      await Purchases.setLogLevel({ level: LOG_LEVEL.WARN });
+      const apiKey = await resolvePublicConfig(
+        `revenuecat:${platform}`,
+        buildTimeKey || undefined,
+        async () => (await getRevenueCatConfig({ data: { platform } })).apiKey,
+      );
+
+      if (!apiKey) throw new Error(`RevenueCat key unavailable for ${platform}`);
+
+      if (import.meta.env.DEV) {
+        await Purchases.setLogLevel({ level: LOG_LEVEL.WARN });
+      }
+
+      await Purchases.configure({
+        apiKey,
+        appUserID: supabaseUserId ?? undefined,
+      });
+
+      _initialized = true;
+    } catch (e) {
+      // Never let store/config failures surface as an unhandled rejection —
+      // the app must stay usable (and reviewable) without purchases.
+      console.warn("[revenuecat] init failed", e);
+      _initPromise = null;
     }
-
-    await Purchases.configure({
-      apiKey,
-      appUserID: supabaseUserId ?? undefined,
-    });
-
-    _initialized = true;
   })();
 
   return _initPromise;
@@ -67,21 +93,28 @@ export async function initRevenueCat(supabaseUserId: string | null): Promise<voi
 
 export async function identifyRevenueCatUser(supabaseUserId: string): Promise<void> {
   if (!isNative() || !_initialized) return;
-  const mod = await loadPurchases();
-  if (!mod) return;
-  await mod.Purchases.logIn({ appUserID: supabaseUserId });
+  try {
+    const mod = await loadPurchases();
+    if (!mod) return;
+    await mod.Purchases.logIn({ appUserID: supabaseUserId });
+  } catch (e) {
+    console.warn("[revenuecat] logIn failed", e);
+  }
 }
 
 export async function logOutRevenueCat(): Promise<void> {
   if (!isNative() || !_initialized) return;
-  const mod = await loadPurchases();
-  if (!mod) return;
   try {
+    const mod = await loadPurchases();
+    if (!mod) return;
     await mod.Purchases.logOut();
   } catch {
     /* anonymous user — safe to ignore */
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
+type IAPPackageLike = any;
 
 function periodFromRc(period: string | undefined | null): "monthly" | "yearly" | null {
   if (!period) return null;
@@ -94,16 +127,28 @@ function entitlementFromProductId(_productId: string): IAPEntitlement {
   return "pro";
 }
 
+/**
+ * Never throws: a cold, flaky launch must show an "options unavailable" state
+ * on the paywall, not trip an error boundary.
+ */
 export async function getIAPOfferings(): Promise<IAPOffering[]> {
   if (!isNative()) return [];
-  const mod = await loadPurchases();
-  if (!mod) return [];
-  const { Purchases } = mod;
-
-  const { current } = await Purchases.getOfferings();
-  if (!current) return [];
-
-  const packages = current.availablePackages ?? [];
+  let packages: IAPPackageLike[] = [];
+  try {
+    const mod = await loadPurchases();
+    if (!mod) return [];
+    const { Purchases } = mod;
+    const { current } = await withStoreTimeout(
+      Purchases.getOfferings(),
+      STORE_TIMEOUT_MS,
+      "Loading subscription options",
+    );
+    if (!current) return [];
+    packages = current.availablePackages ?? [];
+  } catch (e) {
+    console.warn("[revenuecat] getOfferings failed", e);
+    return [];
+  }
   const offerings: IAPOffering[] = [];
 
   for (const pkg of packages) {
@@ -125,14 +170,48 @@ export async function getIAPOfferings(): Promise<IAPOffering[]> {
   return offerings;
 }
 
+/** True when a store error is just "the user tapped Cancel" — never an error to surface. */
+export function isUserCancelledError(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const err = e as { userCancelled?: boolean; code?: unknown; message?: unknown };
+  if (err.userCancelled === true) return true;
+  const code = String(err.code ?? "");
+  if (code === "1" || code.toUpperCase().includes("PURCHASE_CANCELLED")) return true;
+  return /cancell?ed/i.test(String(err.message ?? ""));
+}
+
+/** Rejects if `p` doesn't settle in `ms`, so store calls can never hang forever. */
+export function withStoreTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} timed out. Check your connection.`)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
 export async function purchasePackage(packageIdentifier: string): Promise<IAPCustomerInfo> {
   if (!isNative()) throw new Error("Native purchases are only available on iOS/Android");
   const mod = await loadPurchases();
   if (!mod) throw new Error("RevenueCat not available");
 
   const { Purchases } = mod;
-  const { current } = await Purchases.getOfferings();
+  // The offerings lookup can hang offline — the purchase sheet itself must not
+  // be timed out (the user may be entering a password / Face ID).
+  const { current } = await withStoreTimeout(
+    Purchases.getOfferings(),
+    STORE_TIMEOUT_MS,
+    "Loading subscription options",
+  );
   if (!current) throw new Error("No offerings available");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const pkg = current.availablePackages?.find((p: any) => p.identifier === packageIdentifier);
   if (!pkg) throw new Error(`Package ${packageIdentifier} not found`);
 
@@ -174,6 +253,7 @@ export async function getCustomerInfo(): Promise<IAPCustomerInfo> {
   return normalizeCustomerInfo(result.customerInfo);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 function normalizeCustomerInfo(info: any): IAPCustomerInfo {
   const active = info?.entitlements?.active ?? {};
   const entitlements: IAPEntitlement[] = Object.keys(active).filter(

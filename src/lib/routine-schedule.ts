@@ -1,4 +1,5 @@
 import { fromZonedTime } from "date-fns-tz";
+import { isSkipped, occursOnWeek, timeForDay } from "@/lib/routine-recurrence";
 import type { Database } from "@/integrations/supabase/types";
 
 export type WorkoutSessionRow = Database["public"]["Tables"]["workout_sessions"]["Row"];
@@ -21,6 +22,8 @@ export type RoutineOccurrence = {
   scheduledAt: Date;
   /** Workout type ("strength" | "cardio" | "mobility" | …) for workout rows. */
   sessionKind: string | null;
+  /** Saved routine this workout slot runs, when one is attached. */
+  templateId: string | null;
 };
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -70,16 +73,33 @@ function toOccurrence(
     planned_time: string | null;
     active: boolean | null;
     days_of_week: number[] | null;
+    interval_weeks?: number | null;
+    anchor_date?: string | null;
+    repeat_until?: string | null;
+    skipped_dates?: string[] | null;
+    time_overrides?: unknown;
+    template_id?: string | null;
   },
+
   dayKey: string,
   tz: string,
   sessionKind: string | null,
   fallbackLabel: string,
 ): RoutineOccurrence | null {
   if (row.active === false) return null;
-  const time = normalizeTime(row.planned_time);
-  if (!time) return null;
+  const baseTime = normalizeTime(row.planned_time);
+  if (!baseTime) return null;
   if (!occursOnDay(row.days_of_week, dayKey)) return null;
+  const recurrence = {
+    intervalWeeks: row.interval_weeks ?? 1,
+    anchorDate: row.anchor_date ?? null,
+    repeatUntil: row.repeat_until ?? null,
+    skippedDates: row.skipped_dates ?? null,
+    timeOverrides: (row.time_overrides ?? null) as Record<string, unknown> | null,
+  };
+  if (!occursOnWeek(dayKey, recurrence)) return null;
+  if (isSkipped(dayKey, recurrence)) return null;
+  const time = timeForDay(dayKey, baseTime, recurrence);
   return {
     id: row.id,
     key: `${kind}:${row.id}:${dayKey}`,
@@ -88,6 +108,7 @@ function toOccurrence(
     time,
     scheduledAt: fromZonedTime(`${dayKey}T${time}:00`, tz),
     sessionKind,
+    templateId: row.template_id ?? null,
   };
 }
 
@@ -142,4 +163,49 @@ export function describeDays(daysOfWeek: number[] | null | undefined): string {
   if (days.length === 5 && days.every((d) => d >= 1 && d <= 5)) return "Weekdays";
   if (days.length === 2 && days.includes(0) && days.includes(6)) return "Weekends";
   return days.map((d) => WEEKDAY_NAMES[d]?.slice(0, 3)).join(", ");
+}
+
+/**
+ * Normalise a repeat pattern: unique, sorted, 0–6 only. An empty/null pattern
+ * means "every day", which is what the calendar surfaces render.
+ */
+export function normalizeWeekdays(days: number[] | null | undefined): number[] {
+  const list = days && days.length > 0 ? days : ALL_DAYS;
+  return [...new Set(list.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort(
+    (a, b) => a - b,
+  );
+}
+
+/**
+ * Drag-and-drop move: take a session off `from` and put it on `to`, keeping
+ * every other repeat day intact. Dropping onto a day it already runs on is a
+ * no-op, and moving the only day is a plain reschedule.
+ */
+export function moveWeekday(days: number[] | null | undefined, from: number, to: number): number[] {
+  const current = normalizeWeekdays(days);
+  if (from === to) return current;
+  const without = current.filter((d) => d !== from);
+  if (without.includes(to)) return without.length > 0 ? without : [to];
+  return [...without, to].sort((a, b) => a - b);
+}
+
+/**
+ * Every planned anchor for a span of days, in one pass.
+ *
+ * The month grid needs to know which days have something scheduled, not just
+ * the selected one — otherwise a fully planned month renders as empty cells.
+ * Returns a map keyed by day so a calendar cell lookup stays O(1).
+ */
+export function routineForRange(
+  workouts: WorkoutSessionRow[],
+  meals: MealTimeRow[],
+  dayKeys: readonly string[],
+  tz: string,
+): Map<string, RoutineOccurrence[]> {
+  const out = new Map<string, RoutineOccurrence[]>();
+  for (const dayKey of dayKeys) {
+    const occurrences = routineForDay(workouts, meals, dayKey, tz);
+    if (occurrences.length > 0) out.set(dayKey, occurrences);
+  }
+  return out;
 }

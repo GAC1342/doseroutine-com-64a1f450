@@ -52,7 +52,7 @@ const REF_CDC_SAFE_INJECTION = {
 };
 
 const REF_ORFORGLIPRON_TRIALS = {
-  cite: "ClinicalTrials.gov. ATTAIN and ACHIEVE Phase 3 programme records for orforglipron.",
+  cite: "ClinicalTrials.gov. ATTAIN and ACHIEVE Phase 3 program records for orforglipron.",
   url: "https://clinicaltrials.gov/search?intr=orforglipron",
 };
 
@@ -81,8 +81,8 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     heading: "How much bacteriostatic water for a 10 mg retatrutide vial",
     title: "Bacteriostatic Water for a 10 mg Retatrutide Vial | DoseRoutine",
     description:
-      "The reconstitution maths for a 10 mg vial: how much bacteriostatic water to add, what each insulin-syringe unit contains, and the errors that cause overdoses.",
-    category: "Reconstitution & dosing maths",
+      "The reconstitution math for a 10 mg vial: how much bacteriostatic water to add, what each insulin-syringe unit contains, and the errors that cause overdoses.",
+    category: "Reconstitution & dosing math",
     published: "2026-08-04",
     updated: "2026-08-04",
     intro:
@@ -98,7 +98,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "The one formula that covers every vial",
         body: [
-          "Reconstitution has exactly one calculation behind it. Concentration equals the milligrams stated on the vial divided by the millilitres of bacteriostatic water you inject into it. Everything after that is a unit conversion, because a U-100 insulin syringe is marked so that 100 units equals 1 mL.",
+          "Reconstitution has exactly one calculation behind it. Concentration equals the milligrams stated on the vial divided by the milliliters of bacteriostatic water you inject into it. Everything after that is a unit conversion, because a U-100 insulin syringe is marked so that 100 units equals 1 mL.",
           "So for a 10 mg vial with 2 mL added: 10 ÷ 2 = 5 mg/mL. A 1 mg dose is 1 ÷ 5 = 0.2 mL = 20 units. A 0.5 mg dose is 10 units. A 2 mg dose is 40 units.",
         ],
       },
@@ -128,7 +128,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     faqs: [
       {
         q: "How much bacteriostatic water do I add to a 10 mg retatrutide vial?",
-        a: "Most people use 1–2 mL. Two millilitres gives 5 mg/mL, where one unit on a U-100 insulin syringe is 50 mcg and a 1 mg dose is 20 units. One millilitre gives 10 mg/mL, where 1 mg is 10 units.",
+        a: "Most people use 1–2 mL. Two milliliters gives 5 mg/mL, where one unit on a U-100 insulin syringe is 50 mcg and a 1 mg dose is 20 units. One milliliter gives 10 mg/mL, where 1 mg is 10 units.",
       },
       {
         q: "Does adding more water make the dose weaker?",
@@ -170,7 +170,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     published: "2026-08-05",
     updated: "2026-08-05",
     intro:
-      "Orforglipron is a once-daily oral small-molecule GLP-1 receptor agonist that has completed its Phase 3 ATTAIN and ACHIEVE programmes and is under regulatory review. Availability follows a fixed sequence — approval, launch pricing and payer coverage, then pharmacy stocking — and each step adds weeks to months. Treat any date you see as an estimate until a specific product label appears in DailyMed.",
+      "Orforglipron is a once-daily oral small-molecule GLP-1 receptor agonist that has completed its Phase 3 ATTAIN and ACHIEVE programs and is under regulatory review. Availability follows a fixed sequence — approval, launch pricing and payer coverage, then pharmacy stocking — and each step adds weeks to months. Treat any date you see as an estimate until a specific product label appears in DailyMed.",
     keyPoints: [
       "Orforglipron is a pill, not an injection, and it has no food or water restrictions unlike oral semaglutide.",
       "Approval is only step one; formulary decisions and pharmacy stocking typically add months.",
@@ -184,8 +184,8 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
         bullets: [
           "Regulatory decision: the agency approves a specific indication, dose range and label.",
           "Label publication: the prescribing information appears in DailyMed and defines who can be prescribed it.",
-          "Launch and pricing: the sponsor sets list price and any savings programme.",
-          "Payer coverage: insurers and PBMs add it to formularies, often with prior-authorisation criteria.",
+          "Launch and pricing: the sponsor sets list price and any savings program.",
+          "Payer coverage: insurers and PBMs add it to formularies, often with prior-authorization criteria.",
           "Pharmacy stocking: wholesalers distribute and individual pharmacies order it.",
         ],
       },
@@ -199,7 +199,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "How to track the real date yourself",
         body: [
-          "Rather than following news aggregators, watch two sources. ClinicalTrials.gov shows the Phase 3 record status and any ongoing outcome studies. DailyMed is the definitive signal for availability: a product label only appears there once the drug is approved and labelled for the US market. When you see the label, prescribing has started.",
+          "Rather than following news aggregators, watch two sources. ClinicalTrials.gov shows the Phase 3 record status and any ongoing outcome studies. DailyMed is the definitive signal for availability: a product label only appears there once the drug is approved and labeled for the US market. When you see the label, prescribing has started.",
         ],
       },
     ],
@@ -222,12 +222,15 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Can I buy orforglipron before approval?",
-        a: "No. Anything sold before approval is an unregulated product with unverified identity, purity and dose, and there is no legal supply of a pre-approval drug outside a clinical trial. Grey-market tablets marketed as orforglipron have not been tested against the manufacturer's product, so neither the content nor the safety profile is known.",
+        a: "No. Anything sold before approval is an unregulated product with unverified identity, purity and dose, and there is no legal supply of a pre-approval drug outside a clinical trial. Gray-market tablets marketed as orforglipron have not been tested against the manufacturer's product, so neither the content nor the safety profile is known.",
       },
     ],
     refs: [REF_ORFORGLIPRON_TRIALS, REF_DAILYMED_WEGOVY, REF_FDA_SEMAGLUTIDE],
     related: [
-      { href: "/blog/orforglipron-foundayo-oral-glp-1", label: "Orforglipron: the oral GLP-1 pill" },
+      {
+        href: "/blog/orforglipron-foundayo-oral-glp-1",
+        label: "Orforglipron: the oral GLP-1 pill",
+      },
       { href: "/for/glp-1", label: "DoseRoutine for GLP-1 users" },
       { href: "/interaction-checker", label: "Check your stack for interactions" },
     ],
@@ -243,7 +246,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     heading: "You missed your weekly GLP-1 dose — what the label actually says",
     title: "Missed a Weekly Semaglutide or Tirzepatide Dose? | DoseRoutine",
     description:
-      "The labelled rules for a missed weekly GLP-1 injection: the 5-day and 4-day windows, when to skip, and why doubling up is never the answer.",
+      "The labeled rules for a missed weekly GLP-1 injection: the 5-day and 4-day windows, when to skip, and why doubling up is never the answer.",
     category: "Practical dosing",
     published: "2026-08-06",
     updated: "2026-08-06",
@@ -330,19 +333,19 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     published: "2026-08-07",
     updated: "2026-08-07",
     intro:
-      "Two separate clocks run on a reconstituted peptide vial kept in the fridge: chemical stability of the peptide in solution, and microbiological safety of a container you puncture repeatedly. For approved multi-dose injectables the labelled in-use limit is typically 28 to 56 days refrigerated, and that number comes from the manufacturer's own stability testing. An unlabelled vial has no tested limit at all, so how long it truly lasts is unknown.",
+      "Two separate clocks run on a reconstituted peptide vial kept in the fridge: chemical stability of the peptide in solution, and microbiological safety of a container you puncture repeatedly. For approved multi-dose injectables the labeled in-use limit is typically 28 to 56 days refrigerated, and that number comes from the manufacturer's own stability testing. An unlabeled vial has no tested limit at all, so how long it truly lasts is unknown.",
     keyPoints: [
       "Refrigerate at 2–8 °C (36–46 °F); never freeze a reconstituted peptide.",
       "Approved multi-dose pens carry in-use limits of roughly 28–56 days after first use — check the specific label.",
       "Bacteriostatic water's benzyl alcohol limits microbial growth; it does not prevent chemical degradation.",
       "Light, heat, shaking and repeated stopper punctures all shorten usable life.",
-      "Cloudiness, particles, colour change or a broken cold chain means discard, not 'use quickly'.",
+      "Cloudiness, particles, color change or a broken cold chain means discard, not 'use quickly'.",
     ],
     sections: [
       {
         heading: "The two clocks",
         body: [
-          "Chemical stability is about the peptide itself: hydrolysis, oxidation, deamidation and aggregation all proceed faster in solution than in a lyophilised powder, and faster still when warm or agitated. That is why powder is stored dry and only mixed when needed.",
+          "Chemical stability is about the peptide itself: hydrolysis, oxidation, deamidation and aggregation all proceed faster in solution than in a lyophilized powder, and faster still when warm or agitated. That is why powder is stored dry and only mixed when needed.",
           "Microbiological safety is about the container. Every time a needle passes through the stopper you introduce a contamination opportunity. Preservatives such as benzyl alcohol suppress growth between punctures, which is exactly what allows a vial to be used more than once — but they only buy time, and manufacturers set in-use limits accordingly.",
         ],
       },
@@ -360,22 +363,22 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "Travel and the cold chain",
         body: [
-          "Short trips are manageable with an insulated case and a cool pack that is not in direct contact with the vial — freezing does more damage than a few warm hours. Never put a vial in checked baggage, where hold temperatures are uncontrolled. If a vial has clearly frozen or sat at room temperature well beyond its labelled excursion allowance, treat it as compromised.",
+          "Short trips are manageable with an insulated case and a cool pack that is not in direct contact with the vial — freezing does more damage than a few warm hours. Never put a vial in checked baggage, where hold temperatures are uncontrolled. If a vial has clearly frozen or sat at room temperature well beyond its labeled excursion allowance, treat it as compromised.",
         ],
       },
     ],
     faqs: [
       {
         q: "How long does a reconstituted peptide last in the fridge?",
-        a: "For approved multi-dose injectables the labelled in-use period is typically 28 to 56 days at 2–8 °C, depending on the product. Unlabelled research vials have no tested in-use limit, so any figure quoted for them is a guess.",
+        a: "For approved multi-dose injectables the labeled in-use period is typically 28 to 56 days at 2–8 °C, depending on the product. Unlabeled research vials have no tested in-use limit, so any figure quoted for them is a guess.",
       },
       {
         q: "Can I freeze a reconstituted vial to make it last longer?",
-        a: "No. Freeze-thaw cycles aggregate and denature peptides in solution, and the damage is not visible. Lyophilised powder can be stored frozen before mixing, but once bacteriostatic water has been added the vial belongs in the fridge at 2-8 C and should be used within its in-use window.",
+        a: "No. Freeze-thaw cycles aggregate and denature peptides in solution, and the damage is not visible. Lyophilized powder can be stored frozen before mixing, but once bacteriostatic water has been added the vial belongs in the fridge at 2-8 C and should be used within its in-use window.",
       },
       {
         q: "What does it mean if my solution turns cloudy?",
-        a: "Cloudiness, visible particles, stringy material or a colour change indicates protein aggregation or microbial contamination. Discard the vial. Filtering, warming or swirling does not reverse aggregation and does not remove bacterial endotoxin, so a solution that has clouded is no longer safe or reliably potent.",
+        a: "Cloudiness, visible particles, stringy material or a color change indicates protein aggregation or microbial contamination. Discard the vial. Filtering, warming or swirling does not reverse aggregation and does not remove bacterial endotoxin, so a solution that has clouded is no longer safe or reliably potent.",
       },
       {
         q: "Does bacteriostatic water extend shelf life?",
@@ -404,7 +407,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     title: "Tirzepatide mg to Units on an Insulin Syringe | DoseRoutine",
     description:
       "How to convert a milligram dose into units on a U-100 syringe, with worked examples and the two mistakes behind most accidental overdoses.",
-    category: "Reconstitution & dosing maths",
+    category: "Reconstitution & dosing math",
     published: "2026-08-08",
     updated: "2026-08-08",
     intro:
@@ -412,7 +415,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     keyPoints: [
       "Units = (dose in mg ÷ concentration in mg/mL) × 100 on a U-100 syringe.",
       "'Units' on an insulin syringe are a volume marking, not a measure of drug potency.",
-      "Prefilled pens are dialled in milligrams — no conversion applies and none should be attempted.",
+      "Prefilled pens are dialed in milligrams — no conversion applies and none should be attempted.",
       "1,000 mcg = 1 mg; mixing the two is the classic 1,000-fold error.",
       "Choose a dilution that puts your dose above roughly 10 units, where a misread costs less.",
     ],
@@ -429,7 +432,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "Why 'units' confuses people",
         body: [
-          "The word carries baggage. In insulin, a unit is a standardised measure of biological activity. On a syringe barrel, it is nothing more than a volume graduation: 1 unit = 0.01 mL. Any drug drawn into that syringe is measured by volume, and how much drug that volume contains depends purely on the concentration you created when you reconstituted the vial.",
+          "The word carries baggage. In insulin, a unit is a standardized measure of biological activity. On a syringe barrel, it is nothing more than a volume graduation: 1 unit = 0.01 mL. Any drug drawn into that syringe is measured by volume, and how much drug that volume contains depends purely on the concentration you created when you reconstituted the vial.",
           "This is why 'how many units should I take' has no answer without a concentration, and why forum answers to that question are actively dangerous.",
         ],
       },
@@ -464,7 +467,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Can I use an insulin syringe with a prescribed pen?",
-        a: "No. Prescription pens are dose-metered devices tested as a complete system, and the cartridge is not designed to be entered with a syringe. Withdrawing from it bypasses the metering mechanism and breaks the sterile barrier, introducing both dosing error and contamination risk. Use the pen as labelled.",
+        a: "No. Prescription pens are dose-metered devices tested as a complete system, and the cartridge is not designed to be entered with a syringe. Withdrawing from it bypasses the metering mechanism and breaks the sterile barrier, introducing both dosing error and contamination risk. Use the pen as labeled.",
       },
       {
         q: "What concentration should I aim for?",
@@ -495,7 +498,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     intro:
       "Approved weekly GLP-1 injections go subcutaneously into the abdomen, thigh or upper arm, and absorption is equivalent across those sites. Rotating means moving at least one inch (2.5 cm) from the last injection point and not reusing the exact spot for about a month. A four-week rotation — one region per week, a different quadrant each time — is enough to prevent the tissue changes that make absorption unpredictable.",
     keyPoints: [
-      "Abdomen, thigh and upper arm are all labelled sites with equivalent absorption for weekly GLP-1s.",
+      "Abdomen, thigh and upper arm are all labeled sites with equivalent absorption for weekly GLP-1s.",
       "Stay at least 2 inches (5 cm) away from the navel and avoid scars, moles and bruises.",
       "Move at least 1 inch from the previous injection point; avoid reusing a precise spot for ~4 weeks.",
       "Repeated injection into one spot causes lipohypertrophy — firm lumps where absorption becomes erratic.",
@@ -539,7 +542,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     faqs: [
       {
         q: "Where should I inject a weekly GLP-1?",
-        a: "The abdomen (at least two inches from the navel), the front-outer thigh, or the back of the upper arm. All three are labelled sites and absorption is equivalent between them.",
+        a: "The abdomen (at least two inches from the navel), the front-outer thigh, or the back of the upper arm. All three are labeled sites and absorption is equivalent between them.",
       },
       {
         q: "How far apart should injection sites be?",
@@ -583,9 +586,9 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     intro:
       "Once-weekly semaglutide and tirzepatide can be injected at any time of day, with or without food, because their half-lives are measured in days rather than hours. There is no pharmacological best time. What does matter is picking a fixed day and time you can repeat, and — if nausea is your main side effect — choosing a slot where a rough evening costs you least.",
     keyPoints: [
-      "Weekly GLP-1s are labelled as any time of day, with or without meals.",
+      "Weekly GLP-1s are labeled as any time of day, with or without meals.",
       "A roughly week-long half-life means plasma levels barely notice the hour you inject.",
-      "Consistency beats optimisation: same day, same rough time, every week.",
+      "Consistency beats optimization: same day, same rough time, every week.",
       "If side effects peak 24–48 hours post-dose, dosing before a quieter day is the practical trick.",
       "Oral GLP-1s are the exception — those have strict fasting and water rules.",
     ],
@@ -619,7 +622,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Is morning or night better for nausea?",
-        a: "There is no evidence favouring either. Since symptoms usually peak 24–48 hours after the dose, the useful choice is the day, not the hour — pick one where a rough stretch is least disruptive.",
+        a: "There is no evidence favoring either. Since symptoms usually peak 24–48 hours after the dose, the useful choice is the day, not the hour — pick one where a rough stretch is least disruptive.",
       },
       {
         q: "Do I need to take it with food?",
@@ -631,7 +634,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Does injecting at the same time every week improve results?",
-        a: "Not pharmacologically. Blood levels of a weekly drug do not care whether you inject at 8 am or 8 pm. A fixed time helps indirectly by improving adherence, and consistent dosing is the variable most strongly associated with weight and glycaemic outcomes over a year of treatment.",
+        a: "Not pharmacologically. Blood levels of a weekly drug do not care whether you inject at 8 am or 8 pm. A fixed time helps indirectly by improving adherence, and consistent dosing is the variable most strongly associated with weight and glycemic outcomes over a year of treatment.",
       },
     ],
     refs: [REF_MEDLINEPLUS_SEMA, REF_DAILYMED_TIRZEPATIDE, REF_STEP1],
@@ -675,7 +678,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "The overlap that catches people out",
         body: [
-          "Both drugs cause nausea, diarrhoea and abdominal discomfort, particularly at initiation. Starting or escalating both at once makes it impossible to tell which is responsible and roughly doubles the chance of a miserable fortnight. The usual approach is to stabilise on one before moving the other, and to use extended-release metformin taken with food when GI tolerance is the limiting factor.",
+          "Both drugs cause nausea, diarrhea and abdominal discomfort, particularly at initiation. Starting or escalating both at once makes it impossible to tell which is responsible and roughly doubles the chance of a miserable fortnight. The usual approach is to stabilize on one before moving the other, and to use extended-release metformin taken with food when GI tolerance is the limiting factor.",
         ],
       },
       {
@@ -691,7 +694,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "What to monitor",
         body: [
-          "A1C and fasting glucose to see whether the combination is doing its job; kidney function, because metformin dosing depends on eGFR; and vitamin B12 periodically over long-term metformin use, since malabsorption is a recognised association. If you are also on insulin or a sulfonylurea, more frequent glucose checks during GLP-1 escalation are the norm.",
+          "A1C and fasting glucose to see whether the combination is doing its job; kidney function, because metformin dosing depends on eGFR; and vitamin B12 periodically over long-term metformin use, since malabsorption is a recognized association. If you are also on insulin or a sulfonylurea, more frequent glucose checks during GLP-1 escalation are the norm.",
         ],
       },
     ],
@@ -714,7 +717,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Does metformin affect vitamin B12?",
-        a: "Yes. Long-term metformin use is associated with reduced vitamin B12 absorption and lower serum levels, occasionally with anaemia or neuropathy. Periodic B12 testing is a standard part of long-term monitoring, and it matters more on a GLP-1 because reduced food intake lowers dietary B12 at the same time.",
+        a: "Yes. Long-term metformin use is associated with reduced vitamin B12 absorption and lower serum levels, occasionally with anemia or neuropathy. Periodic B12 testing is a standard part of long-term monitoring, and it matters more on a GLP-1 because reduced food intake lowers dietary B12 at the same time.",
       },
     ],
     refs: [REF_MEDLINEPLUS_METFORMIN, REF_FDA_SEMAGLUTIDE, REF_STEP1],
@@ -774,7 +777,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "Caveats worth taking seriously",
         body: [
-          "Higher protein intake is not appropriate for everyone. Reduced kidney function, a history of kidney stones and certain metabolic conditions all change the calculus, and this is a conversation with your prescriber rather than a number lifted from an article. Adequate hydration and fibre also matter more than usual, since low intake plus slowed gastric emptying is a reliable recipe for constipation.",
+          "Higher protein intake is not appropriate for everyone. Reduced kidney function, a history of kidney stones and certain metabolic conditions all change the calculus, and this is a conversation with your prescriber rather than a number lifted from an article. Adequate hydration and fiber also matter more than usual, since low intake plus slowed gastric emptying is a reliable recipe for constipation.",
         ],
       },
     ],
@@ -789,7 +792,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "What if I cannot eat enough because of nausea?",
-        a: "Prioritise protein at the start of meals, use liquid protein sources during the worst days, and spread intake across smaller servings. Persistent inability to eat should be raised with your prescriber — it may mean pausing a dose escalation.",
+        a: "Prioritize protein at the start of meals, use liquid protein sources during the worst days, and spread intake across smaller servings. Persistent inability to eat should be raised with your prescriber — it may mean pausing a dose escalation.",
       },
       {
         q: "Do protein shakes count?",
@@ -802,9 +805,15 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     ],
     refs: [REF_ODS, REF_STEP1, REF_SURMOUNT1],
     related: [
-      { href: "/blog/glp-1-muscle-loss-myostatin-combinations", label: "GLP-1 muscle loss and myostatin combinations" },
+      {
+        href: "/blog/glp-1-muscle-loss-myostatin-combinations",
+        label: "GLP-1 muscle loss and myostatin combinations",
+      },
       { href: "/for/glp-1", label: "DoseRoutine for GLP-1 users" },
-      { href: "/library/peptide-stacks-for-muscle-growth", label: "Peptide stacks for muscle growth" },
+      {
+        href: "/library/peptide-stacks-for-muscle-growth",
+        label: "Peptide stacks for muscle growth",
+      },
     ],
   },
 
@@ -822,10 +831,10 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     published: "2026-08-13",
     updated: "2026-08-13",
     intro:
-      "The clearest signs a peptide vial has gone bad are visual. Discard the vial if the solution is cloudy, discoloured, contains visible particles, has frozen, has sat outside its labelled temperature range, or is past its in-use date. Those are the signals you can see. The failure modes you cannot see — potency loss and low-level contamination — are why in-use dates and cold-chain rules exist rather than a visual check alone.",
+      "The clearest signs a peptide vial has gone bad are visual. Discard the vial if the solution is cloudy, discolored, contains visible particles, has frozen, has sat outside its labeled temperature range, or is past its in-use date. Those are the signals you can see. The failure modes you cannot see — potency loss and low-level contamination — are why in-use dates and cold-chain rules exist rather than a visual check alone.",
     keyPoints: [
-      "Cloudiness, floaters, colour change or a persistent film after gentle swirling: discard.",
-      "Frozen and thawed, or left warm well beyond the labelled excursion: discard.",
+      "Cloudiness, floaters, color change or a persistent film after gentle swirling: discard.",
+      "Frozen and thawed, or left warm well beyond the labeled excursion: discard.",
       "A cracked vial, lifted seal or visibly chewed-up stopper: discard.",
       "Past the in-use period you wrote on the label: discard, even if it looks fine.",
       "Looking fine proves nothing about potency — degradation is invisible.",
@@ -834,16 +843,16 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       {
         heading: "Before mixing: check the powder",
         bullets: [
-          "A healthy lyophilised cake is a uniform white to off-white puck or powder.",
+          "A healthy lyophilized cake is a uniform white to off-white puck or powder.",
           "A shrunken, melted-looking or yellowed cake usually means a heat excursion in transit.",
-          "Powder stuck up the vial walls in a smear is not automatically a problem, but combined with discolouration it is.",
+          "Powder stuck up the vial walls in a smear is not automatically a problem, but combined with discoloration it is.",
           "A vial that arrives with no vacuum — diluent pushes in with no draw at all — suggests the seal has been compromised.",
         ],
       },
       {
         heading: "After mixing: what a good solution looks like",
         body: [
-          "Most reconstituted peptides give a clear, colourless, particle-free solution within a minute of gentle swirling. Persistent cloudiness, a haze that will not clear, visible strands or a residue that settles after standing all indicate aggregation or contamination. Fine bubbles from vigorous shaking are cosmetic and will clear, but shaking itself is worth avoiding — shear stress aggregates peptides.",
+          "Most reconstituted peptides give a clear, colorless, particle-free solution within a minute of gentle swirling. Persistent cloudiness, a haze that will not clear, visible strands or a residue that settles after standing all indicate aggregation or contamination. Fine bubbles from vigorous shaking are cosmetic and will clear, but shaking itself is worth avoiding — shear stress aggregates peptides.",
           "Hold the vial against a plain white background and then a black one. Particles that are invisible against one show clearly against the other.",
         ],
       },
@@ -867,7 +876,7 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
     faqs: [
       {
         q: "What does a bad peptide vial look like?",
-        a: "Cloudy or hazy solution, visible particles or strands, discolouration, a residue that settles out, or a damaged stopper or seal. Any of these means discard the vial rather than inject it.",
+        a: "Cloudy or hazy solution, visible particles or strands, discoloration, a residue that settles out, or a damaged stopper or seal. Any of these means discard the vial rather than inject it.",
       },
       {
         q: "Can a peptide go bad without looking different?",
@@ -879,11 +888,11 @@ export const LONGTAIL_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Are bubbles after mixing a problem?",
-        a: "No. Bubbles and foam raised by swirling or shaking are cosmetic and settle out within a few minutes of standing. The signals that matter are persistent haze, visible particles, stringy strands or a colour change, all of which point to aggregation or contamination and mean the vial should be discarded.",
+        a: "No. Bubbles and foam raised by swirling or shaking are cosmetic and settle out within a few minutes of standing. The signals that matter are persistent haze, visible particles, stringy strands or a color change, all of which point to aggregation or contamination and mean the vial should be discarded.",
       },
       {
         q: "How long can a vial be out of the fridge?",
-        a: "Only the specific product label can answer that; approved products define a room-temperature excursion allowance. Beyond it, or with an unlabelled vial and an unknown excursion, treat the vial as compromised.",
+        a: "Only the specific product label can answer that; approved products define a room-temperature excursion allowance. Beyond it, or with an unlabeled vial and an unknown excursion, treat the vial as compromised.",
       },
     ],
     refs: [REF_CDC_SAFE_INJECTION, REF_DAILYMED_WEGOVY, REF_FDA_SEMAGLUTIDE],

@@ -21,6 +21,7 @@ type Head = {
 };
 
 function headFor(slug: string): Head {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const head = (Route.options as any).head({ params: { slug } });
   return { meta: head.meta ?? [], links: head.links ?? [], scripts: head.scripts ?? [] };
 }
@@ -34,6 +35,7 @@ const linkHrefs = (head: Head, rel: string) =>
 const jsonLd = (head: Head) =>
   head.scripts
     .filter((s) => s.type === "application/ld+json")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     .map((s) => JSON.parse(String(s.children)) as any);
 
 describe("blog post canonical + robots", () => {
@@ -82,7 +84,9 @@ describe("blog post canonical + robots", () => {
   }
 
   it("gives every post a unique canonical", () => {
-    const canonicals = BLOG_POSTS_NEWEST_FIRST.map((p) => linkHrefs(headFor(p.slug), "canonical")[0]);
+    const canonicals = BLOG_POSTS_NEWEST_FIRST.map(
+      (p) => linkHrefs(headFor(p.slug), "canonical")[0],
+    );
     expect(new Set(canonicals).size).toBe(canonicals.length);
   });
 

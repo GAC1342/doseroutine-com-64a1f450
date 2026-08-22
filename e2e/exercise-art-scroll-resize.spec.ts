@@ -31,9 +31,7 @@ type Offsets = { window: number; container: number };
 /** Scrolls the window and the thumbnail's nearest scrollable ancestor. */
 async function scrollSurfaces(page: Page, amount: number): Promise<Offsets> {
   return page.evaluate((delta) => {
-    const thumb = document.querySelector<HTMLElement>(
-      '[aria-label^="Enlarge Yoga illustration"]',
-    );
+    const thumb = document.querySelector<HTMLElement>('[aria-label^="Enlarge Yoga illustration"]');
     let node: HTMLElement | null = thumb?.parentElement ?? null;
     let container: HTMLElement | null = null;
     while (node && node !== document.body) {
@@ -53,9 +51,7 @@ async function scrollSurfaces(page: Page, amount: number): Promise<Offsets> {
 
 async function readOffsets(page: Page): Promise<Offsets> {
   return page.evaluate(() => {
-    const thumb = document.querySelector<HTMLElement>(
-      '[aria-label^="Enlarge Yoga illustration"]',
-    );
+    const thumb = document.querySelector<HTMLElement>('[aria-label^="Enlarge Yoga illustration"]');
     let node: HTMLElement | null = thumb?.parentElement ?? null;
     let container: HTMLElement | null = null;
     while (node && node !== document.body) {
@@ -124,9 +120,7 @@ for (const viewport of VIEWPORTS) {
         expect(Math.abs(afterBox.y - beforeBox.y)).toBeLessThanOrEqual(SLACK);
         expect(Math.round(afterBox.width)).toBe(Math.round(beforeBox.width));
         expect(Math.round(afterBox.height)).toBe(Math.round(beforeBox.height));
-        expect(await horizontalOverflow(page)).toBeLessThanOrEqual(
-          Math.max(beforeOverflow, SLACK),
-        );
+        expect(await horizontalOverflow(page)).toBeLessThanOrEqual(Math.max(beforeOverflow, SLACK));
 
         // Focus must come back to the trigger, otherwise the next cycle's
         // keyboard open would silently target something else.

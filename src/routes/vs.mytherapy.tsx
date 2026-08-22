@@ -1,3 +1,5 @@
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
@@ -19,7 +21,7 @@ import { RelatedLinks } from "@/components/related-links";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 
-const CANONICAL = "https://doseroutine.com/vs/mytherapy";
+export const CANONICAL = "https://doseroutine.com/vs/mytherapy";
 const TITLE = "MyTherapy Alternative for Peptides and HRT";
 const DESC =
   "DoseRoutine is a MyTherapy alternative with peptide math, a 475+ compound libr… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
@@ -41,7 +43,11 @@ export const Route = createFileRoute("/vs/mytherapy")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/38d7762d-952a-4fbd-8ea8-1ea66bcef6eb/og-vs-mytherapy.jpg",
       },
-        { property: "og:image:alt", content: "DoseRoutine vs MyTherapy comparison card — peptide and hormone tracking side by side" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine vs MyTherapy comparison card — peptide and hormone tracking side by side",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
@@ -50,7 +56,11 @@ export const Route = createFileRoute("/vs/mytherapy")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/38d7762d-952a-4fbd-8ea8-1ea66bcef6eb/og-vs-mytherapy.jpg",
       },
-        { name: "twitter:image:alt", content: "DoseRoutine vs MyTherapy comparison card — peptide and hormone tracking side by side" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine vs MyTherapy comparison card — peptide and hormone tracking side by side",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/vs/mytherapy")],
@@ -74,6 +84,7 @@ export const Route = createFileRoute("/vs/mytherapy")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
           mainEntity: FAQ.map((f) => ({
             "@type": "Question",
             name: f.q,
@@ -86,7 +97,7 @@ export const Route = createFileRoute("/vs/mytherapy")({
   component: MyTherapyAlternative,
 });
 
-const FAQ = [
+export const FAQ = [
   {
     q: "Why switch from MyTherapy to DoseRoutine?",
     a: "MyTherapy is designed as a medication + mood/symptom journal. If your routine includes peptides, hormones, or a supplement stack, you need reconstitution math, vial inventory, and cross-interaction checks — features DoseRoutine ships with and MyTherapy doesn't.",
@@ -101,7 +112,7 @@ const FAQ = [
   },
   {
     q: "How does pricing compare to MyTherapy?",
-    a: "MyTherapy is free ad-supported. DoseRoutine Pro is $9.99/month or $59.99/year (50% off) with a 7-day free trial, no ads, and unlocks the reconstitution calculator, interaction checker, AI stack planning, and doctor exports.",
+    a: "MyTherapy is free ad-supported. DoseRoutine Pro is $9.99/month or $59.99/year (50% off), no ads, and unlocks the reconstitution calculator, interaction checker, AI stack planning, and doctor exports.",
   },
   {
     q: "Is DoseRoutine available in multiple languages?",
@@ -125,7 +136,7 @@ const COMPARISON = [
   { feature: "Shareable PDF summaries", us: true, them: "Basic" },
   { feature: "Calendar (.ics) alarms", us: true, them: false },
   { feature: "Ad-free", us: true, them: false },
-  { feature: "Free trial", us: "7 days", them: "Free (ads)" },
+  { feature: "Free tier", us: "Yes", them: "Free (ads)" },
   { feature: "Pro pricing", us: "$9.99/mo · $59.99/yr", them: "Free / ads" },
 ];
 
@@ -139,7 +150,11 @@ function MyTherapyAlternative() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
+      <section
+        id="main-content"
+        tabIndex={-1}
+        className="container max-w-4xl mx-auto px-4 py-12 md:py-20"
+      >
         <div className="text-center space-y-4 mb-12">
           <span className="inline-block text-xs uppercase tracking-widest text-muted-foreground">
             MyTherapy alternative
@@ -268,9 +283,7 @@ function MyTherapyAlternative() {
 
         <div className="text-center space-y-4 py-8 border-t">
           <h2 className="text-2xl font-bold">Ready to switch?</h2>
-          <p className="text-muted-foreground">
-            7-day free trial. No ads. $9.99/month or $59.99/year (50% off).
-          </p>
+          <p className="text-muted-foreground">No ads. $9.99/month or $59.99/year (50% off).</p>
           <Button size="lg" asChild>
             <Link to="/install">
               Download DoseRoutine <ArrowRight className="w-4 h-4 ml-2" />
@@ -305,6 +318,11 @@ function MyTherapyAlternative() {
         </div>
       </section>
       <RelatedLinks currentPath="/vs/mytherapy" kind="comparisons" />
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="vs-mytherapy" />
+        </ProseContainer>
+      </ProseContainer>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>
   );

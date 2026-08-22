@@ -1,4 +1,6 @@
 import { trackEvent } from "@/lib/analytics";
+import { captureToSentry } from "@/lib/sentry";
+import { evaluateVital } from "@/lib/web-vitals-alerts";
 
 /**
  * Web Vitals monitoring: reports Core Web Vitals + FCP/TTFB to
@@ -51,7 +53,52 @@ function loadKind(navigationType?: string): "navigate" | "bfcache" | "prerender"
   return "other";
 }
 
+/**
+ * Raise a Sentry event for a genuinely poor sample on mobile / article pages.
+ * The tags are what the "Web Vitals regression" alert rule matches on; the
+ * fingerprint keeps one issue per metric+surface so a spike is visible as a
+ * rising event count rather than thousands of unique issues.
+ */
+function alertOnRegression(metric: Metric) {
+  const alert = evaluateVital({
+    name: metric.name,
+    value: metric.value,
+    loadKind: loadKind(metric.navigationType),
+    path: window.location.pathname,
+    viewportWidth: window.innerWidth,
+  });
+  if (!alert) return;
+
+  captureToSentry(
+    new Error(`Web Vital regression: ${alert.metric} on ${alert.surface}`),
+    {
+      metric: alert.metric,
+      value: Math.round(alert.value * 1000) / 1000,
+      threshold: alert.threshold,
+      surface: alert.surface,
+      path: alert.path,
+      rating: metric.rating,
+      connection:
+        (navigator as { connection?: { effectiveType?: string } }).connection?.effectiveType ??
+        null,
+    },
+    {
+      tags: {
+        web_vital: alert.metric,
+        web_vital_surface: alert.surface,
+        web_vital_path: alert.path.slice(0, 100),
+      },
+      fingerprint: ["web-vital-regression", alert.metric, alert.surface],
+    },
+  );
+}
+
 function report(metric: Metric) {
+  try {
+    alertOnRegression(metric);
+  } catch {
+    /* observability must never break the page */
+  }
   trackEvent("web_vital", {
     metric: metric.name,
     value: Math.round(metric.value * 1000) / 1000,
@@ -68,7 +115,6 @@ function report(metric: Metric) {
     device_memory: (navigator as { deviceMemory?: number }).deviceMemory ?? null,
   });
 }
-
 
 export function initWebVitals(): void {
   if (initialized) return;

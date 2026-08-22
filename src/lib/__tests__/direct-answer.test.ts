@@ -42,3 +42,26 @@ describe("buildDirectAnswer", () => {
     expect(answer.startsWith("Test Compound is a research peptide.")).toBe(true);
   });
 });
+
+describe("prose fragments", () => {
+  const berberine =
+    "Berberine is a quaternary ammonium salt from the protoberberine group of isoquinoline alkaloids. It is found in various plants, including *Berberis* (e.g., European barberry, Oregon grape), *Coptis chinensis* (goldthread), *Hydrastis canadensis* (goldenseal), and *Phellodendron amurense* (Amur cork tree). Historically, berberine-containing plants have been used in traditional medicine.";
+
+  it("never publishes an out-of-order sentence fragment", () => {
+    const answer = buildDirectAnswer(
+      { name: "Berberine", category: "supplement", goalTags: ["blood-sugar"] },
+      berberine,
+    );
+    expect(answer).not.toMatch(/\.\s+,/);
+    expect(answer).not.toMatch(/^\s*[,)]/m);
+    expect(answer.startsWith("Berberine is a quaternary ammonium salt")).toBe(true);
+  });
+
+  it("does not split on abbreviations or domains", () => {
+    const answer = buildDirectAnswer(
+      { name: "Apigenin", category: "supplement" },
+      "Apigenin data is summarized from examine.com and nih.gov sources. It is a flavonoid.",
+    );
+    expect(answer).not.toMatch(/(^|\s)(com|gov)\)/);
+  });
+});

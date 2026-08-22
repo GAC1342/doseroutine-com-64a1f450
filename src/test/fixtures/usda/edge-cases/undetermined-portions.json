@@ -1,0 +1,44 @@
+{
+  "fdcId": 7000005,
+  "description": "Rice, brown, cooked (messy portion table)",
+  "dataType": "Survey (FNDDS)",
+  "foodNutrients": [
+    {
+      "nutrientNumber": "1008",
+      "value": 123
+    },
+    {
+      "nutrientNumber": "1003",
+      "value": 2.74
+    },
+    {
+      "nutrientNumber": "1005",
+      "value": 25.6
+    },
+    {
+      "nutrientNumber": "1004",
+      "value": 0.97
+    }
+  ],
+  "foodPortions": [
+    {
+      "gramWeight": 0,
+      "portionDescription": "1 cup"
+    },
+    {
+      "gramWeight": 50,
+      "portionDescription": "Undetermined portion"
+    },
+    {
+      "gramWeight": 50,
+      "amount": 1,
+      "measureUnit": {
+        "name": "undetermined"
+      }
+    },
+    {
+      "gramWeight": 195,
+      "portionDescription": "1 cup"
+    }
+  ]
+}

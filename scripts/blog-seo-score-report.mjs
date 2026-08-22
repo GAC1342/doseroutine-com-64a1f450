@@ -45,9 +45,7 @@ console.log(
 console.log("| Post | Score | Failed checks |");
 console.log("| --- | --- | --- |");
 for (const r of results) {
-  const failed = r.failed.length
-    ? r.failed.map((f) => `${f.id} (${f.detail})`).join("<br>")
-    : "—";
+  const failed = r.failed.length ? r.failed.map((f) => `${f.id} (${f.detail})`).join("<br>") : "—";
   console.log(`| \`${r.slug}\` | ${failing.includes(r) ? "❌ " : "✅ "}${r.score} | ${failed} |`);
 }
 

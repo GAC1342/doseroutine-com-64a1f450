@@ -1,0 +1,140 @@
+{
+  "generatedAt": "2026-08-21T22:00:00.000Z",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "assertions": [
+    {
+      "platform": "ios",
+      "profile": "iPhone",
+      "title": "iPhone: native plugin height drives the inset and keyboard-open state",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 85,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "keyboard CSS contract is present for fixed and sticky bottom bars",
+      "title": "keyboard CSS contract is present for fixed and sticky bottom bars",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 128,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "iPad undocked",
+      "title": "iPad undocked: visualViewport fallback still produces an inset",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 147,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "iPad docked (portrait)",
+      "title": "iPad docked (portrait): plugin inset applies and bottom controls clear the keyboard",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 175,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "iPad docked (landscape)",
+      "title": "iPad docked (landscape): plugin inset applies and bottom controls clear the keyboard",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 175,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "iPad portrait, split keyboard",
+      "title": "iPad portrait, split keyboard: visualViewport fallback still lifts controls",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 208,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "screenshots",
+      "title": "screenshots: bottom controls sit above the keyboard while open and return on close",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 229,
+      "error": null
+    },
+    {
+      "platform": "ios",
+      "profile": "in-app navigation stays in the webview",
+      "title": "in-app navigation stays in the webview",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/ios-keyboard-device-smoke.spec.ts",
+      "line": 289,
+      "error": null
+    },
+    {
+      "platform": "android",
+      "profile": "phone",
+      "title": "phone: plugin height drives the inset and bottom controls clear the keyboard",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/android-keyboard-device-smoke.spec.ts",
+      "line": 27,
+      "error": null
+    },
+    {
+      "platform": "android",
+      "profile": "phone",
+      "title": "phone: body reserves the keyboard height so content can scroll clear",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/android-keyboard-device-smoke.spec.ts",
+      "line": 49,
+      "error": null
+    },
+    {
+      "platform": "android",
+      "profile": "tablet",
+      "title": "tablet: visualViewport fallback covers a silent plugin",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/android-keyboard-device-smoke.spec.ts",
+      "line": 62,
+      "error": null
+    },
+    {
+      "platform": "android",
+      "profile": "off-origin links open in the system browser, same-site stays in the shell",
+      "title": "off-origin links open in the system browser, same-site stays in the shell",
+      "ok": true,
+      "status": "passed",
+      "durationMs": 0,
+      "file": "e2e/android-keyboard-device-smoke.spec.ts",
+      "line": 73,
+      "error": null
+    }
+  ]
+}

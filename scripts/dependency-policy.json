@@ -1,0 +1,82 @@
+{
+  "$comment": "Policy for scripts/check-dependency-versions.mjs. tier: 'critical' packages fail CI when a major (or, for security-sensitive ones, a minor) release is available; 'watch' packages only warn. graceDays lets a fresh release settle before it is reported.",
+  "defaults": {
+    "graceDays": 14
+  },
+  "groups": [
+    {
+      "name": "App framework",
+      "tier": "critical",
+      "failOn": "major",
+      "packages": [
+        "react",
+        "react-dom",
+        "@tanstack/react-router",
+        "@tanstack/react-start",
+        "@tanstack/react-query",
+        "@tanstack/router-plugin",
+        "vite",
+        "typescript"
+      ]
+    },
+    {
+      "name": "Backend & auth",
+      "tier": "critical",
+      "failOn": "minor",
+      "packages": [
+        "@supabase/supabase-js",
+        "@lovable.dev/cloud-auth-js",
+        "@lovable.dev/mcp-js",
+        "zod"
+      ]
+    },
+    {
+      "name": "Native shell (store submissions)",
+      "tier": "critical",
+      "failOn": "major",
+      "packages": [
+        "@capacitor/core",
+        "@capacitor/cli",
+        "@capacitor/ios",
+        "@capacitor/android",
+        "@capacitor/local-notifications",
+        "@capacitor-mlkit/barcode-scanning",
+        "@revenuecat/purchases-capacitor"
+      ]
+    },
+    {
+      "name": "Payments & monitoring",
+      "tier": "watch",
+      "failOn": "major",
+      "packages": [
+        "@stripe/stripe-js",
+        "@stripe/react-stripe-js",
+        "@sentry/react",
+        "@sentry/capacitor"
+      ]
+    },
+    {
+      "name": "Styling & UI",
+      "tier": "watch",
+      "failOn": "major",
+      "packages": [
+        "tailwindcss",
+        "@tailwindcss/vite",
+        "lucide-react",
+        "react-hook-form",
+        "date-fns"
+      ]
+    },
+    {
+      "name": "Test & quality tooling",
+      "tier": "watch",
+      "failOn": "major",
+      "packages": ["vitest", "@playwright/test", "eslint", "prettier", "@axe-core/playwright"]
+    }
+  ],
+  "holds": {
+    "typescript": {
+      "reason": "Held at 5.x: typescript-eslint 8.x refuses to load under TS 7.0, which breaks the lint gate. Lift when typescript-eslint ships TS 7 support."
+    }
+  }
+}

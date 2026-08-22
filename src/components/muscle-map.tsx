@@ -6,7 +6,7 @@
  * muscles at lower opacity, everything else stays a muted anatomical body.
  *
  * Pure SVG on purpose: a few KB, theme-aware (uses design tokens, never a
- * hardcoded colour), crisp at any size, and no image hosting required.
+ * hardcoded color), crisp at any size, and no image hosting required.
  */
 
 import { cn } from "@/lib/utils";
@@ -87,7 +87,10 @@ const REGION_SHAPES: Record<MuscleRegion, RegionPaths> = {
   // ---- front ----
   chest: [
     { d: "M38.5 45.5 Q46 44 48.8 48.5 L48.8 57 Q42 60 37.5 56 Q35.5 50 38.5 45.5 Z" },
-    { d: "M38.5 45.5 Q46 44 48.8 48.5 L48.8 57 Q42 60 37.5 56 Q35.5 50 38.5 45.5 Z", mirrored: true },
+    {
+      d: "M38.5 45.5 Q46 44 48.8 48.5 L48.8 57 Q42 60 37.5 56 Q35.5 50 38.5 45.5 Z",
+      mirrored: true,
+    },
   ],
   frontDelts: [
     { d: "M30.5 42 Q36.5 40 38.5 45.5 Q38 51.5 33.5 52.5 Q29 50 30.5 42 Z" },
@@ -126,23 +129,17 @@ const REGION_SHAPES: Record<MuscleRegion, RegionPaths> = {
   heart: [{ d: "M43 50 Q50 46 57 50 Q58 60 50 65 Q42 60 43 50 Z" }],
 
   // ---- back ----
-  traps: [
-    { d: "M41.5 37.5 Q50 35.5 58.5 37.5 Q57 48 50 51 Q43 48 41.5 37.5 Z" },
-  ],
+  traps: [{ d: "M41.5 37.5 Q50 35.5 58.5 37.5 Q57 48 50 51 Q43 48 41.5 37.5 Z" }],
   rearDelts: [
     { d: "M29.5 42.5 Q36 40.5 38 46 Q37.5 52.5 32.5 53.5 Q27.8 50.5 29.5 42.5 Z" },
     { d: "M29.5 42.5 Q36 40.5 38 46 Q37.5 52.5 32.5 53.5 Q27.8 50.5 29.5 42.5 Z", mirrored: true },
   ],
-  upperBack: [
-    { d: "M40.5 49 Q50 47 59.5 49 Q57.5 59 50 61.5 Q42.5 59 40.5 49 Z" },
-  ],
+  upperBack: [{ d: "M40.5 49 Q50 47 59.5 49 Q57.5 59 50 61.5 Q42.5 59 40.5 49 Z" }],
   lats: [
     { d: "M36 50.5 Q44.5 53 46 61 Q46 72 40.5 79 Q34 71 34.2 58 Z" },
     { d: "M36 50.5 Q44.5 53 46 61 Q46 72 40.5 79 Q34 71 34.2 58 Z", mirrored: true },
   ],
-  lowerBack: [
-    { d: "M43.5 73 Q50 71 56.5 73 Q56.5 85 50 89 Q43.5 85 43.5 73 Z" },
-  ],
+  lowerBack: [{ d: "M43.5 73 Q50 71 56.5 73 Q56.5 85 50 89 Q43.5 85 43.5 73 Z" }],
   triceps: [
     { d: "M29 54 Q33 54.5 33.2 63 Q32.4 71 29 71.5 Q26.2 63 29 54 Z" },
     { d: "M29 54 Q33 54.5 33.2 63 Q32.4 71 29 71.5 Q26.2 63 29 54 Z", mirrored: true },
@@ -176,7 +173,6 @@ const LEG =
   "M39.4 106 Q37.4 118 38.2 130 Q39 142 40.2 152 Q40.8 164 41.2 174 " +
   "Q41.4 179.5 43.8 179.5 Q46.2 179.5 46.4 174 Q47.2 162 47.8 150 " +
   "Q48.6 136 49.3 122 L49.3 106 Z";
-
 
 /** Thin separation lines that make the body read as an anatomy chart. */
 const FRONT_DETAIL = [
@@ -219,7 +215,6 @@ function Body({ side, detail: showDetail }: { side: "front" | "back"; detail: bo
         <path d={ARM} transform={MIRROR} />
         <path d={LEG} />
         <path d={LEG} transform={MIRROR} />
-
       </g>
       {showDetail && (
         <g
@@ -304,7 +299,6 @@ export function MuscleMap({
     </svg>
   );
 }
-
 
 /** Human-readable side label, e.g. for a caption under the enlarged map. */
 export function muscleMapSide(primary: readonly MuscleRegion[]): "Front view" | "Back view" {

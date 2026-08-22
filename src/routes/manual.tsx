@@ -1,11 +1,24 @@
-import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { useEffect, useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, BookOpen, ChevronRight, Lightbulb, Search, X } from "lucide-react";
+import {
+  Bookmark,
+  BookmarkCheck,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Lightbulb,
+  Search,
+  X,
+} from "lucide-react";
 import { MANUAL, manualSearch } from "@/lib/manual";
 import { useManualBookmarks } from "@/lib/manual-bookmarks";
 import { useSessionState } from "@/hooks/use-session";
 import { Card } from "@/components/ui/card";
 import { ManualChapterFeedback } from "@/components/manual-chapter-feedback";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { MANUAL_FAQ } from "@/lib/aeo-faqs-info";
 
 export const Route = createFileRoute("/manual")({
   head: () => ({
@@ -24,7 +37,7 @@ export const Route = createFileRoute("/manual")({
       },
       { property: "og:type", content: "article" },
       { property: "og:url", content: "https://doseroutine.com/manual" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "DoseRoutine Instruction Manual" },
       {
         name: "twitter:description",
@@ -33,8 +46,9 @@ export const Route = createFileRoute("/manual")({
       },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
     ],
-    links: [{ rel: "canonical", href: "https://doseroutine.com/manual" }],
+    links: [...canonicalLinks("https://doseroutine.com/manual")],
     scripts: [
+      aeoFaqScript("https://doseroutine.com/manual", MANUAL_FAQ),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -55,8 +69,14 @@ export const Route = createFileRoute("/manual")({
               articleSection: MANUAL.map((c) => c.title),
               publisher: {
                 "@type": "Organization",
+                "@id": "https://doseroutine.com/#organization",
                 name: "DoseRoutine",
                 url: "https://doseroutine.com",
+                logo: {
+                  "@type": "ImageObject",
+                  "@id": "https://doseroutine.com/#logo",
+                  url: "https://doseroutine.com/icon-512.png",
+                },
               },
               hasPart: MANUAL.map((c) => ({
                 "@type": "WebPageElement",
@@ -81,7 +101,12 @@ export const Route = createFileRoute("/manual")({
             {
               "@type": "BreadcrumbList",
               itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: "https://doseroutine.com/" },
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: "https://doseroutine.com/",
+                },
                 {
                   "@type": "ListItem",
                   position: 2,
@@ -100,6 +125,7 @@ export const Route = createFileRoute("/manual")({
 });
 
 function ManualPage() {
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [savedOnly, setSavedOnly] = useState(false);
   const signedIn = useSessionState() === "signed-in";
@@ -133,233 +159,272 @@ function ManualPage() {
   }, [hash]);
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-          <BookOpen className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Instruction Manual</h1>
-          <p className="text-sm text-muted-foreground">
-            Everything DoseRoutine does, explained step by step.
-          </p>
-        </div>
-      </div>
-
-      <div className="relative mt-6">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search the manual: 'reminder', 'meal', 'delete'…"
-          aria-label="Search the instruction manual"
-          className="tap-target w-full rounded-2xl border border-border bg-card py-3 pl-11 pr-10 text-base focus:border-primary focus:outline-none"
-        />
-        {searching && (
+    <>
+      <nav
+        aria-label="Leave the instruction manual"
+        className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-2">
           <button
             type="button"
-            onClick={() => setQ("")}
-            aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                window.history.back();
+              } else {
+                void navigate({ to: signedIn ? "/today" : "/" });
+              }
+            }}
+            className="tap-target inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-foreground hover:bg-card"
+            aria-label="Go back"
           >
-            <X className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">Back</span>
           </button>
-        )}
-      </div>
+          <Link
+            to={signedIn ? "/today" : "/"}
+            className="tap-target inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-card hover:text-foreground"
+            aria-label="Close the instruction manual"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+            <span>Close</span>
+          </Link>
+        </div>
+      </nav>
+      <div id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-6 py-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+            <BookOpen className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-semibold tracking-tight">
+              Instruction Manual
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Everything DoseRoutine does, explained step by step.
+            </p>
+          </div>
+        </div>
 
-      {signedIn ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSavedOnly((v) => !v)}
-            aria-pressed={savedOnly}
-            className={`tap-target inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              savedOnly
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Bookmark className="h-4 w-4" />
-            Saved{bookmarks.length > 0 ? ` (${bookmarks.length})` : ""}
-          </button>
-          <span className="text-xs text-muted-foreground" aria-live="polite">
-            {sync === "syncing"
-              ? "Syncing saved sections…"
-              : sync === "synced"
-                ? "Saved sections sync across your devices"
-                : sync === "offline"
-                  ? "Saved on this device — will sync when you're back online"
-                  : null}
-          </span>
-          {savedOnly && bookmarks.length > 0 && (
+        <div className="relative mt-6">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search the manual: 'reminder', 'meal', 'delete'…"
+            aria-label="Search the instruction manual"
+            className="tap-target w-full rounded-2xl border border-border bg-card py-3 pl-11 pr-10 text-base focus:border-primary focus:outline-none"
+          />
+          {searching && (
             <button
               type="button"
-              onClick={clear}
-              className="text-sm text-muted-foreground underline hover:text-foreground"
+              onClick={() => setQ("")}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:text-foreground"
             >
-              Clear all
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
-      ) : (
-        <p className="mt-4 text-sm text-muted-foreground">
-          <Link to="/auth" className="font-medium text-primary hover:underline">
-            Sign in
-          </Link>{" "}
-          to save sections and send feedback on a chapter.
-        </p>
-      )}
 
-      {savedOnly && bookmarks.length === 0 && (
-        <p className="mt-6 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          No saved sections yet. Tap the bookmark icon on any section to keep it here.
-        </p>
-      )}
+        {signedIn ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSavedOnly((v) => !v)}
+              aria-pressed={savedOnly}
+              className={`tap-target inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                savedOnly
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Bookmark className="h-4 w-4" />
+              Saved{bookmarks.length > 0 ? ` (${bookmarks.length})` : ""}
+            </button>
+            <span className="text-xs text-muted-foreground" aria-live="polite">
+              {sync === "syncing"
+                ? "Syncing saved sections…"
+                : sync === "synced"
+                  ? "Saved sections sync across your devices"
+                  : sync === "offline"
+                    ? "Saved on this device — will sync when you're back online"
+                    : null}
+            </span>
+            {savedOnly && bookmarks.length > 0 && (
+              <button
+                type="button"
+                onClick={clear}
+                className="text-sm text-muted-foreground underline hover:text-foreground"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">
+            <Link to="/auth" className="font-medium text-primary hover:underline">
+              Sign in
+            </Link>{" "}
+            to save sections and send feedback on a chapter.
+          </p>
+        )}
 
-      {!searching && !savedOnly && (
-        <Card className="mt-6 rounded-2xl p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Contents
-          </h2>
-          <ol className="mt-3 space-y-1">
-            {MANUAL.map((c) => (
-              <li key={c.id}>
-                <a
-                  href={`#${c.id}`}
-                  className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-foreground transition-colors hover:bg-background"
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    {c.number}
-                  </span>
-                  <span className="flex-1">{c.title}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </a>
-              </li>
-            ))}
-          </ol>
-        </Card>
-      )}
+        {savedOnly && bookmarks.length === 0 && (
+          <p className="mt-6 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            No saved sections yet. Tap the bookmark icon on any section to keep it here.
+          </p>
+        )}
 
-      {searching && (
-        <p className="mt-4 text-sm text-muted-foreground">
-          {chapters.reduce((n, c) => n + c.sections.length, 0)} matching section
-          {chapters.reduce((n, c) => n + c.sections.length, 0) === 1 ? "" : "s"}
-        </p>
-      )}
-
-      {chapters.length === 0 && searching && (
-        <p className="mt-6 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          Nothing in the manual matched “{q}”. Try a simpler word.
-        </p>
-      )}
-
-      <div className="mt-8 space-y-10">
-        {chapters.map((chapter) => (
-          <section key={chapter.id} id={chapter.id} className="scroll-mt-20">
-            <h2 className="font-display text-2xl font-semibold tracking-tight">
-              <span className="text-primary">{chapter.number}.</span> {chapter.title}
+        {!searching && !savedOnly && (
+          <Card className="mt-6 rounded-2xl p-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Contents
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">{chapter.intro}</p>
+            <ol className="mt-3 space-y-1">
+              {MANUAL.map((c) => (
+                <li key={c.id}>
+                  <a
+                    href={`#${c.id}`}
+                    className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-foreground transition-colors hover:bg-background"
+                  >
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                      {c.number}
+                    </span>
+                    <span className="flex-1">{c.title}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        )}
 
-            <div className="mt-4 space-y-3">
-              {chapter.sections.map((section) => (
-                <Card
-                  key={section.id}
-                  id={section.id}
-                  className={`scroll-mt-20 rounded-2xl p-5 transition-shadow ${
-                    highlight === section.id ? "ring-2 ring-primary" : ""
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-base font-semibold text-foreground">{section.title}</h3>
-                    {signedIn && (
-                      <button
-                        type="button"
-                        onClick={() => toggle(section.id)}
-                        aria-pressed={isBookmarked(section.id)}
-                        aria-label={
-                          isBookmarked(section.id)
-                            ? `Remove “${section.title}” from saved sections`
-                            : `Save “${section.title}” for later`
-                        }
-                        className={`-mr-1 -mt-1 shrink-0 rounded-full p-2 transition-colors ${
-                          isBookmarked(section.id)
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {isBookmarked(section.id) ? (
-                          <BookmarkCheck className="h-5 w-5" />
-                        ) : (
-                          <Bookmark className="h-5 w-5" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{section.what}</p>
+        {searching && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            {chapters.reduce((n, c) => n + c.sections.length, 0)} matching section
+            {chapters.reduce((n, c) => n + c.sections.length, 0) === 1 ? "" : "s"}
+          </p>
+        )}
 
-                  <ol className="mt-4 space-y-2">
-                    {section.steps.map((step, i) => (
-                      <li key={i} className="flex gap-3 text-sm leading-relaxed text-foreground">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-                          {i + 1}
-                        </span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
+        {chapters.length === 0 && searching && (
+          <p className="mt-6 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            Nothing in the manual matched “{q}”. Try a simpler word.
+          </p>
+        )}
 
-                  {section.tips && section.tips.length > 0 && (
-                    <ul className="mt-4 space-y-1.5 rounded-xl bg-background p-3">
-                      {section.tips.map((tip, i) => (
-                        <li
-                          key={i}
-                          className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
+        <div className="mt-8 space-y-10">
+          {chapters.map((chapter) => (
+            <section key={chapter.id} id={chapter.id} className="scroll-mt-20">
+              <h2 className="font-display text-2xl font-semibold tracking-tight">
+                <span className="text-primary">{chapter.number}.</span> {chapter.title}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">{chapter.intro}</p>
+
+              <div className="mt-4 space-y-3">
+                {chapter.sections.map((section) => (
+                  <Card
+                    key={section.id}
+                    id={section.id}
+                    className={`scroll-mt-20 rounded-2xl p-5 transition-shadow ${
+                      highlight === section.id ? "ring-2 ring-primary" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-base font-semibold text-foreground">{section.title}</h3>
+                      {signedIn && (
+                        <button
+                          type="button"
+                          onClick={() => toggle(section.id)}
+                          aria-pressed={isBookmarked(section.id)}
+                          aria-label={
+                            isBookmarked(section.id)
+                              ? `Remove “${section.title}” from saved sections`
+                              : `Save “${section.title}” for later`
+                          }
+                          className={`-mr-1 -mt-1 shrink-0 rounded-full p-2 transition-colors ${
+                            isBookmarked(section.id)
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
                         >
-                          <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                          <span>{tip}</span>
+                          {isBookmarked(section.id) ? (
+                            <BookmarkCheck className="h-5 w-5" />
+                          ) : (
+                            <Bookmark className="h-5 w-5" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">{section.what}</p>
+
+                    <ol className="mt-4 space-y-2">
+                      {section.steps.map((step, i) => (
+                        <li key={i} className="flex gap-3 text-sm leading-relaxed text-foreground">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                            {i + 1}
+                          </span>
+                          <span>{step}</span>
                         </li>
                       ))}
-                    </ul>
-                  )}
+                    </ol>
 
-                  {section.route && (
-                    <Link
-                      to={section.route}
-                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-                    >
-                      {section.routeLabel ?? "Open"} <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  )}
-                </Card>
-              ))}
-            </div>
+                    {section.tips && section.tips.length > 0 && (
+                      <ul className="mt-4 space-y-1.5 rounded-xl bg-background p-3">
+                        {section.tips.map((tip, i) => (
+                          <li
+                            key={i}
+                            className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
+                          >
+                            <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
 
-            {signedIn && (
-              <ManualChapterFeedback chapterId={chapter.id} chapterTitle={chapter.title} />
-            )}
-          </section>
-        ))}
+                    {section.route && (
+                      <Link
+                        to={section.route}
+                        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                      >
+                        {section.routeLabel ?? "Open"} <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    )}
+                  </Card>
+                ))}
+              </div>
+
+              {signedIn && (
+                <ManualChapterFeedback chapterId={chapter.id} chapterTitle={chapter.title} />
+              )}
+            </section>
+          ))}
+        </div>
+
+        <div className="mt-10">
+          <AeoFaq pairs={MANUAL_FAQ} />
+        </div>
+
+        <Card className="mt-10 rounded-2xl p-5 text-sm text-muted-foreground">
+          <p>
+            Looking for a short guide on one screen instead? The{" "}
+            <Link to="/help" className="font-medium text-primary hover:underline">
+              Help Center
+            </Link>{" "}
+            has a page per feature. Still stuck — email{" "}
+            <a href="mailto:support@doseroutine.com" className="underline">
+              support@doseroutine.com
+            </a>
+            .
+          </p>
+          <p className="mt-3">
+            DoseRoutine is a tracking and reference tool. It does not diagnose, prescribe, or
+            replace your doctor or pharmacist.
+          </p>
+        </Card>
       </div>
-
-      <Card className="mt-10 rounded-2xl p-5 text-sm text-muted-foreground">
-        <p>
-          Looking for a short guide on one screen instead? The{" "}
-          <Link to="/help" className="font-medium text-primary hover:underline">
-            Help Center
-          </Link>{" "}
-          has a page per feature. Still stuck — email{" "}
-          <a href="mailto:support@doseroutine.com" className="underline">
-            support@doseroutine.com
-          </a>
-          .
-        </p>
-        <p className="mt-3">
-          DoseRoutine is a tracking and reference tool. It does not diagnose, prescribe, or replace
-          your doctor or pharmacist.
-        </p>
-      </Card>
-    </div>
+    </>
   );
 }

@@ -1,82 +1,50 @@
 /**
- * Firebase Crashlytics init for native iOS/Android builds.
+ * Crash reporting shim.
  *
- * Safe no-op on web and when native Firebase config files are missing.
- * Requires:
- *   - iOS: ios/App/App/GoogleService-Info.plist  (from Firebase console)
- *   - Android: android/app/google-services.json  (from Firebase console)
+ * The Firebase Crashlytics native plugins were removed from the iOS/Android
+ * builds: `FirebaseAppPlugin.load()` calls `FirebaseApp.configure()` while the
+ * Capacitor bridge boots, and without a bundled `GoogleService-Info.plist`
+ * that raises an uncaught Objective-C exception, so the app aborted (SIGABRT)
+ * on every launch — including during App Store review.
  *
- * Crashlytics collection is enabled by default. To disable in dev, set
- * VITE_CRASHLYTICS_ENABLED="false".
+ * Crash/error reporting now flows through the first-party monitor
+ * (`client-error-monitor.ts`, surfaced at /admin/health) plus Sentry when a
+ * DSN is configured. These functions stay so callers keep working; they are
+ * intentionally never able to crash the app.
  */
 import { isNative } from "./platform";
+import { captureClientError } from "./client-error-monitor";
 
-let initialized = false;
+export const CRASH_REPORTING_PROVIDER = "first-party" as const;
 
+/** No native crash SDK is initialised at launch by design. */
 export async function initCrashlytics(): Promise<void> {
-  if (initialized) return;
-  if (typeof window === "undefined") return;
-  if (!isNative()) return;
-  initialized = true;
-
-  const enabled = (import.meta.env.VITE_CRASHLYTICS_ENABLED as string | undefined) !== "false";
-
-  try {
-    const { FirebaseCrashlytics } = await import("@capacitor-firebase/crashlytics");
-    await FirebaseCrashlytics.setEnabled({ enabled });
-    await FirebaseCrashlytics.setCustomKey({
-      key: "app_mode",
-      value: import.meta.env.MODE,
-      type: "string",
-    });
-  } catch (err) {
-    // Never let telemetry crash the app.
-    console.warn("[crashlytics] init failed", err);
-  }
+  /* intentional no-op — see file header */
 }
 
-/** Attach the signed-in user's id to future crash reports. */
-export async function setCrashlyticsUser(userId: string | null): Promise<void> {
-  if (!isNative()) return;
-  try {
-    const { FirebaseCrashlytics } = await import("@capacitor-firebase/crashlytics");
-    await FirebaseCrashlytics.setUserId({ userId: userId ?? "" });
-  } catch {
-    /* ignore */
-  }
+/** Kept for API compatibility; user identity is attached by the first-party monitor. */
+export async function setCrashlyticsUser(_userId: string | null): Promise<void> {
+  /* intentional no-op */
 }
 
-/** Log a non-fatal error to Crashlytics. */
+/** Log a non-fatal error to the first-party monitor. */
 export async function recordCrashlyticsError(
   message: string,
   extra?: Record<string, string>,
 ): Promise<void> {
-  if (!isNative()) return;
   try {
-    const { FirebaseCrashlytics } = await import("@capacitor-firebase/crashlytics");
-    if (extra) {
-      for (const [key, value] of Object.entries(extra)) {
-        await FirebaseCrashlytics.setCustomKey({ key, value, type: "string" });
-      }
-    }
-    await FirebaseCrashlytics.recordException({ message });
+    captureClientError(new Error(message), { ...extra, native: String(isNative()) }, "manual");
   } catch {
-    /* ignore */
+    /* never let telemetry throw */
   }
 }
 
 /**
- * Force a native crash so you can confirm end-to-end Crashlytics reporting.
- *
- * The app process WILL terminate. Only call this from an internal debug
- * screen behind an explicit user confirmation. No-op on web.
+ * Previously forced a native crash to test Crashlytics. Deliberately disabled:
+ * shipping code must have no path that intentionally aborts the process.
  */
 export async function forceCrashlyticsCrash(): Promise<void> {
-  if (!isNative()) {
-    console.warn("[crashlytics] forceCrash is a no-op on web");
-    return;
-  }
-  const { FirebaseCrashlytics } = await import("@capacitor-firebase/crashlytics");
-  await FirebaseCrashlytics.log({ message: "Manual test crash triggered from debug screen" });
-  await FirebaseCrashlytics.crash({ message: "DoseRoutine internal test crash" });
+  await recordCrashlyticsError("Debug: forced-crash action invoked (no-op)", {
+    trigger: "debug_screen",
+  });
 }

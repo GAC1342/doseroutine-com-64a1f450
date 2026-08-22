@@ -1,0 +1,34 @@
+name: Micromarkup / schema validation
+
+# Confirms the SERVED HTML exposes lowercase itemscope/itemtype/itemprop
+# microdata (React would emit camelCase, which case-sensitive audit crawlers
+# report as "no micromarkup") and that every JSON-LD block parses, on every
+# key page and every /articles/* URL.
+# Also enforces exactly one page-level microdata scope per route and fails on
+# duplicate, untyped or empty scopes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to check (defaults to the production site)"
+        required: false
+        default: "https://doseroutine.com"
+
+jobs:
+  micromarkup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Microdata scope rules (unit)
+        run: npx vitest run src/lib/__tests__/head-budget-ci.test.ts
+
+      - name: Validate micromarkup on served HTML
+        run: node scripts/validate-micromarkup.mjs "${{ inputs.base_url || 'https://doseroutine.com' }}"

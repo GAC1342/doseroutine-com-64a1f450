@@ -27,7 +27,14 @@ export interface RobotAgentPolicy {
 }
 
 /** Public content prefixes that must stay crawlable (both bare and trailing-slash forms). */
-export const PUBLIC_CONTENT_PATHS = ["/library", "/library/", "/blog", "/blog/"] as const;
+export const PUBLIC_CONTENT_PATHS = [
+  "/library",
+  "/library/",
+  "/blog",
+  "/blog/",
+  "/articles",
+  "/articles/",
+] as const;
 
 /** Default expectations applied to every AI/search agent below. */
 const DEFAULT_ALLOW = ["/"];
@@ -39,6 +46,9 @@ export const CRAWLABLE_SAMPLE_PATHS = [
   "/library",
   "/library/retatrutide-dosage",
   "/blog",
+  "/articles",
+  "/articles/best-apps-managing-prescriptions",
+  "/articles/feed.xml",
   "/sources",
   "/sitemap.xml",
 ] as const;
@@ -47,7 +57,10 @@ const DEFAULT_MUST_BE_CRAWLABLE = [...CRAWLABLE_SAMPLE_PATHS];
 /** No throttling for AI/search agents: we want full, timely crawls. */
 const DEFAULT_MAX_CRAWL_DELAY: number | null = null;
 
-function agent(name: string, overrides: Partial<Omit<RobotAgentPolicy, "name">> = {}): RobotAgentPolicy {
+function agent(
+  name: string,
+  overrides: Partial<Omit<RobotAgentPolicy, "name">> = {},
+): RobotAgentPolicy {
   return {
     name,
     allow: overrides.allow ?? DEFAULT_ALLOW,
@@ -92,6 +105,16 @@ export const WILDCARD_POLICY = {
 
 /** The sitemap robots.txt must advertise. */
 export const CANONICAL_SITEMAP_URL = "https://doseroutine.com/sitemap.xml";
+
+/**
+ * Every sitemap robots.txt is allowed to advertise. The canonical XML sitemap
+ * must always be first; the RSS feed is a supported secondary sitemap that
+ * Google and Bing accept for fast discovery of new /articles posts.
+ */
+export const ALLOWED_SITEMAP_URLS = [
+  CANONICAL_SITEMAP_URL,
+  "https://doseroutine.com/feed.xml",
+] as const;
 
 export function policyFor(name: string): RobotAgentPolicy | undefined {
   return ROBOT_AGENT_POLICIES.find((a) => a.name.toLowerCase() === name.toLowerCase());

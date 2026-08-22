@@ -178,36 +178,38 @@ describe(`GET ${BASE_URL}/robots.txt`, () => {
     expect(parseSitemapUrls(served().body)).toContain(CANONICAL_SITEMAP_URL);
   });
 
-  maybe("serves every declared sitemap successfully as XML", async () => {
-    expect(served().status).toBe(200);
-    const urls = parseSitemapUrls(served().body);
-    expect(urls.length).toBeGreaterThan(0);
+  maybe(
+    "serves every declared sitemap successfully as XML",
+    async () => {
+      expect(served().status).toBe(200);
+      const urls = parseSitemapUrls(served().body);
+      expect(urls.length).toBeGreaterThan(0);
 
-    for (const declared of urls) {
-      // Fetch the same path from the server under test, so the assertion
-      // reflects this build rather than whatever production is serving.
-      const path = new URL(declared).pathname;
-      const res = await fetch(`${BASE_URL}${path}`, {
-        redirect: "follow",
-        headers: { accept: "application/xml,text/xml,*/*" },
-        signal: AbortSignal.timeout(30_000),
-      });
-      expect(res.status, `${path} did not return 200`).toBe(200);
-      expect(
-        (res.headers.get("content-type") ?? "").toLowerCase(),
-        `${path} is not served as XML`,
-      ).toMatch(/xml/);
+      for (const declared of urls) {
+        // Fetch the same path from the server under test, so the assertion
+        // reflects this build rather than whatever production is serving.
+        const path = new URL(declared).pathname;
+        const res = await fetch(`${BASE_URL}${path}`, {
+          redirect: "follow",
+          headers: { accept: "application/xml,text/xml,*/*" },
+          signal: AbortSignal.timeout(30_000),
+        });
+        expect(res.status, `${path} did not return 200`).toBe(200);
+        expect(
+          (res.headers.get("content-type") ?? "").toLowerCase(),
+          `${path} is not served as XML`,
+        ).toMatch(/xml/);
 
-      const body = await res.text();
-      expect(body).toMatch(/<\?xml/);
-      // The sitemap protocol also accepts RSS/Atom feeds, and robots.txt
-      // declares /feed.xml so new posts get discovered quickly.
-      expect(body, `${path} is not a urlset, sitemapindex or RSS/Atom feed`).toMatch(
-        /<(urlset|sitemapindex|rss|feed)\b/,
-      );
-      expect(body).toMatch(/<(loc|link)>?/);
-
-    }
-  }, 45_000);
+        const body = await res.text();
+        expect(body).toMatch(/<\?xml/);
+        // The sitemap protocol also accepts RSS/Atom feeds, and robots.txt
+        // declares /feed.xml so new posts get discovered quickly.
+        expect(body, `${path} is not a urlset, sitemapindex or RSS/Atom feed`).toMatch(
+          /<(urlset|sitemapindex|rss|feed)\b/,
+        );
+        expect(body).toMatch(/<(loc|link)>?/);
+      }
+    },
+    45_000,
+  );
 });
-

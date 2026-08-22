@@ -37,3 +37,49 @@ export const TRIAL_PRO_MONTHLY_PRICE_ID = "pro_monthly";
 export const TRIAL_PRO_YEARLY_PRICE_ID = "pro_yearly";
 export const TRIAL_PRO_YEARLY_CENTS = 5999;
 export const TRIAL_PRO_MONTHLY_CENTS = 999;
+
+/**
+ * Statuses that count as an entitled subscription.
+ * `past_due` stays entitled: the card failed but the provider is still
+ * retrying — yanking access mid-dunning is a worse failure than a few
+ * extra entitled days.
+ */
+export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing", "past_due"]);
+
+/** Grace window applied to `current_period_end` before we consider a row expired. */
+export const SUBSCRIPTION_EXPIRY_GRACE_MS = 24 * 60 * 60 * 1000;
+
+export type SubscriptionRow = {
+  tier?: string | null;
+  status?: string | null;
+  current_period_end?: string | null;
+};
+
+/**
+ * Single source of truth for "is this subscription row currently entitled".
+ * Used by both the client-facing status server fn and the server-side
+ * entitlement resolver so the two can never disagree.
+ *
+ * Fail-closed on unknown/missing rows, but tolerant of a missing period end
+ * (some providers omit it) and of the dunning grace window.
+ */
+export function isSubscriptionActive(
+  sub: SubscriptionRow | null | undefined,
+  now: number = Date.now(),
+): boolean {
+  if (!sub) return false;
+  const status = String(sub.status ?? "").toLowerCase();
+  const endRaw = sub.current_period_end;
+  const end = endRaw ? new Date(endRaw).getTime() : NaN;
+  const hasEnd = Number.isFinite(end);
+  if (ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
+    // An "active" row whose period ended long ago is stale (missed webhook) —
+    // treat it as expired instead of granting access forever.
+    return !hasEnd || end + SUBSCRIPTION_EXPIRY_GRACE_MS > now;
+  }
+  // Canceled but paid through the end of the period.
+  if (status === "canceled" || status === "cancelled") {
+    return hasEnd && end > now;
+  }
+  return false;
+}

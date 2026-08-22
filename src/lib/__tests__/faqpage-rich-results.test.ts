@@ -49,8 +49,16 @@ describe("FAQPage JSON-LD is Rich Results eligible", () => {
       "@type": "FAQPage",
       mainEntity: [
         { "@type": "Question", name: "", acceptedAnswer: { "@type": "Answer", text: "" } },
-        { "@type": "Question", name: "Dup?", acceptedAnswer: { text: "Yes it is duplicated here." } },
-        { "@type": "Question", name: "Dup?", acceptedAnswer: { "@type": "Answer", text: "Yes it is duplicated here." } },
+        {
+          "@type": "Question",
+          name: "Dup?",
+          acceptedAnswer: { text: "Yes it is duplicated here." },
+        },
+        {
+          "@type": "Question",
+          name: "Dup?",
+          acceptedAnswer: { "@type": "Answer", text: "Yes it is duplicated here." },
+        },
       ],
     });
     const paths = bad.issues.map((i) => i.path);

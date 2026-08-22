@@ -5,7 +5,7 @@
  * user has opened is persisted (via useTabViewState) as an array of card keys,
  * so returning to the tab restores the exact same open/closed cards.
  *
- * Pure helpers so the behaviour can be tested without rendering the page.
+ * Pure helpers so the behavior can be tested without rendering the page.
  */
 
 /** Stable identity for a NOTE card. Mirrors the keys used when rendering. */

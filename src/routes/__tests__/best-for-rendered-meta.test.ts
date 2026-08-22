@@ -141,9 +141,10 @@ describe("/best-* and /for/* rendered metadata", () => {
       const { title, description } = await expectedMeta(file);
       if (!title || !description) missing.push(`${filenameToPath(file)} (${file})`);
     }
-    expect(missing, `routes with no loader-derived title/description: ${missing.join(", ")}`).toEqual(
-      [],
-    );
+    expect(
+      missing,
+      `routes with no loader-derived title/description: ${missing.join(", ")}`,
+    ).toEqual([]);
   }, 60_000);
 
   it("server is reachable (or the check is explicitly optional)", () => {

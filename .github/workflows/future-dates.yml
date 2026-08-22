@@ -1,0 +1,72 @@
+name: future-dates
+
+# Fails the build when any rendered page or sitemap entry advertises a
+# publish/modified date in the future. Future dates are a spam signal to
+# Google and were a suspected cause of the "Crawled - currently not indexed"
+# wave on this site.
+#
+# The rule engine is unit-tested on every push (fast, no network); the live
+# sweep builds this commit, serves it locally, and audits that build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override target (blank = build and check locally)"
+        required: false
+        default: ""
+
+jobs:
+  rules:
+    name: Future-date rules (unit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+      - run: npx vitest run src/lib/__tests__/future-date-check.test.ts
+
+  live:
+    name: Live future-date sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: rules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: npm run build
+
+      - name: Start server
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: |
+          node dist/server/index.mjs &
+          echo $! > server.pid
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3000/robots.txt && exit 0
+            sleep 2
+          done
+          echo "server never became ready"; exit 1
+
+      - name: Sweep for future dates
+        env:
+          FUTURE_DATE_BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}
+          FUTURE_DATE_SAMPLE: "120"
+        run: node scripts/future-date-check.mjs
+
+      - name: Stop server
+        if: always()
+        run: '[ -f server.pid ] && kill "$(cat server.pid)" || true'

@@ -8,9 +8,7 @@ const detect = findLangBlockingRules as (
 
 describe("robots lang guard", () => {
   it("passes a clean robots.txt", () => {
-    expect(
-      detect(["User-agent: *", "Allow: /", "Disallow: /manual", ""].join("\n")),
-    ).toEqual([]);
+    expect(detect(["User-agent: *", "Allow: /", "Disallow: /manual", ""].join("\n"))).toEqual([]);
   });
 
   it("flags ?lang= disallow rules", () => {
@@ -24,14 +22,10 @@ describe("robots lang guard", () => {
   });
 
   it("flags a blanket Disallow: /", () => {
-    expect(detect("User-agent: Googlebot\nDisallow: /\n")[0].userAgent).toBe(
-      "Googlebot",
-    );
+    expect(detect("User-agent: Googlebot\nDisallow: /\n")[0].userAgent).toBe("Googlebot");
   });
 
   it("ignores comments and empty Disallow", () => {
-    expect(
-      detect("User-agent: *\n# Disallow: /*?lang=\nDisallow:\n"),
-    ).toEqual([]);
+    expect(detect("User-agent: *\n# Disallow: /*?lang=\nDisallow:\n")).toEqual([]);
   });
 });

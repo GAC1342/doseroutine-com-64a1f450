@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Card } from "@/components/ui/card";
+import { FitnessTipsCard } from "@/components/fitness-tips-card";
+import { fitnessTips } from "@/lib/fitness-tips";
+import { useFitnessSignals, EMPTY_SIGNALS } from "@/lib/fitness-signals";
 
 type Row = {
   id: string;
@@ -53,8 +56,13 @@ export function BodyMetricsPanel() {
   const latest = rows[0];
   const previous = rows[1];
 
+  const signals = useFitnessSignals().data ?? EMPTY_SIGNALS;
+
   return (
     <div>
+      <div className="mb-3">
+        <FitnessTipsCard tips={fitnessTips("body", signals)} onAction={() => setOpen(true)} />
+      </div>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-semibold text-primary-foreground">
@@ -207,7 +215,7 @@ function StatCard({
       </div>
       {delta != null && delta !== 0 && (
         <div
-          className={`mt-0.5 flex items-center gap-0.5 text-[10px] ${good ? "text-emerald-600" : "text-orange-600"}`}
+          className={`mt-0.5 flex items-center gap-0.5 text-[10px] ${good ? "text-[color:var(--severity-synergy)]" : "text-[color:var(--warning)]"}`}
         >
           {trendUp ? (
             <TrendingUp className="h-3 w-3" />

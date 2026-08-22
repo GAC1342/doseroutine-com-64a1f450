@@ -1,0 +1,10 @@
+{
+  "fdcId": 7000004,
+  "dataType": "Foundation",
+  "foodNutrients": [
+    {
+      "nutrientId": 1008,
+      "value": 100
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing violations in this file; new files must not add these. */
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
@@ -34,7 +35,6 @@ function useChart() {
 
   return context;
 }
-
 
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
@@ -82,16 +82,27 @@ const ChartContainer = React.forwardRef<
       if (node && node.getAttribute("aria-describedby") !== announcerId) {
         node.setAttribute("aria-describedby", announcerId);
       }
+      // Recharts stamps role="img" on unnamed scatter/symbol groups, which
+      // fails axe's svg-img-alt rule. The chart root already carries a
+      // descriptive aria-label, so these marks are decorative.
+      host
+        .querySelectorAll<SVGElement>('.recharts-scatter-symbol[role="img"], .recharts-symbols')
+        .forEach((mark) => {
+          mark.removeAttribute("role");
+          mark.setAttribute("aria-hidden", "true");
+        });
       return Boolean(node);
     };
-    if (apply()) return;
+
+    apply();
+    // Recharts renders the surface first and the symbol layers a frame later,
+    // so keep watching instead of disconnecting after the first hit.
     const observer = new MutationObserver(() => {
-      if (apply()) observer.disconnect();
+      apply();
     });
     observer.observe(host, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [announcerId, touchRef]);
-
 
   return (
     <ChartContext.Provider value={contextValue}>
@@ -129,7 +140,6 @@ const ChartContainer = React.forwardRef<
         </div>
       </div>
     </ChartContext.Provider>
-
   );
 });
 
@@ -193,7 +203,6 @@ function toAnnouncementText(node: React.ReactNode): string {
  * tooltip wrapper, cursor and active dot in `ChartContainer` instead.
  */
 const ChartTooltip = RechartsPrimitive.Tooltip;
-
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
@@ -306,8 +315,6 @@ const ChartTooltipContent = React.forwardRef<
           className,
         )}
       >
-
-
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
           {payload

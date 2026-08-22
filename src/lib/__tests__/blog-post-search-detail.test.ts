@@ -67,10 +67,7 @@ describe("blog post search detail", () => {
   });
 
   it("builds an ascending daily series", () => {
-    const daily = buildDailySeries([
-      row("2026-01-03", 1, 10, 5),
-      row("2026-01-01", 0, 4, 9),
-    ]);
+    const daily = buildDailySeries([row("2026-01-03", 1, 10, 5), row("2026-01-01", 0, 4, 9)]);
     expect(daily.map((d) => d.date)).toEqual(["2026-01-01", "2026-01-03"]);
   });
 

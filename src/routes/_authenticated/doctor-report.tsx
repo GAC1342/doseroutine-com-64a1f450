@@ -1,12 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Printer, FileText } from "lucide-react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
+import { isNative, isNativeShell } from "@/lib/platform";
 
 export const Route = createFileRoute("/_authenticated/doctor-report")({
+  errorComponent: routeErrorComponent("doctor-report"),
   head: () => ({
     meta: [
       { title: "My Report — DoseRoutine" },
@@ -26,6 +29,13 @@ function fmtDate(iso: string | null | undefined) {
 }
 
 function DoctorReportPage() {
+  // Native shells have no print pipeline, so the button would dead-end.
+  // Resolved after mount to keep SSR and hydration output identical.
+  const [canPrint, setCanPrint] = useState(true);
+  useEffect(() => {
+    setCanPrint(!isNative());
+  }, []);
+
   const { data: profile } = useQuery({
     queryKey: ["profile-doc"],
     queryFn: async () => {
@@ -139,12 +149,19 @@ function DoctorReportPage() {
               or share as a PDF.
             </p>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="tap-target inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            <Printer className="h-4 w-4" /> Export PDF
-          </button>
+          {canPrint && (
+            <button
+              onClick={() => {
+                // Defense in depth: the button is hidden on native, but a
+                // pre-effect tap must never reach the WebView print dead end.
+                if (isNativeShell()) return;
+                window.print();
+              }}
+              className="tap-target inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Printer className="h-4 w-4" /> Export PDF
+            </button>
+          )}
         </div>
       </div>
 

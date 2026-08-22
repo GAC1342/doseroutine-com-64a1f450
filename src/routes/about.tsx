@@ -30,7 +30,11 @@ export const Route = createFileRoute("/about")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/fdfc6052-73cd-45a2-9f1d-73d4d8ac00d5/og-about.jpg",
       },
-        { property: "og:image:alt", content: "DoseRoutine team card — the people building the peptide, supplement and hormone tracker" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine team card — the people building the peptide, supplement and hormone tracker",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "About DoseRoutine" },
       { name: "twitter:description", content: pageDescription },
@@ -39,7 +43,11 @@ export const Route = createFileRoute("/about")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/fdfc6052-73cd-45a2-9f1d-73d4d8ac00d5/og-about.jpg",
       },
-        { name: "twitter:image:alt", content: "DoseRoutine team card — the people building the peptide, supplement and hormone tracker" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine team card — the people building the peptide, supplement and hormone tracker",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: pageUrl }, ...hreflangLinks("/about")],
@@ -89,9 +97,9 @@ function AboutPage() {
           DoseRoutine is one place for everything you take — supplements, peptides, hormones, and
           anything else already in your routine. Build your stack, get a daily schedule timed to
           your timezone, and see educational combination notes across everything you add. It also
-          tracks the rest of your day: photograph a meal or scan a barcode for calories, protein
-          and carbs, log workouts and body measurements, and see food, training and doses together
-          on one timeline.
+          tracks the rest of your day: photograph a meal or scan a barcode for calories, protein and
+          carbs, log workouts and body measurements, and see food, training and doses together on
+          one timeline.
         </Section>
 
         <Section title="Who it's for">

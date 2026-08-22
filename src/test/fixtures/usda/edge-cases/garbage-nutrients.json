@@ -1,0 +1,23 @@
+{
+  "fdcId": 7000001,
+  "description": "Garbage food, unparseable nutrient values",
+  "dataType": "Foundation",
+  "foodNutrients": [
+    {
+      "nutrientId": 1008,
+      "value": "not-a-number"
+    },
+    {
+      "nutrientId": 1003,
+      "value": null
+    },
+    {
+      "nutrientId": 1005,
+      "value": -5
+    },
+    {
+      "nutrientId": 1004,
+      "value": 3
+    }
+  ]
+}

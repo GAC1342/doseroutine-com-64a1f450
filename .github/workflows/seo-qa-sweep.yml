@@ -1,0 +1,141 @@
+name: SEO QA sweep (PR gate)
+
+# Blocking pre-merge SEO/AEO gate. On every pull request it boots the app and
+# fails the job when any of these regress:
+#   * canonical tags, titles, meta descriptions, og:*, content depth
+#   * FAQ / Q&A markup and JSON-LD validity (scripts/seo-qa-sweep.py)
+#   * rich-results eligibility (scripts/validate-rich-results.py)
+#   * the redirect graph: legacy URLs must 301/308 in one hop, no loops
+#   * Core Web Vitals (LCP/CLS/INP) on a cross-section of route templates
+#
+# Vitals run against the dev server, which is slower than production, so
+# VITALS_THRESHOLD_SCALE relaxes the LCP/INP limits. CLS is unscaled — layout
+# shift is a markup bug, not a build-speed artefact. Absolute production
+# performance is owned by the lighthouse-perf workflow.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: seo-qa-sweep-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Chromium for Core Web Vitals
+        run: bunx playwright install --with-deps chromium
+
+      - name: Start server
+        run: |
+          bun run dev --host 127.0.0.1 > /tmp/doseroutine-vite.log 2>&1 &
+          for i in {1..90}; do curl -fsS http://localhost:8080/ >/dev/null && break; sleep 1; done
+          curl -fsS -o /dev/null http://localhost:8080/ || { cat /tmp/doseroutine-vite.log; exit 1; }
+
+      - name: In-page fragment targets resolve
+        run: node scripts/check-fragment-targets.mjs --base http://localhost:8080 --max 250
+
+      - name: Redirect graph (301/308, single hop, no loops)
+        run: python3 scripts/validate-redirect-graph.py http://localhost:8080
+
+      - name: SEO/AEO sweep + Core Web Vitals
+        env:
+          VITALS_THRESHOLD_SCALE: "3"
+        run: python3 scripts/seo-qa-sweep.py 2 --vitals 12
+
+      - name: Share previews (OpenGraph + Twitter Cards)
+        run: |
+          python3 scripts/validate-social-meta.py http://localhost:8080 \
+            --compare-base https://doseroutine.com \
+            --json /tmp/social-meta.json --markdown /tmp/social-meta.md
+
+      - name: Key-route share preview smoke test
+        run: |
+          python3 scripts/validate-social-meta.py http://localhost:8080 \
+            --routes /,/articles,/articles/armodafinil,/peptides,/library/vitamin-d3
+
+      - name: Rich results validation
+        run: python3 scripts/validate-rich-results.py http://localhost:8080
+
+      - name: /for anchor text (no generic "Read more" links)
+        env:
+          FOR_ANCHOR_BASE_URL: http://localhost:8080
+        run: bunx vitest run src/routes/__tests__/for-anchor-text.test.ts
+
+      - name: /for + /goals rich results, canonical and hreflang
+        env:
+          FOR_ANCHOR_BASE_URL: http://localhost:8080
+        run: |
+          bunx vitest run \
+            src/routes/__tests__/for-rich-results.test.ts \
+            src/routes/__tests__/goals-rich-results.test.ts
+
+      - name: Internal link crawl (orphans + broken anchors)
+        run: |
+          python3 scripts/internal-link-crawl.py http://localhost:8080 \
+            --json /tmp/internal-links.json
+
+      - name: Content QA (/peptides + /articles structure, FAQ, depth)
+        run: |
+          python3 scripts/content-qa.py http://localhost:8080 \
+            --cms-faq-warn --json /tmp/content-qa.json
+
+      - name: Upload link + content reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-link-content-reports
+          path: |
+            /tmp/internal-links.json
+            /tmp/content-qa.json
+            /tmp/social-meta.json
+            /tmp/social-meta.md
+          if-no-files-found: ignore
+
+      - name: Build PR QA summary
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          def load(path):
+              try: return json.loads(Path(path).read_text())
+              except Exception: return {}
+          links = load('/tmp/internal-links.json')
+          content = load('/tmp/content-qa.json')
+          social = load('/tmp/social-meta.json')
+          lines = ['## DoseRoutine SEO QA', '']
+          lines.append(f"- Internal links: **{len(links.get('problems', links.get('issues', [])))}** findings")
+          lines.append(f"- Content QA: **{len(content.get('problems', content.get('issues', [])))}** findings")
+          lines.append(f"- Social previews: **{social.get('failed', 'not run')}** failed of **{social.get('checked', 'not run')}** checked")
+          if social.get('changedTags'):
+              lines += ['', '### Social meta changes']
+              for page, tags in sorted(social['changedTags'].items()):
+                  lines.append(f"- `{page}`: " + ', '.join(f'`{tag}`' for tag in sorted(tags)))
+          lines.append('', 'Full JSON reports are attached to this workflow run.')
+          Path('/tmp/seo-pr-comment.md').write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Comment QA summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: doseroutine-seo-qa
+          path: /tmp/seo-pr-comment.md
+
+      - name: Server log on failure
+        if: failure()
+        run: tail -n 100 /tmp/doseroutine-vite.log

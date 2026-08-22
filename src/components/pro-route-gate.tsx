@@ -30,15 +30,34 @@ export function ProRouteGate({ children }: { children: ReactNode }) {
     );
   }
   if (access.fullAccess) return <>{children}</>;
+  // Couldn't confirm entitlement (offline / API error). Never show the
+  // "trial ended" wall to someone who may well be paying — offer a retry.
+  if (access.unresolved) {
+    return (
+      <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
+        <p className="text-base font-medium text-foreground">
+          We couldn&apos;t check your subscription.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          You&apos;re still signed in — this is usually a connection hiccup.
+        </p>
+        <button
+          type="button"
+          onClick={() => access.refetch()}
+          className="tap-target rounded-xl bg-cta px-4 py-3 text-sm font-semibold text-cta-foreground"
+        >
+          Try again
+        </button>
+        <Link to="/today" className="text-sm text-primary underline underline-offset-2">
+          Back to Today
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <ProLockedScreen
-      route={proRoute}
-      hasUsedTrial={access.hasUsedTrial}
-      returnTo={pathname}
-    />
+    <ProLockedScreen route={proRoute} hasUsedTrial={access.hasUsedTrial} returnTo={pathname} />
   );
-
 }
 
 function ProLockedScreen({

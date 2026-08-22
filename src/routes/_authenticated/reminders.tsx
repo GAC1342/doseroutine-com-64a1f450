@@ -29,8 +29,13 @@ import {
 
 import { WorkoutReminderSettings } from "@/components/workout-reminder-settings";
 import { TimezoneCard } from "@/components/timezone-card";
+import { LoggingReminderSettings } from "@/components/logging-reminder-settings";
+import { MealTimingRulesPanel } from "@/components/meal-timing-rules";
+import { RefillRemindersCard } from "@/components/refill-reminders-card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/reminders")({
+  errorComponent: routeErrorComponent("reminders"),
   head: () => ({
     meta: [
       { title: "Reminders — DoseRoutine" },
@@ -136,12 +141,19 @@ function RemindersPage() {
   }
 
   async function refreshNativeState() {
-    const avail = isNativeNotifications();
-    setNativeAvailable(avail);
-    if (!avail) return;
-    const granted = await checkNativePermission();
-    setNativeEnabled(granted && nativeAlarmsPreferred());
-    setExactOk(await canScheduleExactAlarms());
+    // Never let a native bridge rejection become an unhandled rejection: the
+    // screen still works with notifications simply reported as unavailable.
+    try {
+      const avail = isNativeNotifications();
+      setNativeAvailable(avail);
+      if (!avail) return;
+      const granted = await checkNativePermission();
+      setNativeEnabled(granted && nativeAlarmsPreferred());
+      setExactOk(await canScheduleExactAlarms());
+    } catch {
+      setNativeEnabled(false);
+      setExactOk(false);
+    }
   }
 
   const doSyncNativeAlarms = useCallback(async () => {
@@ -188,7 +200,7 @@ function RemindersPage() {
     }
     load();
     refreshPushState();
-    refreshNativeState();
+    void refreshNativeState();
   }, [subLoading, subscription?.isPaid]);
 
   useEffect(() => {
@@ -279,10 +291,13 @@ function RemindersPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 px-6 py-10">
-        <div className="h-6 w-32 animate-pulse rounded bg-primary/10" />
-        <div className="h-24 w-full animate-pulse rounded-2xl bg-primary/10" />
-        <div className="h-24 w-full animate-pulse rounded-2xl bg-primary/10" />
-        <div className="h-40 w-full animate-pulse rounded-2xl bg-primary/10" />
+        <p role="status" className="text-sm text-muted-foreground">
+          Loading your reminders…
+        </p>
+        <div className="h-6 w-32 animate-pulse rounded bg-muted" />
+        <div className="h-24 w-full animate-pulse rounded-2xl bg-muted" />
+        <div className="h-24 w-full animate-pulse rounded-2xl bg-muted" />
+        <div className="h-40 w-full animate-pulse rounded-2xl bg-muted" />
       </div>
     );
   }
@@ -349,6 +364,7 @@ function RemindersPage() {
                 try {
                   const r = await testPush({ data: undefined as never });
                   setTestMsg(r.message);
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
                 } catch (e: any) {
                   setTestMsg(e?.message || "Test failed.");
                 } finally {
@@ -459,7 +475,12 @@ function RemindersPage() {
       </section>
 
       <div className="mt-6">
+        <LoggingReminderSettings className="mb-4" />
+        <MealTimingRulesPanel className="mb-4" />
+
         <WorkoutReminderSettings />
+
+        <RefillRemindersCard className="mt-6" />
       </div>
 
       <section className="mt-6">

@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, Sparkles, AlertTriangle, Check } from "lucide-react";
 import { toast } from "sonner";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/templates")({
+  errorComponent: routeErrorComponent("templates"),
   head: () => ({
     meta: [
       { title: "Stack Templates — DoseRoutine" },

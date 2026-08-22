@@ -5,8 +5,9 @@ import { ArrowRight, Dumbbell, FlaskConical, Info, ShieldAlert } from "lucide-re
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card, cardClassName } from "@/components/ui/card";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/peptide-stacks-for-muscle-growth";
+export const CANONICAL = "https://doseroutine.com/library/peptide-stacks-for-muscle-growth";
 const TITLE = "Best Peptide Stacks for Muscle Growth: Research Guide";
 const DESC =
   "Discover the best peptide stacks for muscle growth: BPC-157, TB-500, CJC-1295 Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
@@ -23,7 +24,7 @@ type Stack = {
   notes: string;
 };
 
-const STACKS: Stack[] = [
+export const STACKS: Stack[] = [
   {
     slug: "recovery-stack",
     name: "Recovery & repair stack",
@@ -105,7 +106,7 @@ const STACKS: Stack[] = [
   },
 ];
 
-const FAQ_PAIRS: { q: string; a: string }[] = [
+export const FAQ_PAIRS: { q: string; a: string }[] = [
   {
     q: "What is the best peptide stack for muscle growth?",
     a: "For most lifters, a CJC-1295 (no DAC) + Ipamorelin stack dosed 1–3× daily produces the strongest natural GH pulse without shutting down the axis. Advanced users add IGF-1 LR3 for direct hypertrophy signaling. Beginners should stick to a single GHRH + GHRP pair and cycle 8–12 weeks on, 4 weeks off.",
@@ -163,7 +164,7 @@ export const Route = createFileRoute("/library/peptide-stacks-for-muscle-growth"
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/peptide-stacks-for-muscle-growth"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -181,8 +182,16 @@ export const Route = createFileRoute("/library/peptide-stacks-for-muscle-growth"
           datePublished: "2026-07-25",
           dateModified: "2026-07-25",
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine", url: "https://doseroutine.com" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+            url: "https://doseroutine.com",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             url: "https://doseroutine.com",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
@@ -231,7 +240,7 @@ export const Route = createFileRoute("/library/peptide-stacks-for-muscle-growth"
           })),
         }),
       },
-    ],
+    ]),
   }),
   component: MuscleGrowthStacksPage,
 });

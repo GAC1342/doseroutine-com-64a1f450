@@ -39,7 +39,7 @@ async function expectPassThroughToSsr(res: Response) {
 }
 
 // src/server.ts intentionally console.errors the swallowed SSR error. That is
-// correct production behaviour; keep it out of the test output.
+// correct production behavior; keep it out of the test output.
 let errorSpy: ReturnType<typeof vi.spyOn>;
 beforeAll(() => {
   errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});

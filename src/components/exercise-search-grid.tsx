@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Dumbbell, Plus } from "lucide-react";
 import { exerciseArt, exerciseArtAlt } from "@/lib/exercise-art";
 import { ExerciseArtLightbox } from "@/components/exercise-art-lightbox";
 
@@ -16,10 +16,18 @@ export function ExerciseSearchGrid({
   names,
   onPick,
   chosen = [],
+  hideSearch = false,
+  badges,
+  maxResults = MAX_RESULTS,
 }: {
   names: string[];
   onPick: (name: string) => void;
   chosen?: string[];
+  /** Hide the built-in search box when the parent already filters the list. */
+  hideSearch?: boolean;
+  /** Optional short label per exercise (lowercased name → label). */
+  badges?: Record<string, string>;
+  maxResults?: number;
 }) {
   const [query, setQuery] = useState("");
   const listRef = useRef<HTMLUListElement>(null);
@@ -30,10 +38,10 @@ export function ExerciseSearchGrid({
   );
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = hideSearch ? "" : query.trim().toLowerCase();
     const list = q ? names.filter((n) => n.toLowerCase().includes(q)) : names;
-    return list.slice(0, MAX_RESULTS);
-  }, [names, query]);
+    return list.slice(0, maxResults);
+  }, [names, query, hideSearch, maxResults]);
 
   /** Roving arrow-key navigation across the "add" buttons in the grid. */
   function handleKeyDown(event: React.KeyboardEvent<HTMLUListElement>) {
@@ -70,14 +78,17 @@ export function ExerciseSearchGrid({
 
   return (
     <div className="mb-2 rounded-xl border border-border p-3">
-      <Input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        type="search"
-        placeholder="Search exercises…"
-        aria-label="Search exercises"
-        aria-describedby="exercise-search-grid-help"
-      />
+      {!hideSearch && (
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          type="search"
+          placeholder="Search exercises…"
+          aria-label="Search exercises"
+          aria-describedby="exercise-search-grid-help"
+        />
+      )}
+
       <p id="exercise-search-grid-help" className="sr-only">
         Results appear below as a grid. Tab moves through each card’s illustration, exercise name,
         and add button. Use the arrow keys to jump between add buttons, and Enter to add an exercise
@@ -89,7 +100,9 @@ export function ExerciseSearchGrid({
 
       {results.length === 0 ? (
         <p className="mt-3 text-xs text-muted-foreground">
-          No exercises match “{query.trim()}”. You can still type it into a row below.
+          {hideSearch
+            ? "No exercises match these filters."
+            : `No exercises match “${query.trim()}”. You can still type it into a row below.`}
         </p>
       ) : (
         <ul
@@ -129,10 +142,16 @@ export function ExerciseSearchGrid({
                           />
                         </button>
                       ) : (
-                        <div className="flex h-20 items-center justify-center bg-muted text-[10px] text-muted-foreground">
-                          No illustration
+                        <div
+                          className="flex h-20 flex-col items-center justify-center gap-1 bg-muted text-muted-foreground"
+                          role="img"
+                          aria-label={`No illustration available for ${name}`}
+                        >
+                          <Dumbbell className="h-5 w-5" aria-hidden="true" />
+                          <span className="text-[10px]">No illustration</span>
                         </div>
                       )}
+
                       <button
                         type="button"
                         onClick={(e) => onOpen(e.currentTarget)}
@@ -140,7 +159,13 @@ export function ExerciseSearchGrid({
                         className="tap-target flex-1 px-2 py-1.5 text-left text-[11px] font-medium leading-tight hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                       >
                         <span className="line-clamp-2">{name}</span>
+                        {badges?.[name.toLowerCase()] ? (
+                          <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">
+                            {badges[name.toLowerCase()]}
+                          </span>
+                        ) : null}
                       </button>
+
                       <button
                         type="button"
                         data-pick=""

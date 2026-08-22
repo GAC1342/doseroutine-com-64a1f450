@@ -46,6 +46,7 @@ async function main() {
       .select("compound_id,benefits_md,evidence_md,mechanism_md,overview_md")
       .range(from, from + 499);
     if (error) throw error;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     for (const r of data ?? []) contentById.set((r as any).compound_id, r as any);
     if (!data || data.length < 500) break;
   }
@@ -65,15 +66,19 @@ async function main() {
 
   for (const c of compounds) {
     const content = contentById.get(c.id) ?? {};
-    const derived = deriveGoalTags(c.goal_tags, {
-      benefitsMd: content["benefits_md"],
-      evidenceMd: content["evidence_md"],
-      mechanismMd: content["mechanism_md"],
-      overviewMd: content["overview_md"],
-      educationMd: c.education_md,
-    }, 4, c.category);
-    const same =
-      derived.added.length === 0 && derived.removed.length === 0;
+    const derived = deriveGoalTags(
+      c.goal_tags,
+      {
+        benefitsMd: content["benefits_md"],
+        evidenceMd: content["evidence_md"],
+        mechanismMd: content["mechanism_md"],
+        overviewMd: content["overview_md"],
+        educationMd: c.education_md,
+      },
+      4,
+      c.category,
+    );
+    const same = derived.added.length === 0 && derived.removed.length === 0;
     if (same) continue;
     changed += 1;
     lines.push(

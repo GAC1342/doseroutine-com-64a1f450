@@ -35,7 +35,10 @@ export const Route = createFileRoute("/api/public/hooks/meal-photo-cleanup")({
         // The widest window bounds the scan; each row is then judged against
         // its own owner's setting.
         const widest = Math.max(...MEAL_PHOTO_RETENTION_OPTIONS);
-        const cutoff = retentionCutoff(now, Math.min(...MEAL_PHOTO_RETENTION_OPTIONS)).toISOString();
+        const cutoff = retentionCutoff(
+          now,
+          Math.min(...MEAL_PHOTO_RETENTION_OPTIONS),
+        ).toISOString();
 
         const { data, error } = await supabaseAdmin
           .from("meals")

@@ -33,3 +33,5 @@ dist-ssr
 .cache/
 .lighthouseci/
 .lighthouseci-*/
+
+coverage/

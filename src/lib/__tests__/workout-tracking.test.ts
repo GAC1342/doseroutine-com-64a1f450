@@ -12,6 +12,7 @@ import {
 import { computePersonalRecords, coreLiftFor, coreLiftRecords } from "@/lib/workout-prs";
 import { estimateOneRepMaxKg, totalVolumeKg, fromMetres, toKg } from "@/lib/workout-types";
 import { repeatPlanDates } from "@/components/workout-log-sheet";
+import { routineForDay } from "@/lib/routine-schedule";
 
 function log(
   partial: Partial<WorkoutLogRow> & { id: string; performed_on: string },
@@ -119,7 +120,7 @@ describe("workout stats", () => {
   });
 });
 
-describe("workout maths", () => {
+describe("workout math", () => {
   it("computes volume and Epley 1RM", () => {
     expect(totalVolumeKg([{ exercise: "Squat", sets: 5, reps: 5, weightKg: 100 }])).toBe(2500);
     expect(estimateOneRepMaxKg(100, 1)).toBe(100);
@@ -178,5 +179,24 @@ describe("weekly repeat planning", () => {
 
   it("returns nothing when no weekdays are selected", () => {
     expect(repeatPlanDates("2026-02-02", [], 4)).toEqual([]);
+  });
+
+  it("expands a multi-day weekly routine only onto selected dates", () => {
+    const row = {
+      id: "series-1",
+      user_id: "user-1",
+      label: "Upper body",
+      planned_time: "17:30:00",
+      active: true,
+      days_of_week: [1, 3, 5],
+      kind: "strength",
+      interval_weeks: 1,
+      anchor_date: "2026-02-02",
+      skipped_dates: [],
+      time_overrides: {},
+    };
+    expect(routineForDay([row] as never, [], "2026-02-04", "UTC")).toHaveLength(1);
+    expect(routineForDay([row] as never, [], "2026-02-05", "UTC")).toHaveLength(0);
+    expect(routineForDay([row] as never, [], "2026-02-06", "UTC")).toHaveLength(1);
   });
 });

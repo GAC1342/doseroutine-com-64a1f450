@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing violations in this file. */
+/* eslint-disable @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing violations in this file; new files must not add these. */
 import * as React from "react";
 import {
   Body,
@@ -55,7 +57,10 @@ const CrawlBlockReport = ({ checkedAt, siteUrl, summary, alerts }: Props) => (
         {alerts.length > 0 ? (
           <Section style={box}>
             {alerts.map((a, i) => (
-              <Text key={`${a.url}-${a.code}-${i}`} style={a.severity === "error" ? errLine : warnLine}>
+              <Text
+                key={`${a.url}-${a.code}-${i}`}
+                style={a.severity === "error" ? errLine : warnLine}
+              >
                 [{a.severity}] {a.url}
                 <br />
                 {a.message}

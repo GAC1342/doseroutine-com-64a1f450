@@ -1,0 +1,30 @@
+{
+  "base": "https://doseroutine.com",
+  "generatedAt": "2026-08-20T08:29:21.712Z",
+  "sitemapUrls": 1001,
+  "pagesAudited": 250,
+  "missingVisible": 2,
+  "missingJsonLd": 0,
+  "failures": [
+    {
+      "url": "https://doseroutine.com/library/compare/semaglutide-vs-tirzepatide",
+      "status": 200,
+      "visible": false,
+      "jsonLd": 1,
+      "ok": false,
+      "problems": [
+        "no visible breadcrumb trail"
+      ]
+    },
+    {
+      "url": "https://doseroutine.com/library/testosterone-support",
+      "status": 200,
+      "visible": false,
+      "jsonLd": 1,
+      "ok": false,
+      "problems": [
+        "no visible breadcrumb trail"
+      ]
+    }
+  ]
+}

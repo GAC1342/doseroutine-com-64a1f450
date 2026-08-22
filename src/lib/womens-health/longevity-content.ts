@@ -708,7 +708,7 @@ export const MAGNESIUM_GLYCINATE_WOMEN: WomensCompoundContent = {
     {
       with: "Bisphosphonates (alendronate, risedronate)",
       mechanism: "Chelation.",
-      watchFor: "Separate by 2 hours per bisphosphonate labelling.",
+      watchFor: "Separate by 2 hours per bisphosphonate labeling.",
     },
     {
       with: "HRT and birth control",

@@ -44,10 +44,10 @@ type Row = {
 };
 
 /**
- * Admin-only install -> closed-testing signup funnel.
+ * Admin-only install -> closed-testing sign-up funnel.
  *
  * Counts unique human sessions at each step (install page, install intent,
- * confirmed install, closed-testing landing page, signup started) and ends on
+ * confirmed install, closed-testing landing page, sign-up started) and ends on
  * the ground-truth number: rows actually written to closed_testing_signups in
  * the same window. Bot user-agents AND high-rate automation sessions (our own
  * Lighthouse/attribution CI jobs) are excluded so the rates mean something.

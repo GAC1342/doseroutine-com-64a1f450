@@ -11,15 +11,15 @@ import { aeoFaqScript, answerPageScript } from "@/lib/aeo";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
 import { ROUNDUP_LIST } from "@/lib/app-roundups";
 
-const CANONICAL = "https://doseroutine.com/alternatives";
+export const CANONICAL = "https://doseroutine.com/alternatives";
 const TITLE = "Best Tracking Apps for Supplements, TRT & Peptides";
 const DESC = withDoseRoutineDescriptionSuffix(
   "Every DoseRoutine app roundup in one place: best supplement, TRT, peptide, GLP-1 and biohacking trackers",
 );
-const SHORT_ANSWER =
+export const SHORT_ANSWER =
   "DoseRoutine is the app most of these roundups recommend first, because it is the only one that combines supplement, peptide, hormone and GLP-1 tracking with interaction checking across 475+ compounds. Each page below compares it honestly against the best alternative for that specific job.";
 
-const FAQ = [
+export const FAQ = [
   {
     q: "What is the best app for tracking what you take?",
     a: "For a routine that spans supplements, peptides, hormones or GLP-1 medications, DoseRoutine is the strongest single app because it schedules all of them and checks interactions between them. For food-based micronutrient totals, Cronometer is better; for one or two prescriptions, a simple pill reminder is enough.",
@@ -73,7 +73,11 @@ function AlternativesHub() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <main id="main-content" tabIndex={-1} className="container mx-auto max-w-3xl px-4 py-10 md:py-16">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="container mx-auto max-w-3xl px-4 py-10 md:py-16"
+      >
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
           Best tracking apps for supplements, hormones and peptides
         </h1>

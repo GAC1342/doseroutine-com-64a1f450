@@ -45,7 +45,10 @@ test.describe("illustration modal under slow network", () => {
     await expect(thumb).toBeVisible();
     await settle(page);
 
-    const src = await thumb.locator("img").first().evaluate((el: HTMLImageElement) => el.src);
+    const src = await thumb
+      .locator("img")
+      .first()
+      .evaluate((el: HTMLImageElement) => el.src);
     expect(src).toBeTruthy();
 
     // Cold start: drop anything the list already warmed so the modal has to
@@ -132,18 +135,17 @@ test.describe("illustration modal under slow network", () => {
 
     // 4. The bytes must still land inside the paint budget.
     await expect
-      .poll(
-        () => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0),
-        { timeout: PAINT_BUDGET_MS, message: "illustration never finished decoding" },
-      )
+      .poll(() => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0), {
+        timeout: PAINT_BUDGET_MS,
+        message: "illustration never finished decoding",
+      })
       .toBe(true);
     const paintMs = Date.now() - openedAt;
     expect(paintMs, `illustration painted after ${paintMs}ms`).toBeLessThanOrEqual(PAINT_BUDGET_MS);
 
     // Give the compositor a couple of frames to expose any reflow.
     await page.evaluate(
-      () =>
-        new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))),
+      () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))),
     );
 
     // 2. Geometry must be byte-for-byte stable across the load.

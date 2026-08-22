@@ -1,3 +1,5 @@
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { cn } from "@/lib/utils";
 import { cardClassName } from "@/components/ui/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -13,8 +15,12 @@ import { FounderNotes } from "@/components/founder-notes";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { CalculatorScopeNote } from "@/components/calculator-scope-note";
 import { LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { RECONSTITUTION_CALCULATOR_FAQ } from "@/lib/aeo-faqs-index";
+import { FEATURE_VISUAL_BY_ID, featureSocialMeta } from "@/lib/feature-visuals";
 
-const CANONICAL = "https://doseroutine.com/reconstitution-calculator";
+export const CANONICAL = "https://doseroutine.com/reconstitution-calculator";
 
 export const Route = createFileRoute("/reconstitution-calculator")({
   head: () => ({
@@ -40,16 +46,16 @@ export const Route = createFileRoute("/reconstitution-calculator")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: CANONICAL },
       { name: "twitter:card", content: "summary_large_image" },
-      {
-        name: "twitter:title",
-        content: "Reconstitution Calculator — Peptide mg/mL & Syringe Units",
-      },
+      { name: "twitter:title", content: "Peptide Reconstitution Calculator" },
       {
         name: "twitter:description",
         content:
-          "Free peptide reconstitution and syringe unit calculator for BPC-157, TB-500, semaglutide and more. Get mg/mL and exact units instantly.",
+          "Get mg/mL and exact insulin syringe units for any peptide vial in seconds — works for BPC-157, TB-500, semaglutide and more. Free, no sign-up.",
       },
+      // twitter:title / twitter:description mirror the og:* pair above via
+      // SocialMetaFallbacks, so the card reads identically on every network.
 
+      ...featureSocialMeta(FEATURE_VISUAL_BY_ID["reconstitution"]!),
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/reconstitution-calculator")],
@@ -58,6 +64,7 @@ export const Route = createFileRoute("/reconstitution-calculator")({
         { name: "Calculators", path: "/calculator" },
         { name: "Reconstitution Calculator", path: "/reconstitution-calculator" },
       ]),
+      aeoFaqScript(CANONICAL, RECONSTITUTION_CALCULATOR_FAQ),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -127,7 +134,7 @@ function ReconstitutionCalculatorPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <PublicBackHeader hideSignup />
+      <PublicBackHeader hideSignup backTo="/calculators" backLabel="All calculators" />
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
           <Link
@@ -356,18 +363,15 @@ function ReconstitutionCalculatorPage() {
           notes={[
             {
               title: "I stopped doing the math on my phone's calculator",
-              body:
-                "For the first few months I reconstituted vials with a note app and a calculator, and I twice mixed 2 mL into a vial I had planned at 1 mL. Typing the vial strength and bacteriostatic water volume into one screen — and seeing the units-on-the-syringe number instead of a milligram figure — is what actually stopped the errors for me.",
+              body: "For the first few months I reconstituted vials with a note app and a calculator, and I twice mixed 2 mL into a vial I had planned at 1 mL. Typing the vial strength and bacteriostatic water volume into one screen — and seeing the units-on-the-syringe number instead of a milligram figure — is what actually stopped the errors for me.",
             },
             {
               title: "Insulin syringe units are the number that matters",
-              body:
-                "The mistake I kept making was converting to mL and then eyeballing the barrel. Now I read the result as syringe units only. On a 1 mL/100-unit syringe, a 10 mg vial in 2 mL gives 5 mg per mL, so a 250 mcg dose is 5 units — a mark I can actually see, instead of a sliver between two lines.",
+              body: "The mistake I kept making was converting to mL and then eyeballing the barrel. Now I read the result as syringe units only. On a 1 mL/100-unit syringe, a 10 mg vial in 2 mL gives 5 mg per mL, so a 250 mcg dose is 5 units — a mark I can actually see, instead of a sliver between two lines.",
             },
             {
               title: "Write the mix date on the vial, not in an app",
-              body:
-                "I log reconstitution in DoseRoutine, but I still write the date on the vial cap with a marker. When I have two vials of the same peptide in the fridge at different concentrations, the physical label is the thing that stops me grabbing the wrong one at 6am.",
+              body: "I log reconstitution in DoseRoutine, but I still write the date on the vial cap with a marker. When I have two vials of the same peptide in the fridge at different concentrations, the physical label is the thing that stops me grabbing the wrong one at 6am.",
             },
           ]}
         />
@@ -376,6 +380,10 @@ function ReconstitutionCalculatorPage() {
           Reviewed by the DoseRoutine editorial team. Last reviewed{" "}
           <time dateTime={LAST_REVIEWED}>{LAST_REVIEWED}</time>.
         </p>
+        <AeoFaq pairs={RECONSTITUTION_CALCULATOR_FAQ} />
+        <ProseContainer>
+          <PageProse id="reconstitution-calculator-page" />
+        </ProseContainer>
         <AttributionFooter sourceUrl={CANONICAL} />
       </main>
     </div>

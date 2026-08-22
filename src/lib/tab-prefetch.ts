@@ -126,6 +126,7 @@ export const TAB_PREFETCHERS: Record<string, PrefetchFn[]> = {
                 .lt("scheduled_at", range.end.toISOString())
                 .order("scheduled_at", { ascending: true })
                 .limit(2000);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
               return ((data ?? []) as any[]).map((ev) => {
                 const uc = ev.user_compound;
                 const name = uc?.custom_name || uc?.compound?.name || "Compound";

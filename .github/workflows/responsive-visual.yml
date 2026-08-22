@@ -1,0 +1,61 @@
+name: responsive-visual (screenshot matrix)
+
+# Screenshot regression across a device viewport matrix (320 / 375 / 390 /
+# 412 / 430 / 768 / 1024 / 1280) on the public routes that carry the responsive layouts. Catches drift
+# the overflow guard can't see: layout that fits but looks wrong.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "e2e/responsive-visual.spec.ts"
+      - "e2e/responsive-viewports.ts"
+      - ".github/workflows/responsive-visual.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "e2e/responsive-visual.spec.ts"
+      - "e2e/responsive-viewports.ts"
+  workflow_dispatch:
+    inputs:
+      viewports:
+        description: Comma-separated viewport names (blank = whole matrix)
+        default: ""
+        required: false
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps ${{ matrix.project }}
+      - name: Run responsive screenshot matrix
+        env:
+          RESPONSIVE_VIEWPORTS: ${{ inputs.viewports }}
+          # Missing baselines are annotations on PRs (informative first run) and
+          # hard failures on main, once the PNGs are committed.
+          REQUIRE_VISUAL_BASELINES: ${{ github.ref == 'refs/heads/main' && '1' || '' }}
+          VISUAL_DIFF_PROFILE: default
+        run: bunx playwright test e2e/responsive-visual.spec.ts --project=${{ matrix.project }} --reporter=list,html
+      - name: Collect visual artifacts (baselines + diffs)
+        if: always()
+        run: node scripts/collect-visual-artifacts.mjs --out visual-artifacts-${{ matrix.project }} || true
+      - name: Upload visual artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-visual-${{ matrix.project }}-${{ github.run_attempt }}
+          path: |
+            visual-artifacts-${{ matrix.project }}/
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14

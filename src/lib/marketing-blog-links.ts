@@ -271,8 +271,8 @@ const L = {
   vialPowder: {
     post: VIAL_BAD,
     section: "Before mixing: check the powder",
-    anchor: "checking lyophilised peptide powder before you mix it",
-    blurb: "Cake appearance, colour and moisture that signal a bad vial.",
+    anchor: "checking lyophilized peptide powder before you mix it",
+    blurb: "Cake appearance, color and moisture that signal a bad vial.",
   },
   vialSolution: {
     post: VIAL_BAD,
@@ -353,6 +353,23 @@ export const MARKETING_BLOG_LINKS: Record<string, PlannedBlogLink[]> = {
     L.rotationWhy,
     L.fridgeTravel,
     L.retaTracking,
+  ],
+  "best-hrt-tracking-app-for-women": [
+    L.retaResults,
+    L.orfoTradeoffs,
+    L.rotationWhy,
+    L.fridgeTravel,
+    L.retaTracking,
+  ],
+
+  // Reminder-first visitors care about missed doses and timing before they
+  // care about pharmacology, so the plan leads with those sections.
+  "best-medication-reminder-app": [
+    L.missedWindows,
+    L.timingWhereItHelps,
+    L.rotationSchedule,
+    L.retaTracking,
+    L.orfoTradeoffs,
   ],
 
   // Use cases

@@ -1,4 +1,7 @@
 import { cn } from "@/lib/utils";
+import { canonicalLinks } from "@/lib/hreflang";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { cardClassName } from "@/components/ui/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -9,12 +12,13 @@ import { PublicBackHeader } from "@/components/public-back-header";
 import { AeoFaq } from "@/components/aeo-faq";
 import { aeoFaqScript, aeoPageFields } from "@/lib/aeo";
 import { HELP_FAQ, LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const TITLE = "Help Center — DoseRoutine";
+const TITLE = "Help Center — Guides for Doses, Stacks and Cycles";
 const DESC =
   "Plain-English guides for every DoseRoutine feature: stacks, alarms, cycles, bl… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
 const URL = "https://doseroutine.com/help";
-const YEAR = new Date().getFullYear();
+export const YEAR = new Date().getFullYear();
 
 export const Route = createFileRoute("/help/")({
   head: () => ({
@@ -40,7 +44,10 @@ export const Route = createFileRoute("/help/")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/148cbd8c-05ac-4035-9a71-3d554ef921bc/og-help.jpg",
       },
-        { property: "og:image:alt", content: "DoseRoutine help centre card — setup, reminders and troubleshooting guides" },
+      {
+        property: "og:image:alt",
+        content: "DoseRoutine help center card — setup, reminders and troubleshooting guides",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
@@ -49,10 +56,13 @@ export const Route = createFileRoute("/help/")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/148cbd8c-05ac-4035-9a71-3d554ef921bc/og-help.jpg",
       },
-        { name: "twitter:image:alt", content: "DoseRoutine help centre card — setup, reminders and troubleshooting guides" },
+      {
+        name: "twitter:image:alt",
+        content: "DoseRoutine help center card — setup, reminders and troubleshooting guides",
+      },
     ],
-    links: [{ rel: "canonical", href: URL }],
-    scripts: [
+    links: [...canonicalLinks(URL)],
+    scripts: mergeLdScripts([
       aeoFaqScript(URL, HELP_FAQ),
 
       {
@@ -64,7 +74,7 @@ export const Route = createFileRoute("/help/")({
             dateModified: LAST_REVIEWED,
             datePublished: "2026-02-01",
             shortAnswer:
-              "The DoseRoutine help centre covers building a routine, scheduling doses, reminders, adherence scoring, timezone changes, billing and deleting your account. Dose reminders, the schedule and the interaction checker are free.",
+              "The DoseRoutine help center covers building a routine, scheduling doses, reminders, adherence scoring, timezone changes, billing and deleting your account. Dose reminders, the schedule and the interaction checker are free.",
             about: ["DoseRoutine", "Medication reminder", "Adherence"],
           }),
           "@id": URL,
@@ -95,7 +105,7 @@ export const Route = createFileRoute("/help/")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: HelpPage,
 });
@@ -167,6 +177,10 @@ function HelpPage() {
             </Link>
           ))}
         </div>
+
+        <ProseContainer>
+          <PageProse id="help-index" />
+        </ProseContainer>
 
         <AeoFaq pairs={HELP_FAQ} heading="Common questions" />
 

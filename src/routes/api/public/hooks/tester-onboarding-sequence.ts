@@ -5,7 +5,7 @@ import { sendTemplateEmail } from "@/lib/email-templates/send-email";
 // Hourly cron. Walks the closed-testing signups and sends whichever step of
 // the 14-day onboarding sequence is due for each tester:
 //
-//   day 0   welcome            — sent inline at signup, backfilled here
+//   day 0   welcome            — sent inline at sign-up, backfilled here
 //   day 2   install reminder   — 2 days after invite, only if not installed
 //   day 7   feedback prompt    — 7 days after install (or invite as fallback)
 //   day 14  wrap-up            — 14 days after install (or invite)

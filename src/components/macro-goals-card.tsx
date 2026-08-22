@@ -32,7 +32,6 @@ export function MacroGoalsCard() {
     },
   });
 
-
   useEffect(() => {
     if (!data) return;
     setForm({
@@ -100,7 +99,13 @@ export function MacroGoalsCard() {
           </div>
         ))}
       </div>
-      <Button type="button" size="sm" className="mt-3" onClick={() => void save()} disabled={saving}>
+      <Button
+        type="button"
+        size="sm"
+        className="mt-3"
+        onClick={() => void save()}
+        disabled={saving}
+      >
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Save goals
       </Button>

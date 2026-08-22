@@ -4,8 +4,9 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/testosterone-support";
+export const CANONICAL = "https://doseroutine.com/library/testosterone-support";
 const TITLE = "Testosterone Support: Compounds & Evidence | DoseRoutine";
 const DESC =
   "Which natural testosterone-support compounds actually have evidence: tongkat ali, fadogia, ashwagandha, zinc, boron. Plain-English dosing notes.";
@@ -34,7 +35,7 @@ const COMPOUNDS = [
   { slug: "boron", name: "Boron", note: "Small free-T bump via lower SHBG; 6–10 mg/day." },
 ];
 
-const FAQS = [
+export const FAQS = [
   {
     q: "Do natural testosterone boosters actually work?",
     a: "Most don't. In healthy men with normal testosterone, most supplements show no change in total T. The exceptions with the strongest evidence are tongkat ali and ashwagandha, and their effects are modest.",
@@ -79,7 +80,7 @@ const REFS = [
     url: "https://pubmed.ncbi.nlm.nih.gov/24371462/",
   },
   {
-    cite: "Tambi MI, Imran MK, Henkel RR. Standardised water-soluble extract of Eurycoma longifolia (Tongkat Ali) as testosterone booster for managing men with late-onset hypogonadism? Andrologia. 2012;44(Suppl 1):226–230.",
+    cite: "Tambi MI, Imran MK, Henkel RR. Standardized water-soluble extract of Eurycoma longifolia (Tongkat Ali) as testosterone booster for managing men with late-onset hypogonadism? Andrologia. 2012;44(Suppl 1):226–230.",
     url: "https://pubmed.ncbi.nlm.nih.gov/21671978/",
   },
   {
@@ -131,7 +132,7 @@ export const Route = createFileRoute("/library/testosterone-support")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/testosterone-support"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -146,8 +147,15 @@ export const Route = createFileRoute("/library/testosterone-support")({
           url: CANONICAL,
           image: ["https://doseroutine.com/og/hub-testosterone.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -189,7 +197,7 @@ export const Route = createFileRoute("/library/testosterone-support")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: TSupportHub,
 });

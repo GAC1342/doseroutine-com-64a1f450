@@ -44,6 +44,7 @@ export function ApplyPlanCard({ planKey }: { planKey: string | null }) {
           : `Updated ${res.applied} ${res.applied === 1 ? "compound" : "compounds"}. Check Today and your calendar.`,
       );
       await refresh();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     } catch (e: any) {
       setError(e?.message || "Could not apply the plan.");
     } finally {
@@ -63,6 +64,7 @@ export function ApplyPlanCard({ planKey }: { planKey: string | null }) {
           : `Reset to your original times (${res.restored} compounds).`,
       );
       await refresh();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     } catch (e: any) {
       setError(e?.message || "Could not restore your schedule.");
     } finally {
@@ -152,9 +154,7 @@ export function ApplyPlanCard({ planKey }: { planKey: string | null }) {
 
       {message && <p className="mt-3 text-xs font-medium">{message}</p>}
       {error && (
-        <p className="mt-3 text-xs font-medium text-[color:var(--severity-avoid)]">
-          {error}
-        </p>
+        <p className="mt-3 text-xs font-medium text-[color:var(--severity-avoid)]">{error}</p>
       )}
     </Card>
   );

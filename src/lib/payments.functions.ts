@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type Stripe from "stripe";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
+import { isSubscriptionActive } from "@/lib/access";
+import { getRequest } from "@tanstack/react-start/server";
+import { NATIVE_CHECKOUT_BLOCKED_MESSAGE, isNativeUserAgent } from "@/lib/native-request";
 
 type CheckoutSessionResult = { clientSecret: string } | { error: string };
 
@@ -68,6 +71,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     },
   )
   .handler(async ({ data, context }): Promise<CheckoutSessionResult> => {
+    // Guideline 3.1.1 — refuse web checkout for requests originating inside
+    // the native shell, regardless of what the client bundle decided to show.
+    if (isNativeUserAgent(getRequest()?.headers.get("user-agent"))) {
+      return { error: NATIVE_CHECKOUT_BLOCKED_MESSAGE };
+    }
     try {
       const stripe = createStripeClient(data.environment);
       const { userId } = context;
@@ -189,13 +197,7 @@ export const getSubscriptionStatus = createServerFn({ method: "POST" })
     const tier = sub?.tier ?? "free";
     const isPro = tier === "pro";
     const isPaid = isPro;
-    const active =
-      isPaid &&
-      (sub?.status === "active" ||
-        sub?.status === "trialing" ||
-        (sub?.status === "canceled" &&
-          sub.current_period_end &&
-          new Date(sub.current_period_end) > new Date()));
+    const active = isPaid && isSubscriptionActive(sub);
 
     const priceId = (sub?.price_id ?? "") as string;
     const plan: "monthly" | "yearly" | null =
@@ -261,7 +263,7 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (delErr) {
-      console.error("Auth admin deleteUser failed:", delErr);
+      console.error("Auth admin deleteUser failed:", delErr.message);
       throw new Error("Account deletion failed. Please contact support.");
     }
 

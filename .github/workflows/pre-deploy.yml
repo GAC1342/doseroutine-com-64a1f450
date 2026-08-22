@@ -64,6 +64,13 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci --prefer-offline
 
+      # 1b. Formatting and lint must be clean so the backlog can't re-accumulate.
+      - name: Formatting check
+        run: npx prettier --check src e2e scripts
+
+      - name: Lint
+        run: npx eslint .
+
       # 2. Production build must compile before anything is published.
       - name: Production build
         run: npm run build

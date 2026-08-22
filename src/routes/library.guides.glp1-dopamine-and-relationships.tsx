@@ -4,13 +4,14 @@ import { AttributionFooter } from "@/components/attribution-footer";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { Card } from "@/components/ui/card";
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/guides/glp1-dopamine-and-relationships";
+export const CANONICAL = "https://doseroutine.com/library/guides/glp1-dopamine-and-relationships";
 const TITLE = "GLP-1, Dopamine & Relationships: What We Know";
 const DESC =
   "How GLP-1 medicines may affect dopamine, reward, motivation, alcohol cravings, pleasure and relationships — separating human evidence from online anecdotes.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "Do GLP-1 medicines lower dopamine?",
     a: "There is no good evidence that semaglutide or tirzepatide simply depletes dopamine. GLP-1 receptors interact with reward circuits, and animal studies suggest they can reduce the motivational pull of highly rewarding stimuli. Human evidence is still developing and does not support describing the effect as a universal dopamine deficiency.",
@@ -74,7 +75,7 @@ export const Route = createFileRoute("/library/guides/glp1-dopamine-and-relation
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/guides/glp1-dopamine-and-relationships"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -91,8 +92,15 @@ export const Route = createFileRoute("/library/guides/glp1-dopamine-and-relation
           inLanguage: "en",
           datePublished: "2026-07-31",
           dateModified: "2026-07-31",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           mainEntityOfPage: { "@type": "WebPage", "@id": CANONICAL },
@@ -131,7 +139,7 @@ export const Route = createFileRoute("/library/guides/glp1-dopamine-and-relation
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Glp1DopamineGuide,
 });

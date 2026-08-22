@@ -19,17 +19,17 @@ export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
-  es: "Español",
-  fr: "Français",
-  de: "Deutsch",
-  it: "Italiano",
-  pt: "Português",
-  nl: "Nederlands",
-  ja: "日本語",
-  ko: "한국어",
-  zh: "中文",
-  ar: "العربية",
-  hi: "हिन्दी",
+  es: "Spanish",
+  fr: "French",
+  de: "German",
+  it: "Italian",
+  pt: "Portuguese",
+  nl: "Dutch",
+  ja: "Japanese",
+  ko: "Korean",
+  zh: "Chinese",
+  ar: "Arabic",
+  hi: "Hindi",
 };
 
 export const LOCALE_DIR: Record<Locale, "ltr" | "rtl"> = {
@@ -112,7 +112,7 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     ctaStartFree: "Sign up free",
     featureInteraction: "Interaction checks",
     featureInteractionBody:
-      "Every pair in your stack is checked against a curated safety ruleset with plain-English mechanisms.",
+      "Every pair in your stack is checked against a curated safety rule set with plain-English mechanisms.",
     featureReminders: "On-time reminders",
     featureRemindersBody:
       "Time each item to your day, respect food rules, and log what you actually took — with a live streak.",
@@ -144,9 +144,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Body:
       "Vitamins, peptides, hormones and anything else you take — you enter the amount.",
     howItWorksStep2Title: "Log meals, workouts and doses",
-    howItWorksStep2Body: "Snap a photo of your meal for calories, protein and carbs — and log workouts and doses in the same tap.",
+    howItWorksStep2Body:
+      "Snap a photo of your meal for calories, protein and carbs — and log workouts and doses in the same tap.",
     howItWorksStep3Title: "Get reminders and see what changes",
-    howItWorksStep3Body: "On-time reminders, interaction warnings, and trends across food, training and your protocol.",
+    howItWorksStep3Body:
+      "On-time reminders, interaction warnings, and trends across food, training and your protocol.",
     finalCtaSecondary: "Explore the library first",
     stickyCta: "Sign up free",
     stickyCtaAlt: "Or browse library",
@@ -178,7 +180,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA7:
       "Add your GLP-1 like any other compound, set dose times, and DoseRoutine checks it against your stack and logs each dose with reminders.",
     faqQ8: "Can DoseRoutine track calories, protein and carbs?",
-    faqA8: "Yes. Take a photo of your meal or scan a barcode and the AI meal scanner returns calories, protein, carbs and fat. Every value is editable before you save, and meals land on the same day timeline as your workouts and doses.",
+    faqA8:
+      "Yes. Take a photo of your meal or scan a barcode and the AI meal scanner returns calories, protein, carbs and fat. Every value is editable before you save, and meals land on the same day timeline as your workouts and doses.",
     socialProofLine:
       "Built for advanced routines — peptides, hormones, TRT, GLP-1s and everything else.",
     noAds: "No ads, no data sales",
@@ -225,9 +228,9 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "Educativo, no es consejo médico. Consulta a un profesional de la salud antes de cambiar cualquier régimen.",
     finalCta: "¿Listo para dejar de adivinar qué tomaste?",
     finalCtaTitle: "Crea tu cuenta gratis",
-    finalCtaBody: "Crea tu cuenta en unos dos minutos — sin tarjeta. La prueba Pro opcional de 7 días desbloquea verificación de interacciones, cronología, recordatorios y planes con IA.",
-    freeForever:
-      "Gratis para empezar · Sin tarjeta · Funciona en iPhone, Android y web",
+    finalCtaBody:
+      "Crea tu cuenta en unos dos minutos — sin tarjeta. La prueba Pro opcional de 7 días desbloquea verificación de interacciones, cronología, recordatorios y planes con IA.",
+    freeForever: "Gratis para empezar · Sin tarjeta · Funciona en iPhone, Android y web",
     takesTwoMinutes: "Toma unos 2 minutos. Cancela cuando quieras.",
     library: "Biblioteca",
     signIn: "Iniciar sesión",
@@ -240,9 +243,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "Añade lo que tomas",
     howItWorksStep1Body: "Vitaminas, péptidos, hormonas, recetas — tú ingresas la dosis.",
     howItWorksStep2Title: "Registra comidas, entrenamientos y dosis",
-    howItWorksStep2Body: "Haz una foto de tu comida para ver calorías, proteínas y carbohidratos, y registra entrenamientos y dosis con el mismo toque.",
+    howItWorksStep2Body:
+      "Haz una foto de tu comida para ver calorías, proteínas y carbohidratos, y registra entrenamientos y dosis con el mismo toque.",
     howItWorksStep3Title: "Recibe recordatorios y observa los cambios",
-    howItWorksStep3Body: "Recordatorios puntuales, avisos de interacciones y tendencias de comida, entrenamiento y protocolo.",
+    howItWorksStep3Body:
+      "Recordatorios puntuales, avisos de interacciones y tendencias de comida, entrenamiento y protocolo.",
     finalCtaSecondary: "Explorar la biblioteca primero",
     stickyCta: "Regístrate gratis",
     stickyCtaAlt: "O explorar biblioteca",
@@ -259,7 +264,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "La cuenta gratuita incluye el seguimiento básico. La prueba Pro opcional de 7 días desbloquea verificación de interacciones, cronología, recordatorios y planes con IA. Después, $9.99/mes o $59.99/año (ahorra 50%). Cancela antes del día 7 y no pagas nada.",
     faqQ8: "¿DoseRoutine puede registrar calorías, proteínas y carbohidratos?",
-    faqA8: "Sí. Haz una foto de tu comida o escanea un código de barras y el escáner de comidas con IA devuelve calorías, proteínas, carbohidratos y grasas. Puedes editar cada valor antes de guardar, y las comidas aparecen en la misma línea de tiempo que tus entrenamientos y dosis.",
+    faqA8:
+      "Sí. Haz una foto de tu comida o escanea un código de barras y el escáner de comidas con IA devuelve calorías, proteínas, carbohidratos y grasas. Puedes editar cada valor antes de guardar, y las comidas aparecen en la misma línea de tiempo que tus entrenamientos y dosis.",
     proLockTitleLocked: "{screen} forma parte de Pro",
     proLockTitleFeature: "{screen} es una función Pro",
     proLockBodyEnded: "Tu prueba gratuita terminó, así que {screen} está bloqueado.",
@@ -301,9 +307,9 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "Éducatif, pas un conseil médical. Consultez un professionnel de santé avant de modifier un régime.",
     finalCta: "Prêt à arrêter de deviner ce que vous avez pris ?",
     finalCtaTitle: "Créez votre compte gratuit",
-    finalCtaBody: "Créez votre compte en environ deux minutes — sans carte. L'essai Pro optionnel de 7 jours débloque les vérifications d'interactions, la chronologie, les rappels et les plans IA.",
-    freeForever:
-      "Gratuit au départ · Sans carte · Fonctionne sur iPhone, Android et web",
+    finalCtaBody:
+      "Créez votre compte en environ deux minutes — sans carte. L'essai Pro optionnel de 7 jours débloque les vérifications d'interactions, la chronologie, les rappels et les plans IA.",
+    freeForever: "Gratuit au départ · Sans carte · Fonctionne sur iPhone, Android et web",
     takesTwoMinutes: "Prend environ 2 minutes. Annulez à tout moment.",
     library: "Bibliothèque",
     signIn: "Se connecter",
@@ -316,9 +322,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "Ajoutez ce que vous prenez",
     howItWorksStep1Body: "Vitamines, peptides, hormones, ordonnances — vous entrez la dose.",
     howItWorksStep2Title: "Enregistrez repas, séances et prises",
-    howItWorksStep2Body: "Photographiez votre repas pour obtenir calories, protéines et glucides — et notez séances et prises dans le même geste.",
+    howItWorksStep2Body:
+      "Photographiez votre repas pour obtenir calories, protéines et glucides — et notez séances et prises dans le même geste.",
     howItWorksStep3Title: "Recevez des rappels et voyez ce qui change",
-    howItWorksStep3Body: "Rappels à l'heure, alertes d'interactions et tendances sur l'alimentation, l'entraînement et votre protocole.",
+    howItWorksStep3Body:
+      "Rappels à l'heure, alertes d'interactions et tendances sur l'alimentation, l'entraînement et votre protocole.",
     finalCtaSecondary: "Explorer la bibliothèque d'abord",
     stickyCta: "Inscription gratuite",
     stickyCtaAlt: "Ou parcourir la bibliothèque",
@@ -335,7 +343,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "Un compte gratuit donne accès au suivi de base. L'essai Pro optionnel de 7 jours débloque les vérifications d'interactions, la chronologie, les rappels et les plans IA. Ensuite, 9,99 $/mois ou 59,99 $/an (50 % d'économies). Annulez avant le jour 7 pour ne rien payer.",
     faqQ8: "DoseRoutine peut-il suivre les calories, protéines et glucides ?",
-    faqA8: "Oui. Photographiez votre repas ou scannez un code-barres : le scanner de repas IA renvoie calories, protéines, glucides et lipides. Chaque valeur est modifiable avant l'enregistrement, et les repas apparaissent sur la même journée que vos séances et vos prises.",
+    faqA8:
+      "Oui. Photographiez votre repas ou scannez un code-barres : le scanner de repas IA renvoie calories, protéines, glucides et lipides. Chaque valeur est modifiable avant l'enregistrement, et les repas apparaissent sur la même journée que vos séances et vos prises.",
     proLockTitleLocked: "{screen} fait partie de Pro",
     proLockTitleFeature: "{screen} est une fonction Pro",
     proLockBodyEnded: "Votre essai gratuit est terminé, donc {screen} est verrouillé.",
@@ -377,7 +386,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "Zu Bildungszwecken, keine medizinische Beratung. Konsultieren Sie einen Arzt, bevor Sie ein Regime ändern.",
     finalCta: "Bereit, nicht mehr zu raten, was Sie genommen haben?",
     finalCtaTitle: "Erstelle dein kostenloses Konto",
-    finalCtaBody: "Erstelle dein Konto in etwa zwei Minuten — keine Karte nötig. Die optionale 7-Tage-Pro-Testphase schaltet Wechselwirkungsprüfungen, Timeline, Erinnerungen und KI-Pläne frei.",
+    finalCtaBody:
+      "Erstelle dein Konto in etwa zwei Minuten — keine Karte nötig. Die optionale 7-Tage-Pro-Testphase schaltet Wechselwirkungsprüfungen, Timeline, Erinnerungen und KI-Pläne frei.",
     freeForever: "Kostenlos starten · Keine Karte nötig · Funktioniert auf iPhone, Android und Web",
     takesTwoMinutes: "Dauert ca. 2 Minuten. Jederzeit kündbar.",
     library: "Bibliothek",
@@ -391,9 +401,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "Füge hinzu, was du nimmst",
     howItWorksStep1Body: "Vitamine, Peptide, Hormone, Medikamente — du gibst die Dosis ein.",
     howItWorksStep2Title: "Mahlzeiten, Training und Dosen erfassen",
-    howItWorksStep2Body: "Foto von der Mahlzeit machen für Kalorien, Protein und Kohlenhydrate — Training und Dosen mit demselben Tippen erfassen.",
+    howItWorksStep2Body:
+      "Foto von der Mahlzeit machen für Kalorien, Protein und Kohlenhydrate — Training und Dosen mit demselben Tippen erfassen.",
     howItWorksStep3Title: "Erinnerungen erhalten und Veränderungen sehen",
-    howItWorksStep3Body: "Pünktliche Erinnerungen, Interaktionswarnungen und Trends über Ernährung, Training und dein Protokoll.",
+    howItWorksStep3Body:
+      "Pünktliche Erinnerungen, Interaktionswarnungen und Trends über Ernährung, Training und dein Protokoll.",
     finalCtaSecondary: "Zuerst die Bibliothek erkunden",
     stickyCta: "Kostenlos registrieren",
     stickyCtaAlt: "Oder Bibliothek durchsuchen",
@@ -410,7 +422,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "Ein kostenloses Konto bietet die Basis-Tracking-Funktionen. Die optionale 7-Tage-Pro-Testphase schaltet Wechselwirkungsprüfungen, Timeline, Erinnerungen und KI-Pläne frei. Danach 9,99 $/Monat oder 59,99 $/Jahr (50 % Ersparnis). Vor Tag 7 kündigen – keine Kosten.",
     faqQ8: "Kann DoseRoutine Kalorien, Protein und Kohlenhydrate erfassen?",
-    faqA8: "Ja. Fotografiere deine Mahlzeit oder scanne einen Barcode — der KI-Mahlzeitenscanner liefert Kalorien, Protein, Kohlenhydrate und Fett. Jeder Wert lässt sich vor dem Speichern bearbeiten, und Mahlzeiten erscheinen in derselben Tagesansicht wie Training und Dosen.",
+    faqA8:
+      "Ja. Fotografiere deine Mahlzeit oder scanne einen Barcode — der KI-Mahlzeitenscanner liefert Kalorien, Protein, Kohlenhydrate und Fett. Jeder Wert lässt sich vor dem Speichern bearbeiten, und Mahlzeiten erscheinen in derselben Tagesansicht wie Training und Dosen.",
     proLockTitleLocked: "{screen} gehört zu Pro",
     proLockTitleFeature: "{screen} ist eine Pro-Funktion",
     proLockBodyEnded: "Deine kostenlose Testphase ist beendet, daher ist {screen} gesperrt.",
@@ -452,9 +465,9 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "Educativo, non consiglio medico. Consulta un professionista sanitario prima di modificare qualsiasi regime.",
     finalCta: "Pronto a smettere di indovinare cosa hai preso?",
     finalCtaTitle: "Crea il tuo account gratuito",
-    finalCtaBody: "Crea il tuo account in circa due minuti — senza carta. La prova Pro opzionale di 7 giorni sblocca i controlli interazioni, la cronologia, i promemoria e i piani AI.",
-    freeForever:
-      "Gratis per iniziare · Senza carta · Funziona su iPhone, Android e web",
+    finalCtaBody:
+      "Crea il tuo account in circa due minuti — senza carta. La prova Pro opzionale di 7 giorni sblocca i controlli interazioni, la cronologia, i promemoria e i piani AI.",
+    freeForever: "Gratis per iniziare · Senza carta · Funziona su iPhone, Android e web",
     takesTwoMinutes: "Richiede circa 2 minuti. Annulla in qualsiasi momento.",
     library: "Libreria",
     signIn: "Accedi",
@@ -467,9 +480,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "Aggiungi ciò che prendi",
     howItWorksStep1Body: "Vitamine, peptidi, ormoni, ricette — tu inserisci la dose.",
     howItWorksStep2Title: "Registra pasti, allenamenti e dosi",
-    howItWorksStep2Body: "Scatta una foto al pasto per calorie, proteine e carboidrati — e registra allenamenti e dosi con lo stesso tocco.",
+    howItWorksStep2Body:
+      "Scatta una foto al pasto per calorie, proteine e carboidrati — e registra allenamenti e dosi con lo stesso tocco.",
     howItWorksStep3Title: "Ricevi promemoria e osserva i cambiamenti",
-    howItWorksStep3Body: "Promemoria puntuali, avvisi di interazioni e andamenti su alimentazione, allenamento e protocollo.",
+    howItWorksStep3Body:
+      "Promemoria puntuali, avvisi di interazioni e andamenti su alimentazione, allenamento e protocollo.",
     finalCtaSecondary: "Esplora prima la libreria",
     stickyCta: "Iscriviti gratis",
     stickyCtaAlt: "O sfoglia la libreria",
@@ -486,7 +501,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "Un account gratuito offre il tracciamento di base. La prova Pro opzionale di 7 giorni sblocca i controlli interazioni, la cronologia, i promemoria e i piani AI. Poi $9,99/mese o $59,99/anno (risparmio 50%). Annulla prima del giorno 7 e non paghi nulla.",
     faqQ8: "DoseRoutine può tracciare calorie, proteine e carboidrati?",
-    faqA8: "Sì. Fotografa il pasto o scansiona un codice a barre: lo scanner pasti con IA restituisce calorie, proteine, carboidrati e grassi. Ogni valore è modificabile prima di salvare e i pasti compaiono nella stessa giornata di allenamenti e dosi.",
+    faqA8:
+      "Sì. Fotografa il pasto o scansiona un codice a barre: lo scanner pasti con IA restituisce calorie, proteine, carboidrati e grassi. Ogni valore è modificabile prima di salvare e i pasti compaiono nella stessa giornata di allenamenti e dosi.",
     proLockTitleLocked: "{screen} fa parte di Pro",
     proLockTitleFeature: "{screen} è una funzione Pro",
     proLockBodyEnded: "La tua prova gratuita è terminata, quindi {screen} è bloccato.",
@@ -528,7 +544,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "Educativo, não é conselho médico. Consulte um profissional de saúde antes de alterar qualquer regime.",
     finalCta: "Pronto para parar de adivinhar o que tomou?",
     finalCtaTitle: "Crie sua conta grátis",
-    finalCtaBody: "Crie sua conta em cerca de dois minutos — sem cartão. O teste Pro opcional de 7 dias desbloqueia verificação de interações, linha do tempo, lembretes e planos de IA.",
+    finalCtaBody:
+      "Crie sua conta em cerca de dois minutos — sem cartão. O teste Pro opcional de 7 dias desbloqueia verificação de interações, linha do tempo, lembretes e planos de IA.",
     freeForever: "Grátis para começar · Sem cartão · Funciona em iPhone, Android e web",
     takesTwoMinutes: "Leva cerca de 2 minutos. Cancele quando quiser.",
     library: "Biblioteca",
@@ -542,9 +559,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "Adicione o que você toma",
     howItWorksStep1Body: "Vitaminas, peptídeos, hormônios, receitas — você insere a dose.",
     howItWorksStep2Title: "Registre refeições, treinos e doses",
-    howItWorksStep2Body: "Tire uma foto da refeição para ver calorias, proteínas e carboidratos — e registre treinos e doses no mesmo toque.",
+    howItWorksStep2Body:
+      "Tire uma foto da refeição para ver calorias, proteínas e carboidratos — e registre treinos e doses no mesmo toque.",
     howItWorksStep3Title: "Receba lembretes e veja o que muda",
-    howItWorksStep3Body: "Lembretes na hora certa, avisos de interações e tendências de alimentação, treino e protocolo.",
+    howItWorksStep3Body:
+      "Lembretes na hora certa, avisos de interações e tendências de alimentação, treino e protocolo.",
     finalCtaSecondary: "Explore a biblioteca primeiro",
     stickyCta: "Cadastre-se grátis",
     stickyCtaAlt: "Ou navegar pela biblioteca",
@@ -561,7 +580,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "Uma conta gratuita oferece o acompanhamento básico. O teste Pro opcional de 7 dias desbloqueia verificação de interações, linha do tempo, lembretes e planos de IA. Depois, $9,99/mês ou $59,99/ano (economia de 50%). Cancele antes do dia 7 e não pague nada.",
     faqQ8: "O DoseRoutine acompanha calorias, proteínas e carboidratos?",
-    faqA8: "Sim. Tire uma foto da refeição ou escaneie um código de barras e o scanner de refeições com IA devolve calorias, proteínas, carboidratos e gorduras. Todos os valores podem ser editados antes de salvar, e as refeições aparecem na mesma linha do tempo dos treinos e doses.",
+    faqA8:
+      "Sim. Tire uma foto da refeição ou escaneie um código de barras e o scanner de refeições com IA devolve calorias, proteínas, carboidratos e gorduras. Todos os valores podem ser editados antes de salvar, e as refeições aparecem na mesma linha do tempo dos treinos e doses.",
     proLockTitleLocked: "{screen} faz parte do Pro",
     proLockTitleFeature: "{screen} é um recurso Pro",
     proLockBodyEnded: "Seu teste gratuito terminou, então {screen} está bloqueado.",
@@ -602,9 +622,9 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "Educatief, geen medisch advies. Raadpleeg een arts voordat je een regime wijzigt.",
     finalCta: "Klaar om te stoppen met raden wat je hebt genomen?",
     finalCtaTitle: "Maak je gratis account",
-    finalCtaBody: "Maak je account in ongeveer twee minuten — geen kaart nodig. De optionele 7-daagse Pro-proef ontgrendelt interactiecontroles, tijdlijn, herinneringen en AI-plannen.",
-    freeForever:
-      "Gratis starten · Geen kaart nodig · Werkt op iPhone, Android en web",
+    finalCtaBody:
+      "Maak je account in ongeveer twee minuten — geen kaart nodig. De optionele 7-daagse Pro-proef ontgrendelt interactiecontroles, tijdlijn, herinneringen en AI-plannen.",
+    freeForever: "Gratis starten · Geen kaart nodig · Werkt op iPhone, Android en web",
     takesTwoMinutes: "Duurt ongeveer 2 minuten. Altijd opzegbaar.",
     library: "Bibliotheek",
     signIn: "Inloggen",
@@ -617,9 +637,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "Voeg toe wat je gebruikt",
     howItWorksStep1Body: "Vitamines, peptiden, hormonen, medicijnen — jij voert de dosis in.",
     howItWorksStep2Title: "Log maaltijden, trainingen en doses",
-    howItWorksStep2Body: "Maak een foto van je maaltijd voor calorieën, eiwitten en koolhydraten — en log trainingen en doses met dezelfde tik.",
+    howItWorksStep2Body:
+      "Maak een foto van je maaltijd voor calorieën, eiwitten en koolhydraten — en log trainingen en doses met dezelfde tik.",
     howItWorksStep3Title: "Krijg herinneringen en zie wat verandert",
-    howItWorksStep3Body: "Herinneringen op tijd, interactiewaarschuwingen en trends over voeding, training en je protocol.",
+    howItWorksStep3Body:
+      "Herinneringen op tijd, interactiewaarschuwingen en trends over voeding, training en je protocol.",
     finalCtaSecondary: "Eerst de bibliotheek verkennen",
     stickyCta: "Gratis aanmelden",
     stickyCtaAlt: "Of bibliotheek bekijken",
@@ -636,7 +658,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "Een gratis account geeft je basisvolgen. De optionele 7-daagse Pro-proef ontgrendelt interactiecontroles, tijdlijn, herinneringen en AI-plannen. Daarna $9,99/maand of $59,99/jaar (50% besparing). Annuleer voor dag 7 – geen kosten.",
     faqQ8: "Kan DoseRoutine calorieën, eiwitten en koolhydraten bijhouden?",
-    faqA8: "Ja. Maak een foto van je maaltijd of scan een barcode en de AI-maaltijdscanner geeft calorieën, eiwitten, koolhydraten en vet terug. Elke waarde is aanpasbaar voordat je opslaat, en maaltijden staan op dezelfde dagtijdlijn als je trainingen en doses.",
+    faqA8:
+      "Ja. Maak een foto van je maaltijd of scan een barcode en de AI-maaltijdscanner geeft calorieën, eiwitten, koolhydraten en vet terug. Elke waarde is aanpasbaar voordat je opslaat, en maaltijden staan op dezelfde dagtijdlijn als je trainingen en doses.",
     proLockTitleLocked: "{screen} hoort bij Pro",
     proLockTitleFeature: "{screen} is een Pro-functie",
     proLockBodyEnded: "Je gratis proefperiode is afgelopen, dus {screen} is vergrendeld.",
@@ -677,7 +700,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "教育目的であり医療アドバイスではありません。レジメンを変更する前に医療専門家に相談してください。",
     finalCta: "何を摂取したか推測するのをやめませんか？",
     finalCtaTitle: "無料アカウントを作成",
-    finalCtaBody: "約2分で無料アカウントを作成。カード不要。オプションの7日間Proトライアルで相互作用チェック、タイムライン、リマインダー、AIプランが利用可能になります。",
+    finalCtaBody:
+      "約2分で無料アカウントを作成。カード不要。オプションの7日間Proトライアルで相互作用チェック、タイムライン、リマインダー、AIプランが利用可能になります。",
     freeForever: "無料で開始 · カード不要 · iPhone、Android、Webで利用可能",
     takesTwoMinutes: "約2分で開始。いつでもキャンセル可能。",
     library: "ライブラリ",
@@ -691,9 +715,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "摂取しているものを追加",
     howItWorksStep1Body: "ビタミン、ペプチド、ホルモン、処方薬 — 用量はあなたが入力します。",
     howItWorksStep2Title: "食事・運動・摂取を記録",
-    howItWorksStep2Body: "食事を撮影するだけでカロリー・タンパク質・炭水化物がわかり、運動や摂取も同じ操作で記録できます。",
+    howItWorksStep2Body:
+      "食事を撮影するだけでカロリー・タンパク質・炭水化物がわかり、運動や摂取も同じ操作で記録できます。",
     howItWorksStep3Title: "リマインドと変化の確認",
-    howItWorksStep3Body: "時間どおりのリマインド、相互作用の警告、食事・トレーニング・プロトコルの推移を確認できます。",
+    howItWorksStep3Body:
+      "時間どおりのリマインド、相互作用の警告、食事・トレーニング・プロトコルの推移を確認できます。",
     finalCtaSecondary: "まずライブラリを探索",
     stickyCta: "無料で登録",
     stickyCtaAlt: "またはライブラリを見る",
@@ -710,7 +736,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "無料アカウントで基本の記録ができます。オプションの7日間Proトライアルで相互作用チェック、タイムライン、リマインダー、AIプランが利用可能になります。その後、$9.99/月または$59.99/年（50%割引）。7日目までにキャンセルすれば料金は発生しません。",
     faqQ8: "DoseRoutineでカロリー・タンパク質・炭水化物を記録できますか？",
-    faqA8: "はい。食事を撮影するかバーコードをスキャンすると、AI食事スキャナーがカロリー・タンパク質・炭水化物・脂質を返します。保存前にすべての値を編集でき、食事はトレーニングや摂取と同じ1日のタイムラインに表示されます。",
+    faqA8:
+      "はい。食事を撮影するかバーコードをスキャンすると、AI食事スキャナーがカロリー・タンパク質・炭水化物・脂質を返します。保存前にすべての値を編集でき、食事はトレーニングや摂取と同じ1日のタイムラインに表示されます。",
     proLockTitleLocked: "{screen} は Pro の機能です",
     proLockTitleFeature: "{screen} は Pro の機能です",
     proLockBodyEnded: "無料トライアルが終了したため、{screen} はロックされています。",
@@ -751,7 +778,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "교육용이며 의료 조언이 아닙니다. 요법을 변경하기 전에 의료 전문가와 상담하세요.",
     finalCta: "무엇을 복용했는지 추측하는 것을 그만두실 준비가 되셨나요?",
     finalCtaTitle: "무료 계정 만들기",
-    finalCtaBody: "약 2분이면 무료 계정을 만듭니다. 카드 불필요. 선택적 7일 Pro 체험으로 상호작용 확인, 타임라인, 알림, AI 플랜이 해금됩니다.",
+    finalCtaBody:
+      "약 2분이면 무료 계정을 만듭니다. 카드 불필요. 선택적 7일 Pro 체험으로 상호작용 확인, 타임라인, 알림, AI 플랜이 해금됩니다.",
     freeForever: "무료로 시작 · 카드 불필요 · iPhone, Android, Web에서 작동",
     takesTwoMinutes: "약 2분이 소요됩니다. 언제든지 취소 가능.",
     library: "라이브러리",
@@ -765,9 +793,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "복용 중인 것 추가",
     howItWorksStep1Body: "비타민, 펩타이드, 호르몬, 처방약 — 복용량은 직접 입력합니다.",
     howItWorksStep2Title: "식사, 운동, 복용 기록",
-    howItWorksStep2Body: "식사를 촬영하면 칼로리·단백질·탄수화물을 알려주고, 운동과 복용도 같은 화면에서 기록합니다.",
+    howItWorksStep2Body:
+      "식사를 촬영하면 칼로리·단백질·탄수화물을 알려주고, 운동과 복용도 같은 화면에서 기록합니다.",
     howItWorksStep3Title: "알림을 받고 변화를 확인",
-    howItWorksStep3Body: "제때 오는 알림, 상호작용 경고, 그리고 식사·운동·프로토콜의 추세를 함께 봅니다.",
+    howItWorksStep3Body:
+      "제때 오는 알림, 상호작용 경고, 그리고 식사·운동·프로토콜의 추세를 함께 봅니다.",
     finalCtaSecondary: "먼저 라이브러리 둘러보기",
     stickyCta: "무료로 가입하기",
     stickyCtaAlt: "또는 라이브러리 둘러보기",
@@ -783,7 +813,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "무료 계정으로 기본 추적이 가능합니다. 선택적 7일 Pro 체험으로 상호작용 확인, 타임라인, 알림, AI 플랜이 해금됩니다. 이후 $9.99/월 또는 $59.99/년(50% 할인). 7일 전에 취소하면 요금이 발생하지 않습니다.",
     faqQ8: "DoseRoutine으로 칼로리, 단백질, 탄수화물을 추적할 수 있나요?",
-    faqA8: "네. 식사를 촬영하거나 바코드를 스캔하면 AI 식사 스캐너가 칼로리, 단백질, 탄수화물, 지방을 알려줍니다. 저장 전에 모든 값을 수정할 수 있고, 식사는 운동·복용과 같은 하루 타임라인에 표시됩니다.",
+    faqA8:
+      "네. 식사를 촬영하거나 바코드를 스캔하면 AI 식사 스캐너가 칼로리, 단백질, 탄수화물, 지방을 알려줍니다. 저장 전에 모든 값을 수정할 수 있고, 식사는 운동·복용과 같은 하루 타임라인에 표시됩니다.",
     proLockTitleLocked: "{screen}은(는) Pro 기능입니다",
     proLockTitleFeature: "{screen}은(는) Pro 기능입니다",
     proLockBodyEnded: "무료 체험이 종료되어 {screen}이(가) 잠겼습니다.",
@@ -820,7 +851,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     footerDisclaimer: "教育用途，非医疗建议。在更改任何方案前请咨询合格的临床医生。",
     finalCta: "准备好停止猜测自己吃了什么了吗？",
     finalCtaTitle: "创建免费账户",
-    finalCtaBody: "大约两分钟创建免费账户，无需银行卡。可选的 7 天 Pro 试用可解锁相互作用检查、时间线、提醒和 AI 计划。",
+    finalCtaBody:
+      "大约两分钟创建免费账户，无需银行卡。可选的 7 天 Pro 试用可解锁相互作用检查、时间线、提醒和 AI 计划。",
     freeForever: "免费开始 · 无需银行卡 · 适用于 iPhone、Android 和网页",
     takesTwoMinutes: "大约需要 2 分钟。随时可取消。",
     library: "资料库",
@@ -851,7 +883,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "免费账户可使用核心记录功能。可选的 7 天 Pro 试用可解锁相互作用检查、时间线、提醒和 AI 计划。之后$9.99/月或$59.99/年（节省50%）。在第7天前取消，不收取任何费用。",
     faqQ8: "DoseRoutine 能记录热量、蛋白质和碳水吗？",
-    faqA8: "可以。拍摄餐食照片或扫描条码，AI 餐食扫描会返回热量、蛋白质、碳水和脂肪。保存前每项数值都可编辑，餐食会与训练和用量显示在同一天的时间线上。",
+    faqA8:
+      "可以。拍摄餐食照片或扫描条码，AI 餐食扫描会返回热量、蛋白质、碳水和脂肪。保存前每项数值都可编辑，餐食会与训练和用量显示在同一天的时间线上。",
     proLockTitleLocked: "{screen} 属于 Pro 功能",
     proLockTitleFeature: "{screen} 是 Pro 功能",
     proLockBodyEnded: "免费试用已结束，因此 {screen} 已锁定。",
@@ -889,7 +922,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     footerDisclaimer: "للأغراض التعليمية، وليس نصيحة طبية. استشر طبيباً مؤهلاً قبل تغيير أي نظام.",
     finalCta: "هل أنت مستعد لوقف التخمين بما تناولته؟",
     finalCtaTitle: "أنشئ حسابك المجاني",
-    finalCtaBody: "أنشئ حسابك المجاني في حوالي دقيقتين — بدون بطاقة. النسخة التجريبية الاختيارية لمدة 7 أيام من Pro تفتح فحوصات التفاعلات والجدول الزمني والتنبيهات والخطط الذكية.",
+    finalCtaBody:
+      "أنشئ حسابك المجاني في حوالي دقيقتين — بدون بطاقة. النسخة التجريبية الاختيارية لمدة 7 أيام من Pro تفتح فحوصات التفاعلات والجدول الزمني والتنبيهات والخطط الذكية.",
     freeForever: "ابدأ مجانًا · بدون بطاقة · يعمل على iPhone وAndroid والويب",
     takesTwoMinutes: "يستغرق حوالي دقيقتين. يمكن الإلغاء في أي وقت.",
     library: "المكتبة",
@@ -903,9 +937,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "أضف ما تتناوله",
     howItWorksStep1Body: "فيتامينات، ببتيدات، هرمونات، أدوية موصوفة — أنت تدخل الجرعة.",
     howItWorksStep2Title: "سجّل الوجبات والتمارين والجرعات",
-    howItWorksStep2Body: "التقط صورة لوجبتك لمعرفة السعرات والبروتين والكربوهيدرات — وسجّل التمارين والجرعات باللمسة نفسها.",
+    howItWorksStep2Body:
+      "التقط صورة لوجبتك لمعرفة السعرات والبروتين والكربوهيدرات — وسجّل التمارين والجرعات باللمسة نفسها.",
     howItWorksStep3Title: "احصل على تذكيرات وشاهد ما يتغيّر",
-    howItWorksStep3Body: "تذكيرات في وقتها، تنبيهات التفاعلات، ومؤشرات لتغذيتك وتمارينك وبروتوكولك.",
+    howItWorksStep3Body:
+      "تذكيرات في وقتها، تنبيهات التفاعلات، ومؤشرات لتغذيتك وتمارينك وبروتوكولك.",
     finalCtaSecondary: "استكشف المكتبة أولاً",
     stickyCta: "سجّل مجانًا",
     stickyCtaAlt: "أو تصفح المكتبة",
@@ -921,7 +957,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "الحساب المجاني يمنحك التتبع الأساسي. النسخة التجريبية الاختيارية لمدة 7 أيام من Pro تفتح فحوصات التفاعلات والجدول الزمني والتنبيهات والخطط الذكية. بعد ذلك، 9.99 دولار/شهر أو 59.99 دولار/سنة (توفير 50%). ألغِ قبل اليوم 7 ولا تدفع شيئاً.",
     faqQ8: "هل يستطيع DoseRoutine تتبع السعرات والبروتين والكربوهيدرات؟",
-    faqA8: "نعم. التقط صورة لوجبتك أو امسح الباركود وسيعيد ماسح الوجبات بالذكاء الاصطناعي السعرات والبروتين والكربوهيدرات والدهون. يمكن تعديل كل قيمة قبل الحفظ، وتظهر الوجبات في الجدول اليومي نفسه مع التمارين والجرعات.",
+    faqA8:
+      "نعم. التقط صورة لوجبتك أو امسح الباركود وسيعيد ماسح الوجبات بالذكاء الاصطناعي السعرات والبروتين والكربوهيدرات والدهون. يمكن تعديل كل قيمة قبل الحفظ، وتظهر الوجبات في الجدول اليومي نفسه مع التمارين والجرعات.",
     proLockTitleLocked: "{screen} جزء من Pro",
     proLockTitleFeature: "{screen} ميزة في Pro",
     proLockBodyEnded: "انتهت فترتك التجريبية المجانية، لذلك {screen} مقفل.",
@@ -963,9 +1000,9 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
       "शैक्षिक, चिकित्सा सलाह नहीं। किसी भी रेजीमेन को बदलने से पहले योग्य चिकित्सक से परामर्श करें।",
     finalCta: "तैयार हैं अंदाज़ा लगाना बंद करने के लिए कि आपने क्या लिया?",
     finalCtaTitle: "अपना मुफ़्त खाता बनाएं",
-    finalCtaBody: "लगभग 2 मिनट में मुफ़्त खाता बनाएं — कार्ड की ज़रूरत नहीं। वैकल्पिक 7-दिन का Pro परीक्षण इंटरैक्शन जाँच, टाइमलाइन, रिमाइंडर और AI योजनाओं को अनलॉक करता है।",
-    freeForever:
-      "मुफ़्त शुरुआत · कार्ड की ज़रूरत नहीं · iPhone, Android और वेब पर काम करता है",
+    finalCtaBody:
+      "लगभग 2 मिनट में मुफ़्त खाता बनाएं — कार्ड की ज़रूरत नहीं। वैकल्पिक 7-दिन का Pro परीक्षण इंटरैक्शन जाँच, टाइमलाइन, रिमाइंडर और AI योजनाओं को अनलॉक करता है।",
+    freeForever: "मुफ़्त शुरुआत · कार्ड की ज़रूरत नहीं · iPhone, Android और वेब पर काम करता है",
     takesTwoMinutes: "लगभग 2 मिनट लेता है। कभी भी रद्द करें।",
     library: "लाइब्रेरी",
     signIn: "साइन इन करें",
@@ -978,9 +1015,11 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     howItWorksStep1Title: "जो लेते हैं वह जोड़ें",
     howItWorksStep1Body: "विटामिन, पेप्टाइड, हार्मोन, नुस्खे — आप खुराक दर्ज करते हैं।",
     howItWorksStep2Title: "भोजन, वर्कआउट और खुराक दर्ज करें",
-    howItWorksStep2Body: "अपने भोजन की फोटो लें और कैलोरी, प्रोटीन व कार्ब्स पाएं — वर्कआउट और खुराक भी उसी टैप में दर्ज करें।",
+    howItWorksStep2Body:
+      "अपने भोजन की फोटो लें और कैलोरी, प्रोटीन व कार्ब्स पाएं — वर्कआउट और खुराक भी उसी टैप में दर्ज करें।",
     howItWorksStep3Title: "रिमाइंडर पाएं और बदलाव देखें",
-    howItWorksStep3Body: "समय पर रिमाइंडर, इंटरैक्शन चेतावनियाँ, और भोजन, ट्रेनिंग व प्रोटोकॉल के रुझान।",
+    howItWorksStep3Body:
+      "समय पर रिमाइंडर, इंटरैक्शन चेतावनियाँ, और भोजन, ट्रेनिंग व प्रोटोकॉल के रुझान।",
     finalCtaSecondary: "पहले लाइब्रेरी देखें",
     stickyCta: "मुफ़्त साइन अप करें",
     stickyCtaAlt: "या लाइब्रेरी ब्राउज़ करें",
@@ -997,7 +1036,8 @@ export const UI_DICTIONARY: Record<Locale, Record<string, string>> = {
     faqA2:
       "मुफ़्त खाते से मूल ट्रैकिंग मिलती है। वैकल्पिक 7-दिन का Pro परीक्षण इंटरैक्शन जाँच, टाइमलाइन, रिमाइंडर और AI योजनाओं को अनलॉक करता है। इसके बाद $9.99/माह या $59.99/वर्ष (50% बचत)। दिन 7 से पहले रद्द करें — कोई शुल्क नहीं।",
     faqQ8: "क्या DoseRoutine कैलोरी, प्रोटीन और कार्ब्स ट्रैक कर सकता है?",
-    faqA8: "हाँ। अपने भोजन की फोटो लें या बारकोड स्कैन करें — AI मील स्कैनर कैलोरी, प्रोटीन, कार्ब्स और फैट बताता है। सेव करने से पहले हर मान संपादित किया जा सकता है, और भोजन उसी दिन की टाइमलाइन में वर्कआउट व खुराक के साथ दिखता है।",
+    faqA8:
+      "हाँ। अपने भोजन की फोटो लें या बारकोड स्कैन करें — AI मील स्कैनर कैलोरी, प्रोटीन, कार्ब्स और फैट बताता है। सेव करने से पहले हर मान संपादित किया जा सकता है, और भोजन उसी दिन की टाइमलाइन में वर्कआउट व खुराक के साथ दिखता है।",
     proLockTitleLocked: "{screen} Pro का हिस्सा है",
     proLockTitleFeature: "{screen} एक Pro सुविधा है",
     proLockBodyEnded: "आपका मुफ़्त ट्रायल समाप्त हो गया है, इसलिए {screen} लॉक है।",

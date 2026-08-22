@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getBlogSearchPerformance } from "@/lib/blog-search-performance.functions";
 import { BlogPostSearchDetailSheet } from "@/components/admin/blog-post-search-detail-sheet";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/blog-seo")({
+  errorComponent: routeErrorComponent("admin-blog-seo"),
   head: () => ({
     meta: [
       { title: "Blog SEO dashboard — DoseRoutine" },
@@ -74,8 +76,8 @@ function BlogSeoDashboard() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Blog SEO dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Impressions, clicks, CTR and average position per post, straight from Search Console.
-          Data lags about three days.
+          Impressions, clicks, CTR and average position per post, straight from Search Console. Data
+          lags about three days.
         </p>
       </header>
 
@@ -105,22 +107,15 @@ function BlogSeoDashboard() {
           Couldn’t load performance: {(error as Error).message}
         </p>
       )}
-      {data && !data.connected && (
-        <p className="text-sm text-muted-foreground">{data.error}</p>
-      )}
-      {data?.connected && data.error && (
-        <p className="text-sm text-destructive">{data.error}</p>
-      )}
+      {data && !data.connected && <p className="text-sm text-muted-foreground">{data.error}</p>}
+      {data?.connected && data.error && <p className="text-sm text-destructive">{data.error}</p>}
 
       {totals && data?.period && (
         <Card className="grid grid-cols-2 gap-3 p-4 text-sm sm:grid-cols-5">
           <Stat label="Clicks" value={String(totals.clicks)} />
           <Stat label="Impressions" value={String(totals.impressions)} />
           <Stat label="CTR" value={pct(totals.ctr)} />
-          <Stat
-            label="Avg position"
-            value={totals.position ? totals.position.toFixed(1) : "—"}
-          />
+          <Stat label="Avg position" value={totals.position ? totals.position.toFixed(1) : "—"} />
           <Stat label="Posts with data" value={`${totals.withData} of ${totals.posts}`} />
           <p className="col-span-2 text-xs text-muted-foreground sm:col-span-5">
             {data.period.startDate} → {data.period.endDate} (vs {data.previous.startDate} →{" "}
@@ -214,15 +209,7 @@ function BlogSeoDashboard() {
   );
 }
 
-function Stat({
-  label,
-  value,
-  extra,
-}: {
-  label: string;
-  value: string;
-  extra?: React.ReactNode;
-}) {
+function Stat({ label, value, extra }: { label: string; value: string; extra?: React.ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>

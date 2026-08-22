@@ -1,5 +1,5 @@
 import { test as base, expect, type Page } from "@playwright/test";
-
+import { describeVisualThresholds, snapshotOptions } from "./visual-thresholds";
 
 /**
  * Visual regression baselines for the Neon Mint accent.
@@ -33,12 +33,10 @@ const FROZEN_TIME = new Date("2026-03-15T12:00:00Z");
 const MODES = ["light", "dark"] as const;
 type Mode = (typeof MODES)[number];
 
-const SNAPSHOT_OPTS = {
-  // Anti-aliasing on curves/text differs slightly between machine and CI GPU.
-  maxDiffPixelRatio: 0.02,
-  animations: "disabled",
-  scale: "css",
-} as const;
+// Thresholds come from VISUAL_DIFF_PROFILE / VISUAL_* env overrides so
+// staging runs can absorb minor rendering drift without editing tests.
+const SNAPSHOT_OPTS = snapshotOptions("mint");
+console.log(describeVisualThresholds("mint"));
 
 const STABILISING_CSS = `
   *, *::before, *::after {
@@ -65,11 +63,11 @@ async function primeMint(page: Page, mode: Mode) {
       localStorage.setItem(tourKey, new Date().toISOString());
       localStorage.setItem(installKey, "1");
     },
-    ["mint", mode, [THEME_KEY, SCHEME_KEY, COOKIE_CONSENT_KEY, WELCOME_TOUR_KEY, INSTALL_DISMISSED_KEY]] as [
-      string,
-      string,
-      string[],
-    ],
+    [
+      "mint",
+      mode,
+      [THEME_KEY, SCHEME_KEY, COOKIE_CONSENT_KEY, WELCOME_TOUR_KEY, INSTALL_DISMISSED_KEY],
+    ] as [string, string, string[]],
   );
 }
 
@@ -138,8 +136,6 @@ async function chartsPainted(page: Page) {
     .toBe(true);
 }
 
-
-
 const test = base.extend({});
 
 test.describe.configure({ mode: "serial" });
@@ -164,10 +160,7 @@ for (const mode of MODES) {
       expect(count, "insights showcase should render its metric cards").toBeGreaterThan(2);
 
       for (let i = 0; i < Math.min(count, 6); i++) {
-        await expect(cards.nth(i)).toHaveScreenshot(
-          `insight-card-${i}-${mode}.png`,
-          SNAPSHOT_OPTS,
-        );
+        await expect(cards.nth(i)).toHaveScreenshot(`insight-card-${i}-${mode}.png`, SNAPSHOT_OPTS);
       }
     });
 
@@ -196,8 +189,6 @@ for (const mode of MODES) {
       }).toPass({ timeout: 20_000 });
       await settle(page);
 
-
-
       await expect(card).toHaveScreenshot(`chart-tooltip-${mode}.png`, SNAPSHOT_OPTS);
     });
 
@@ -206,7 +197,10 @@ for (const mode of MODES) {
       await page.goto("/", { waitUntil: "domcontentloaded" });
       await assertMintApplied(page, mode);
 
-      const cta = page.locator("#insights").getByRole("link", { name: /start tracking free/i }).first();
+      const cta = page
+        .locator("#insights")
+        .getByRole("link", { name: /start tracking free/i })
+        .first();
       await cta.scrollIntoViewIfNeeded();
       await expect(cta).toBeVisible();
       await settle(page);
@@ -241,6 +235,5 @@ for (const mode of MODES) {
       await expect(legendHidden).toBeVisible();
       await expect(legendHidden).toHaveScreenshot(`chart-legend-hidden-${mode}.png`, SNAPSHOT_OPTS);
     });
-
   });
 }

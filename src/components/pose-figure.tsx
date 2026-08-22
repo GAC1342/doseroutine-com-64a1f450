@@ -74,7 +74,6 @@ export function PoseFigure({
         </g>
       </g>
 
-
       <circle cx={cx} cy={cy} r={r + 1.5} className="fill-background" opacity="0.9" />
       <circle cx={cx} cy={cy} r={r} className="fill-primary" />
     </svg>

@@ -1,16 +1,19 @@
 import { assetUrl } from "@/lib/asset-url";
 import { BrandLogo } from "@/components/brand-logo";
-import { Link, useRouter, useNavigate } from "@tanstack/react-router";
+import { Link, useRouter, useNavigate, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { IndexStatusBadge } from "@/components/index-status-badge";
 import { useSessionState } from "@/hooks/use-session";
-import { BLOG_POSTS_NEWEST_FIRST } from "@/lib/blog-posts";
-
+import { pickResearchLinks } from "@/lib/related-research";
 
 export function LibraryShell({ children }: { children: ReactNode }) {
   const session = useSessionState();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Topic-aware selection: keeps this block from being byte-identical on every
+  // library page (which audit crawlers scored as duplicate content).
+  const researchLinks = pickResearchLinks(pathname, 6);
   const router = useRouter();
   const navigate = useNavigate();
   const handleBack = () => {
@@ -76,7 +79,6 @@ export function LibraryShell({ children }: { children: ReactNode }) {
             ) : (
               <span aria-hidden="true" className="h-9 w-[86px] shrink-0 rounded-lg bg-card" />
             )}
-
           </nav>
         </div>
       </header>
@@ -89,15 +91,12 @@ export function LibraryShell({ children }: { children: ReactNode }) {
       </main>
       {/* Research links: gives every library / interaction page a crawlable
           path into the blog so posts are not orphaned from the main corpus. */}
-      <section
-        aria-labelledby="library-research-heading"
-        className="mx-auto mt-12 max-w-5xl px-4"
-      >
+      <section aria-labelledby="library-research-heading" className="mx-auto mt-12 max-w-5xl px-4">
         <h2 id="library-research-heading" className="text-sm font-semibold text-foreground">
           Latest research from DoseRoutine
         </h2>
         <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-          {BLOG_POSTS_NEWEST_FIRST.slice(0, 6).map((post) => (
+          {researchLinks.map((post) => (
             <li key={post.slug} className="leading-snug">
               <Link
                 to="/blog/$slug"
@@ -120,17 +119,13 @@ export function LibraryShell({ children }: { children: ReactNode }) {
       </section>
       <footer className="mt-10 border-t border-border py-8 text-center text-xs leading-relaxed text-muted-foreground">
         <p className="mx-auto max-w-2xl px-4">
-
           <span className="font-semibold text-foreground">
             © {new Date().getFullYear()} DoseRoutine
           </span>{" "}
-          — content originally published at{" "}
-          <a
-            href="https://doseroutine.com"
-            className="font-semibold text-foreground underline underline-offset-2"
-          >
-            doseroutine.com
-          </a>
+          — content originally published by{" "}
+          <Link to="/" className="font-semibold text-foreground underline underline-offset-2">
+            DoseRoutine
+          </Link>
           . All content is the intellectual property of DoseRoutine and provided for educational
           purposes only. Reproduction without attribution is prohibited.
         </p>
@@ -139,9 +134,9 @@ export function LibraryShell({ children }: { children: ReactNode }) {
           intended to diagnose, treat, cure, or prevent any disease. DoseRoutine and its authors
           accept no liability for how this information is used. Always consult a licensed clinician
           before starting, stopping, or combining any compound.{" "}
-          <a href="/legal" className="underline underline-offset-2 hover:text-foreground">
+          <Link to="/legal" className="underline underline-offset-2 hover:text-foreground">
             Terms, privacy & full disclaimer
-          </a>
+          </Link>
           .
         </p>
       </footer>

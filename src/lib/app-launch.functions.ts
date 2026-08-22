@@ -91,7 +91,7 @@ export const joinAppLaunchWaitlist = createServerFn({ method: "POST" })
       }
 
       // Send the user a confirmation and notify the team. Never let mail
-      // failure break the signup itself.
+      // failure break the sign-up itself.
       try {
         const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
         const notifyTo =

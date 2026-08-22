@@ -2,6 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { consumeRedirect } from "@/lib/post-auth-redirect";
+import { useQueryClient } from "@tanstack/react-query";
+import { primePostAuth } from "@/lib/post-auth-prime";
+import { friendlyOAuthError, readCallbackError, stashAuthError } from "@/lib/oauth-error";
 
 export const Route = createFileRoute("/auth_/callback")({
   // NOTE: this route is intentionally server-rendered. With ssr:false the
@@ -34,19 +38,40 @@ function readHashTokens(): { access_token: string; refresh_token: string } | nul
 
 function AuthCallback() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
     let done = false;
+    // Destination stashed by /auth before the OAuth round trip.
+    const dest = consumeRedirect();
     const go = (to: string) => {
       if (done) return;
       done = true;
-      navigate({ to, replace: true });
+      navigate({ to: to as "/today", replace: true });
+    };
+    // Prime session + onboarding gate here so the protected layout renders on
+    // arrival instead of bouncing again to /onboarding.
+    const land = async (session: Parameters<typeof primePostAuth>[1]) => {
+      if (done) return;
+      const to = await primePostAuth(queryClient, session, dest);
+      go(to);
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) go("/today");
+      if (session) void land(session);
     });
+
+    // The provider (or the OAuth broker) can bounce back with an error —
+    // e.g. a rejected return URL. Say so on /auth instead of spinning.
+    const providerError = readCallbackError(window.location.search, window.location.hash);
+    if (providerError) {
+      const provider = /apple/i.test(providerError) ? "apple" : "google";
+      stashAuthError(friendlyOAuthError(providerError, provider));
+      sub.subscription.unsubscribe();
+      go("/auth");
+      return () => {};
+    }
 
     void (async () => {
       try {
@@ -65,22 +90,29 @@ function AuthCallback() {
       }
 
       const { data } = await supabase.auth.getSession();
-      if (data.session) go("/today");
+      if (data.session) await land(data.session);
     })();
 
     // Surface a manual escape hatch rather than silently hanging.
     const soft = setTimeout(() => setStuck(true), 6000);
-    const hard = setTimeout(() => go("/auth"), 12000);
+    const hard = setTimeout(() => {
+      stashAuthError("Sign-in took too long to come back. Please try again, or use email sign-in.");
+      go("/auth");
+    }, 12000);
 
     return () => {
       clearTimeout(soft);
       clearTimeout(hard);
       sub.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   return (
-    <main id="main-content" tabIndex={-1} className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-background px-6 text-center text-foreground">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-background px-6 text-center text-foreground"
+    >
       <Loader2 className="size-6 animate-spin text-primary" aria-hidden="true" />
       <p className="text-sm text-muted-foreground">Signing you in…</p>
       {stuck ? (

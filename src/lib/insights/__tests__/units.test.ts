@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  displayToKg,
-  insightUnits,
-  kgToDisplay,
-  weightUnitLabel,
-} from "@/lib/insights/units";
+import { displayToKg, insightUnits, kgToDisplay, weightUnitLabel } from "@/lib/insights/units";
 
 describe("insight units", () => {
   it("converts kg to the display unit and back", () => {
@@ -33,7 +28,9 @@ describe("insight units", () => {
   });
 
   it("formats money in the vial currency", () => {
-    expect(insightUnits({ units: "metric", currency: "USD" }).moneyPerMonth(412.4)).toContain("412");
+    expect(insightUnits({ units: "metric", currency: "USD" }).moneyPerMonth(412.4)).toContain(
+      "412",
+    );
     expect(insightUnits({ units: "metric", currency: "USD" }).money(412.4)).toContain("$");
     expect(insightUnits({ units: "metric", currency: "USD" }).money(null)).toBe("—");
   });

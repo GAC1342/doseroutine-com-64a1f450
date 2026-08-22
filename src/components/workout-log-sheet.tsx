@@ -44,6 +44,7 @@ import {
 } from "@/lib/workout-types";
 import { exerciseArt } from "@/lib/exercise-art";
 import { ExerciseArtThumbnail } from "@/components/exercise-art-lightbox";
+import { ShareRoutineButton } from "@/components/share-routine-button";
 import { ExerciseSearchGrid } from "@/components/exercise-search-grid";
 import { exerciseOptions } from "@/lib/exercise-options";
 import {
@@ -58,6 +59,9 @@ import {
 } from "@/lib/custom-exercises";
 import { unusedStarters, type StarterTemplate } from "@/lib/starter-templates";
 import type { WorkoutLogRow, WorkoutSetRow } from "@/lib/workout-stats";
+import { repeatRoutineWeekly } from "@/lib/repeat-routine";
+import { WorkoutScheduleFields } from "@/components/workout-schedule-fields";
+import { firstScheduleError, validateWorkoutSchedule } from "@/lib/workout-schedule-validation";
 
 const UNITS_KEY = "doseroutine:fitness-units";
 
@@ -126,6 +130,12 @@ export type WorkoutSheetSeed = {
   status: WorkoutStatus;
   /** When set, saving replaces this planned entry instead of adding a new one. */
   convertFromId?: string;
+  /** Exercise names to pre-fill (used by the Exercises library tab). */
+  exercises?: string[];
+  /** Saved illustrated routine to start or edit from the calendar. */
+  template?: WorkoutTemplate;
+  /** Edit the saved routine itself without creating a workout log. */
+  editTemplateOnly?: boolean;
 };
 
 export function WorkoutLogSheet({
@@ -180,7 +190,9 @@ export function WorkoutLogSheet({
   });
   const [rows, setRows] = useState<SetRowState[]>([blankSetRow()]);
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
-  const [repeatWeeks, setRepeatWeeks] = useState(4);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatUntil, setRepeatUntil] = useState("");
+  const [repeatIntervalWeeks, setRepeatIntervalWeeks] = useState(1);
   const [targetPace, setTargetPace] = useState("");
   const [appliedTemplate, setAppliedTemplate] = useState<WorkoutTemplate | null>(null);
 
@@ -193,8 +205,11 @@ export function WorkoutLogSheet({
     setDayKey(seed.dayKey);
     setStartTime((seed.log?.scheduled_time ?? "").slice(0, 5));
     setRepeatDays([]);
+    setRepeatWeekly(false);
+    setRepeatUntil("");
+    setRepeatIntervalWeeks(1);
     setTargetPace("");
-    setAppliedTemplate(null);
+    setAppliedTemplate(seed.template ?? null);
     const log = seed.log;
     setType(((log?.workout_type as WorkoutType) ?? "strength") as WorkoutType);
     setTitle(log?.title ?? "");
@@ -223,7 +238,43 @@ export function WorkoutLogSheet({
       rest: "",
       tempo: "",
     }));
-    setRows(seededRows.length > 0 ? seededRows : [blankSetRow()]);
+    // Exercises picked from the library open the sheet already filled in.
+    const fromTemplate: SetRowState[] = (seed.template?.exercises ?? []).map((exercise) => ({
+      key: exercise.id,
+      exercise: exercise.exercise,
+      sets: exercise.sets != null ? String(exercise.sets) : "",
+      reps: exercise.reps != null ? String(round(exercise.reps)) : "",
+      weight:
+        exercise.weight_kg != null
+          ? String(round(fromKg(exercise.weight_kg, currentUnits), 1))
+          : "",
+      rest: exercise.rest_seconds != null ? String(exercise.rest_seconds) : "",
+      tempo: exercise.tempo ?? "",
+    }));
+    const fromLibrary: SetRowState[] = (seed.exercises ?? []).map((name) => ({
+      ...blankSetRow(),
+      exercise: name,
+    }));
+    const initial =
+      seededRows.length > 0 ? seededRows : fromTemplate.length > 0 ? fromTemplate : fromLibrary;
+    setRows(initial.length > 0 ? initial : [blankSetRow()]);
+    if (seed.template) {
+      setType((seed.template.workout_type as WorkoutType) ?? "strength");
+      setTitle(seed.template.name);
+      setDuration(
+        seed.template.duration_min != null ? String(round(seed.template.duration_min)) : "",
+      );
+      setRpe(seed.template.rpe != null ? String(round(seed.template.rpe)) : "");
+      setCalories(seed.template.calories != null ? String(Math.round(seed.template.calories)) : "");
+      setDistance(
+        seed.template.distance_m != null
+          ? String(round(fromMetres(seed.template.distance_m, currentUnits), 2))
+          : "",
+      );
+      setAvgHr(seed.template.target_hr != null ? String(Math.round(seed.template.target_hr)) : "");
+      setTargetPace(formatPaceInput(seed.template.target_pace_s));
+      setNotes(seed.template.notes ?? "");
+    }
   }, [open, seed]);
 
   const meta = workoutTypeMeta(type);
@@ -395,7 +446,7 @@ export function WorkoutLogSheet({
     staleTime: 60_000,
   });
 
-  const customRows = customExercises.data ?? [];
+  const customRows = useMemo(() => customExercises.data ?? [], [customExercises.data]);
 
   const addCustomExercise = useMutation({
     mutationFn: () =>
@@ -442,11 +493,66 @@ export function WorkoutLogSheet({
     [customRows, type],
   );
 
+  // Recurrence has to be schedulable before the save runs — an empty day set or
+  // an end date before the start day would otherwise silently produce nothing.
+  const scheduleErrors = useMemo(
+    () =>
+      status === "planned"
+        ? validateWorkoutSchedule(
+            {
+              repeats: repeatWeekly,
+              weekdays: repeatDays,
+              time: startTime,
+              intervalWeeks: repeatIntervalWeeks,
+              repeatUntil,
+            },
+            dayKey,
+            { requireTime: true },
+          )
+        : {},
+    [status, repeatWeekly, repeatDays, startTime, repeatIntervalWeeks, repeatUntil, dayKey],
+  );
+  const scheduleBlocker = firstScheduleError(scheduleErrors);
+
   const save = useMutation({
     mutationFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) throw new Error("Not signed in");
+
+      if (seed.editTemplateOnly && seed.template) {
+        if (rows.every((row) => row.exercise.trim() === "")) {
+          throw new Error("Add at least one exercise to this routine");
+        }
+        await saveWorkoutTemplate(
+          {
+            name: title.trim() || seed.template.name,
+            workoutType: type,
+            durationMin,
+            rpe: num(rpe),
+            calories: num(calories),
+            distanceM: distanceMetres,
+            targetPaceS: targetPaceSeconds ?? pace,
+            targetHr: num(avgHr),
+            notes: notes.trim() || null,
+            exercises: rows
+              .filter((row) => row.exercise.trim() !== "")
+              .map((row) => {
+                const weight = num(row.weight);
+                return {
+                  exercise: row.exercise,
+                  sets: num(row.sets),
+                  reps: num(row.reps),
+                  weightKg: weight == null ? null : toKg(weight, units),
+                  restSeconds: num(row.rest),
+                  tempo: row.tempo || null,
+                };
+              }),
+          },
+          seed.template.id,
+        );
+        return;
+      }
 
       const basePayload = {
         user_id: userId,
@@ -466,6 +572,61 @@ export function WorkoutLogSheet({
         stress_level: stressLevel,
         scheduled_time: status === "planned" && startTime ? startTime : null,
       };
+
+      // A repeating plan is one reusable routine plus one recurrence rule.
+      // Do not clone finite workout_logs: Today, Timeline and Fitness all
+      // expand this persistent rule for whichever date the user opens.
+      if (status === "planned" && repeatWeekly && !seed.convertFromId) {
+        if (repeatDays.length === 0) throw new Error("Pick at least one repeat day");
+        if (repeatUntil && repeatUntil < dayKey)
+          throw new Error("The end date has to be on or after the start day");
+        const templateId = await saveWorkoutTemplate(
+          {
+            name: title.trim() || "Workout",
+            workoutType: type,
+            durationMin,
+            rpe: num(rpe),
+            calories: num(calories),
+            distanceM: distanceMetres,
+            targetPaceS: targetPaceSeconds ?? pace,
+            targetHr: num(avgHr),
+            notes: notes.trim() || null,
+            exercises: rows
+              .filter((row) => row.exercise.trim() !== "")
+              .map((row) => {
+                const weight = num(row.weight);
+                return {
+                  exercise: row.exercise,
+                  sets: num(row.sets),
+                  reps: num(row.reps),
+                  weightKg: weight == null ? null : toKg(weight, units),
+                  restSeconds: num(row.rest),
+                  tempo: row.tempo || null,
+                };
+              }),
+          },
+          appliedTemplate?.id,
+        );
+        await repeatRoutineWeekly({
+          templateId,
+          label: title.trim() || "Workout",
+          weekdays: repeatDays,
+          time: startTime || undefined,
+          durationMin,
+          kind: type,
+          intervalWeeks: repeatIntervalWeeks,
+          anchorDate: dayKey,
+          repeatUntil: repeatUntil || null,
+        });
+        if (seed.log?.id) {
+          const { error: removeOneTimeError } = await supabase
+            .from("workout_logs")
+            .delete()
+            .eq("id", seed.log.id);
+          if (removeOneTimeError) throw removeOneTimeError;
+        }
+        return;
+      }
 
       // Editing / converting a planned entry replaces it in place.
       const targetId = seed.convertFromId ?? seed.log?.id;
@@ -506,20 +667,13 @@ export function WorkoutLogSheet({
         );
         if (error) throw error;
       }
-
-      // Weekly repeat only makes sense for things you plan to do.
-      if (status === "planned" && repeatDays.length > 0 && !targetId) {
-        const extra = repeatPlanDates(dayKey, repeatDays, repeatWeeks);
-        if (extra.length > 0) {
-          const { error } = await supabase
-            .from("workout_logs")
-            .insert(extra.map((date) => ({ ...basePayload, performed_on: date })));
-          if (error) throw error;
-        }
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["workout-recent-tags"] });
+      qc.invalidateQueries({ queryKey: ["workout-templates"] });
+      qc.invalidateQueries({ queryKey: ["routine-assignments"] });
+      qc.invalidateQueries({ queryKey: ["today-routine"] });
+      qc.invalidateQueries({ queryKey: ["day-food-workouts"] });
       onSaved();
       onOpenChange(false);
     },
@@ -544,7 +698,13 @@ export function WorkoutLogSheet({
       >
         <SheetHeader className="text-left">
           <SheetTitle>
-            {seed.log ? "Edit workout" : status === "planned" ? "Plan a workout" : "Log a workout"}
+            {seed.editTemplateOnly
+              ? "Edit routine"
+              : seed.log
+                ? "Edit workout"
+                : status === "planned"
+                  ? "Plan a workout"
+                  : "Log a workout"}
           </SheetTitle>
         </SheetHeader>
 
@@ -582,7 +742,7 @@ export function WorkoutLogSheet({
                       className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
                         templateFamily === f.key
                           ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border text-muted-foreground hover:bg-muted"
+                          : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                       }`}
                     >
                       {f.label}
@@ -675,6 +835,7 @@ export function WorkoutLogSheet({
                               {templateSummary(template) || "No details yet"}
                             </p>
                           </button>
+                          <ShareRoutineButton template={template} />
                           <button
                             type="button"
                             aria-label={`Rename template ${template.name}`}
@@ -760,26 +921,27 @@ export function WorkoutLogSheet({
 
           {/* Did it / planning it */}
 
-          <div className="flex gap-2">
-            <ToggleButton active={status === "completed"} onClick={() => setStatus("completed")}>
-              I did this
-            </ToggleButton>
-            <ToggleButton active={status === "planned"} onClick={() => setStatus("planned")}>
-              I plan to
-            </ToggleButton>
-          </div>
+          {!seed.editTemplateOnly && (
+            <div className="flex gap-2">
+              <ToggleButton active={status === "completed"} onClick={() => setStatus("completed")}>
+                I did this
+              </ToggleButton>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <FieldLabel htmlFor="workout-date">Date</FieldLabel>
-              <input
-                id="workout-date"
-                type="date"
-                value={dayKey}
-                onChange={(e) => setDayKey(e.target.value)}
-                className="tap-target mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
-              />
-            </div>
+            {!seed.editTemplateOnly && (
+              <div>
+                <FieldLabel htmlFor="workout-date">Date</FieldLabel>
+                <input
+                  id="workout-date"
+                  type="date"
+                  value={dayKey}
+                  onChange={(e) => setDayKey(e.target.value)}
+                  className="tap-target mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                />
+              </div>
+            )}
             {status === "planned" ? (
               <div>
                 <FieldLabel htmlFor="workout-start-time">Start time</FieldLabel>
@@ -866,7 +1028,7 @@ export function WorkoutLogSheet({
                             className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                               type === t.key
                                 ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border text-muted-foreground hover:bg-muted"
+                                : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                             }`}
                           >
                             {t.label}
@@ -901,9 +1063,7 @@ export function WorkoutLogSheet({
                 </div>
               </div>
             ) : null}
-
           </div>
-
 
           <div>
             <FieldLabel htmlFor="workout-name">Name (optional)</FieldLabel>
@@ -979,10 +1139,7 @@ export function WorkoutLogSheet({
           {showExercises && (
             <div>
               <SectionTitle>Exercises</SectionTitle>
-              <MuscleGroupPicker
-                onPick={insertExercise}
-                chosen={rows.map((r) => r.exercise)}
-              />
+              <MuscleGroupPicker onPick={insertExercise} chosen={rows.map((r) => r.exercise)} />
               <ExerciseSearchGrid
                 names={exerciseSuggestions}
                 onPick={insertExercise}
@@ -1217,48 +1374,30 @@ export function WorkoutLogSheet({
             </div>
           )}
 
-          {status === "planned" && !seed.log && (
-            <div>
-              <SectionTitle>Repeat weekly (optional)</SectionTitle>
-              <div className="flex flex-wrap gap-1.5">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, index) => (
-                  <button
-                    key={label}
-                    type="button"
-                    aria-pressed={repeatDays.includes(index)}
-                    onClick={() =>
-                      setRepeatDays((prev) =>
-                        prev.includes(index) ? prev.filter((d) => d !== index) : [...prev, index],
-                      )
-                    }
-                    className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-                      repeatDays.includes(index)
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border text-muted-foreground"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {repeatDays.length > 0 && (
-                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>for the next</span>
-                  <select
-                    value={repeatWeeks}
-                    onChange={(e) => setRepeatWeeks(Number(e.target.value))}
-                    className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
-                    aria-label="Repeat for weeks"
-                  >
-                    {[2, 4, 8, 12].map((w) => (
-                      <option key={w} value={w}>
-                        {w} weeks
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+          {status === "planned" && !seed.editTemplateOnly && (
+            <WorkoutScheduleFields
+              value={{
+                repeats: repeatWeekly,
+                weekdays: repeatDays,
+                time: startTime,
+                intervalWeeks: repeatIntervalWeeks,
+                repeatUntil,
+              }}
+              onChange={(next) => {
+                setRepeatWeekly(next.repeats);
+                setRepeatDays(
+                  next.repeats && next.weekdays.length === 0
+                    ? [new Date(`${dayKey}T12:00:00`).getDay()]
+                    : next.weekdays,
+                );
+                setStartTime(next.time);
+                setRepeatIntervalWeeks(next.intervalWeeks);
+                setRepeatUntil(next.repeatUntil);
+              }}
+              minDate={dayKey}
+              startDay={dayKey}
+              errors={scheduleErrors}
+            />
           )}
 
           <div>
@@ -1290,57 +1429,69 @@ export function WorkoutLogSheet({
             <p className="text-sm text-destructive">{(saveTemplate.error as Error).message}</p>
           )}
 
+          {scheduleBlocker && (
+            <p role="alert" className="text-sm text-destructive">
+              {scheduleBlocker}
+            </p>
+          )}
           <button
             onClick={() => save.mutate()}
-            disabled={save.isPending}
+            disabled={save.isPending || scheduleBlocker !== null}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
-            {save.isPending ? "Saving…" : status === "planned" ? "Save plan" : "Save workout"}
+            {save.isPending
+              ? "Saving…"
+              : seed.editTemplateOnly
+                ? "Save routine"
+                : status === "planned"
+                  ? "Save plan"
+                  : "Save workout"}
           </button>
 
           {/* Reuse this session later */}
-          {templateNameOpen ? (
-            <div className="rounded-xl border border-border p-3">
-              <FieldLabel htmlFor="workout-template-name">Template name</FieldLabel>
-              <input
-                id="workout-template-name"
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                placeholder={title.trim() || "Push day A"}
-                aria-label="Template name"
-                className="tap-target mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
-              />
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => saveTemplate.mutate()}
-                  disabled={saveTemplate.isPending || (!templateName.trim() && !title.trim())}
-                  className="flex-1 rounded-xl bg-secondary py-2 text-xs font-semibold text-secondary-foreground disabled:opacity-50"
-                >
-                  {saveTemplate.isPending ? "Saving…" : "Save template"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTemplateNameOpen(false)}
-                  className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-muted-foreground"
-                >
-                  Cancel
-                </button>
+          {!seed.editTemplateOnly &&
+            (templateNameOpen ? (
+              <div className="rounded-xl border border-border p-3">
+                <FieldLabel htmlFor="workout-template-name">Template name</FieldLabel>
+                <input
+                  id="workout-template-name"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder={title.trim() || "Push day A"}
+                  aria-label="Template name"
+                  className="tap-target mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => saveTemplate.mutate()}
+                    disabled={saveTemplate.isPending || (!templateName.trim() && !title.trim())}
+                    className="flex-1 rounded-xl bg-secondary py-2 text-xs font-semibold text-secondary-foreground disabled:opacity-50"
+                  >
+                    {saveTemplate.isPending ? "Saving…" : "Save template"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTemplateNameOpen(false)}
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-muted-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setTemplateName(appliedTemplate?.name ?? title.trim());
-                setTemplateNameOpen(true);
-              }}
-              className="tap-target flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-            >
-              <BookmarkPlus className="h-4 w-4" />
-              {appliedTemplate ? "Update / save as template" : "Save as template"}
-            </button>
-          )}
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setTemplateName(appliedTemplate?.name ?? title.trim());
+                  setTemplateNameOpen(true);
+                }}
+                className="tap-target flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+              >
+                <BookmarkPlus className="h-4 w-4" />
+                {appliedTemplate ? "Update / save as template" : "Save as template"}
+              </button>
+            ))}
         </div>
       </SheetContent>
     </Sheet>
@@ -1396,7 +1547,7 @@ function FieldLabel({
   children: React.ReactNode;
   /**
    * Ties the label to its control. Without it the <label> is orphaned: screen
-   * readers announce the input as unlabelled and tapping the text does not
+   * readers announce the input as unlabeled and tapping the text does not
    * focus the field.
    */
   htmlFor?: string;

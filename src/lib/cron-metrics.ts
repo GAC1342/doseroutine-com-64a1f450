@@ -41,6 +41,7 @@ export type RunMetrics = {
     errors?: number;
   }) => void;
   snapshot: () => RunSnapshot;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   finish: (client?: any) => Promise<RunSnapshot>;
 };
 
@@ -141,6 +142,7 @@ export function createRunMetrics(job: string, now: Date = new Date()): RunMetric
       errors += patch.errors ?? 0;
     },
     snapshot,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     finish: async (client?: any) => {
       const snap = snapshot();
       // Always leave a structured line in the function logs, even if the
@@ -165,21 +167,25 @@ export function createRunMetrics(job: string, now: Date = new Date()): RunMetric
 /**
  * Wraps a Supabase client so every `.from(table)` round trip and
  * `auth.admin.listUsers` page is counted, along with the rows it returned.
- * Read-only wrapper: it never changes query behaviour.
+ * Read-only wrapper: it never changes query behavior.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 export function instrumentSupabase<T extends { from: (table: string) => any }>(
   client: T,
   metrics: RunMetrics,
 ): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const wrapBuilder = (builder: any, table: string): any =>
     new Proxy(builder, {
       get(target, prop, receiver) {
         if (prop === "then") {
           const then = Reflect.get(target, prop, receiver);
           if (typeof then !== "function") return then;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
           return (onFulfilled: any, onRejected: any) =>
             then.call(
               target,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
               (res: any) => {
                 metrics.countQuery(table, Array.isArray(res?.data) ? res.data.length : 0);
                 return onFulfilled ? onFulfilled(res) : res;
@@ -189,6 +195,7 @@ export function instrumentSupabase<T extends { from: (table: string) => any }>(
         }
         const value = Reflect.get(target, prop, receiver);
         if (typeof value === "function") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
           return (...args: any[]) => {
             const result = value.apply(target, args);
             if (result && result === target) return receiver;
@@ -202,6 +209,7 @@ export function instrumentSupabase<T extends { from: (table: string) => any }>(
       },
     });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   return new Proxy(client as any, {
     get(target, prop, receiver) {
       if (prop === "from") {
@@ -217,6 +225,7 @@ export function instrumentSupabase<T extends { from: (table: string) => any }>(
               get(adminTarget, adminProp) {
                 const fn = Reflect.get(adminTarget, adminProp);
                 if (adminProp !== "listUsers" || typeof fn !== "function") return fn;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
                 return async (...args: any[]) => {
                   const res = await fn.apply(adminTarget, args);
                   metrics.countQuery("auth.users", res?.data?.users?.length ?? 0);

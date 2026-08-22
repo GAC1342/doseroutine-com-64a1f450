@@ -90,7 +90,5 @@ export const PRO_ROUTES: ProRoute[] = [
 /** Returns the Pro route definition matching this pathname, if any. */
 export function matchProRoute(pathname: string): ProRoute | null {
   const clean = pathname.replace(/\/+$/, "") || "/";
-  return (
-    PRO_ROUTES.find((r) => clean === r.path || clean.startsWith(`${r.path}/`)) ?? null
-  );
+  return PRO_ROUTES.find((r) => clean === r.path || clean.startsWith(`${r.path}/`)) ?? null;
 }

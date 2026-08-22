@@ -1,0 +1,50 @@
+name: Head budget (max 60 head children)
+
+# Fails when any rendered page emits a <head> with more than 60 element
+# children — the threshold audit crawlers report as "node with more than 60
+# childs", and the point where style recalculation starts to cost real time.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to check (defaults to a locally built preview)"
+        required: false
+        default: ""
+
+jobs:
+  head-budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Unit rules
+        run: npx vitest run src/lib/__tests__/head-budget-ci.test.ts
+
+      - name: Install
+        if: ${{ inputs.base_url == '' }}
+        run: npm ci
+
+      - name: Build
+        if: ${{ inputs.base_url == '' }}
+        run: npm run build
+
+      - name: Serve preview
+        if: ${{ inputs.base_url == '' }}
+        run: |
+          npm run preview -- --port 8080 --host 127.0.0.1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:8080/ && break
+            sleep 2
+          done
+
+      - name: Check head child counts
+        run: node scripts/check-head-budget.mjs "${{ inputs.base_url || 'http://127.0.0.1:8080' }}"

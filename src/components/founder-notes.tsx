@@ -38,8 +38,8 @@ export function FounderNotes({
         </h2>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        First-hand observations from using DoseRoutine day to day. Personal experience, not
-        medical advice.
+        First-hand observations from using DoseRoutine day to day. Personal experience, not medical
+        advice.
       </p>
       <ul className="mt-4 space-y-4">
         {notes.map((note) => (

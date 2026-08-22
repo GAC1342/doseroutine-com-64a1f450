@@ -54,10 +54,9 @@ test.describe("illustration image loading", () => {
 
     // Thumbnail bitmap must be in before we measure the modal open.
     await expect
-      .poll(
-        () => thumbImg.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0),
-        { timeout: 15_000 },
-      )
+      .poll(() => thumbImg.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0), {
+        timeout: 15_000,
+      })
       .toBe(true);
     await settle(page);
 

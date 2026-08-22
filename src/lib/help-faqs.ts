@@ -7,7 +7,7 @@
 //     words, which reads as thin content to both crawlers and answer engines).
 //
 // Keyed by HelpArticle.slug. Keep answers plain-English and specific to
-// DoseRoutine behaviour — no generic filler.
+// DoseRoutine behavior — no generic filler.
 
 export type HelpFaq = { q: string; a: string };
 
@@ -127,7 +127,7 @@ export const HELP_FAQS: Record<string, HelpFaq[]> = {
   refills: [
     {
       q: "How does the app know when I'm running low?",
-      a: "You enter how many pills, capsules, or millilitres a container holds. Every logged dose decrements the count, so the remaining supply is based on what you actually took, not on the calendar.",
+      a: "You enter how many pills, capsules, or milliliters a container holds. Every logged dose decrements the count, so the remaining supply is based on what you actually took, not on the calendar.",
     },
     {
       q: "When does the refill warning appear?",
@@ -228,7 +228,7 @@ export const HELP_FAQS: Record<string, HelpFaq[]> = {
       a: "The common panels — hormones, lipids, metabolic markers, liver and kidney function, and blood count — each with your value, the unit, and the reference range from your report.",
     },
     {
-      q: "What do the colours mean?",
+      q: "What do the colors mean?",
       a: "Green is inside the reference range, yellow is borderline, and red is outside it. The comparison uses the range printed on your own lab report, because reference ranges differ between labs.",
     },
     {

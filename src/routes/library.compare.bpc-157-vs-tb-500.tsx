@@ -9,8 +9,9 @@ import {
 } from "@/components/peptide-dosage-glossary";
 import { Card, cardClassName } from "@/components/ui/card";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/compare/bpc-157-vs-tb-500";
+export const CANONICAL = "https://doseroutine.com/library/compare/bpc-157-vs-tb-500";
 const TITLE = "BPC-157 vs TB-500: Mechanism, Recovery & Stack Guide";
 const DESC =
   "BPC-157 vs TB-500 compared: how each peptide works, recovery evidence, typical dosing and how people stack them. Track both in DoseRoutine.";
@@ -18,7 +19,7 @@ const OG_IMAGE = "https://doseroutine.com/og/bpc-157-vs-tb-500.jpg";
 const OG_IMAGE_ALT =
   "BPC-157 vs TB-500 comparison — mechanism, recovery and stacking guide by DoseRoutine";
 
-const FAQ_PAIRS: { q: string; a: string }[] = [
+export const FAQ_PAIRS: { q: string; a: string }[] = [
   {
     q: "What's the main difference between BPC-157 and TB-500?",
     a: "BPC-157 promotes healing largely by upregulating growth factors and angiogenesis (new blood vessel formation) at the site of injury. TB-500 (a synthetic fragment of Thymosin Beta-4) works systemically by sequestering G-actin, which drives cell migration, tissue remodeling and reduced inflammation.",
@@ -73,7 +74,7 @@ export const Route = createFileRoute("/library/compare/bpc-157-vs-tb-500")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/compare/bpc-157-vs-tb-500"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -91,8 +92,16 @@ export const Route = createFileRoute("/library/compare/bpc-157-vs-tb-500")({
           datePublished: "2026-07-25",
           dateModified: "2026-07-25",
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine", url: "https://doseroutine.com" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+            url: "https://doseroutine.com",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             url: "https://doseroutine.com",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
@@ -141,7 +150,7 @@ export const Route = createFileRoute("/library/compare/bpc-157-vs-tb-500")({
           url: `${CANONICAL}#glossary`,
         }),
       },
-    ],
+    ]),
   }),
   component: ComparePage,
 });

@@ -173,8 +173,6 @@ jobs:
           echo "Landscape regression failed — see the landscape-diffs-${{ matrix.name }} artifact (open index.html)."
           exit 1
 
-
-
       - name: Rotation containment and focus (iOS Safari)
         if: matrix.browser == 'webkit' && matrix.class == 'mobile'
         env:
@@ -222,8 +220,6 @@ jobs:
         run: >-
           bunx playwright test e2e/exercise-art-slow-network.spec.ts
           --project=${{ matrix.browser }} --reporter=list
-
-
 
       - name: Scroll/resize stability at ${{ matrix.width }}px
         env:
@@ -353,7 +349,6 @@ jobs:
           bunx playwright test e2e/exercise-art-ios-safari.spec.ts
           --project=${{ matrix.project }} --reporter=list
 
-
       # Landscape containment on iOS-style rendering. Kept non-fatal until the
       # diffs are collected, then failed explicitly below.
       - name: Landscape containment at ${{ matrix.width }}px
@@ -411,7 +406,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-
       - name: Fail if any stability suite failed
         if: >-
           steps.scroll_resize.outcome == 'failure' ||
@@ -430,9 +424,6 @@ jobs:
           echo "  landscape     : ${{ steps.landscape.outcome }}"
           echo "Open failure-media-stability-${{ matrix.name }} (index.html) for screenshots + videos."
           exit 1
-
-
-
 
       - name: Collect visual artifacts (baselines + diffs + HTML report)
         if: always()
@@ -521,7 +512,6 @@ jobs:
           path: merged/landscape-final/
           if-no-files-found: warn
           retention-days: 14
-
 
       - name: Summary
         if: always()

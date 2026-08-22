@@ -122,6 +122,105 @@ export type Database = {
         }
         Relationships: []
       }
+      barcode_cache: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          payload: Json
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          code: string
+          created_at?: string
+          payload: Json
+          source: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          payload?: Json
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      barcode_corrections: {
+        Row: {
+          code: string
+          created_at: string
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          user_id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      barcode_scan_events: {
+        Row: {
+          api_results: Json
+          category: string | null
+          code: string
+          created_at: string
+          id: string
+          latency_ms: number | null
+          resolved: boolean
+          scan_source: string | null
+          source: string | null
+          symbology: string | null
+          user_id: string | null
+        }
+        Insert: {
+          api_results?: Json
+          category?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          resolved?: boolean
+          scan_source?: string | null
+          source?: string | null
+          symbology?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          api_results?: Json
+          category?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          resolved?: boolean
+          scan_source?: string | null
+          source?: string | null
+          symbology?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       body_checkins: {
         Row: {
           body_fat_pct: number | null
@@ -649,6 +748,205 @@ export type Database = {
         }
         Relationships: []
       }
+      food_admin_audit: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          food_id: string | null
+          id: string
+          label: string | null
+          reverted_at: string | null
+          reverted_by: string | null
+          target_id: string | null
+          target_table: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          food_id?: string | null
+          id?: string
+          label?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          target_id?: string | null
+          target_table: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          food_id?: string | null
+          id?: string
+          label?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          target_id?: string | null
+          target_table?: string
+        }
+        Relationships: []
+      }
+      food_aliases: {
+        Row: {
+          alias: string
+          alias_norm: string
+          created_at: string
+          food_id: string
+          id: string
+        }
+        Insert: {
+          alias: string
+          alias_norm: string
+          created_at?: string
+          food_id: string
+          id?: string
+        }
+        Update: {
+          alias?: string
+          alias_norm?: string
+          created_at?: string
+          food_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_aliases_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_portions: {
+        Row: {
+          created_at: string
+          food_id: string
+          grams: number
+          id: string
+          is_default: boolean
+          label: string
+          reference_hint: string | null
+          sort_order: number
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          food_id: string
+          grams: number
+          id?: string
+          is_default?: boolean
+          label: string
+          reference_hint?: string | null
+          sort_order?: number
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          food_id?: string
+          grams?: number
+          id?: string
+          is_default?: boolean
+          label?: string
+          reference_hint?: string | null
+          sort_order?: number
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_portions_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foods: {
+        Row: {
+          brand: string | null
+          cache_key: string | null
+          carbs_100g: number
+          created_at: string
+          default_portion_g: number
+          external_id: string | null
+          fat_100g: number
+          fiber_100g: number | null
+          gtin: string | null
+          id: string
+          kcal_100g: number
+          name: string
+          name_norm: string
+          protein_100g: number
+          quality_score: number
+          satfat_100g: number | null
+          sodium_100mg: number | null
+          source: string
+          sugar_100g: number | null
+          times_logged: number
+          updated_at: string
+          verified: boolean
+        }
+        Insert: {
+          brand?: string | null
+          cache_key?: string | null
+          carbs_100g?: number
+          created_at?: string
+          default_portion_g?: number
+          external_id?: string | null
+          fat_100g?: number
+          fiber_100g?: number | null
+          gtin?: string | null
+          id?: string
+          kcal_100g?: number
+          name: string
+          name_norm: string
+          protein_100g?: number
+          quality_score?: number
+          satfat_100g?: number | null
+          sodium_100mg?: number | null
+          source?: string
+          sugar_100g?: number | null
+          times_logged?: number
+          updated_at?: string
+          verified?: boolean
+        }
+        Update: {
+          brand?: string | null
+          cache_key?: string | null
+          carbs_100g?: number
+          created_at?: string
+          default_portion_g?: number
+          external_id?: string | null
+          fat_100g?: number
+          fiber_100g?: number | null
+          gtin?: string | null
+          id?: string
+          kcal_100g?: number
+          name?: string
+          name_norm?: string
+          protein_100g?: number
+          quality_score?: number
+          satfat_100g?: number | null
+          sodium_100mg?: number | null
+          source?: string
+          sugar_100g?: number | null
+          times_logged?: number
+          updated_at?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       goal_content: {
         Row: {
           intro_md: string
@@ -673,6 +971,45 @@ export type Database = {
           slug?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      grocery_list_overrides: {
+        Row: {
+          checked: boolean
+          created_at: string
+          hidden: boolean
+          id: string
+          is_custom: boolean
+          name: string
+          quantity: string | null
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          checked?: boolean
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          is_custom?: boolean
+          name: string
+          quantity?: string | null
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          checked?: boolean
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          is_custom?: boolean
+          name?: string
+          quantity?: string | null
+          updated_at?: string
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }
@@ -1178,6 +1515,45 @@ export type Database = {
           },
         ]
       }
+      logging_reminder_settings: {
+        Row: {
+          breakfast_by: string
+          created_at: string
+          dinner_by: string
+          doses_enabled: boolean
+          lunch_by: string
+          meals_enabled: boolean
+          quiet_after: string
+          snoozed_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          breakfast_by?: string
+          created_at?: string
+          dinner_by?: string
+          doses_enabled?: boolean
+          lunch_by?: string
+          meals_enabled?: boolean
+          quiet_after?: string
+          snoozed_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          breakfast_by?: string
+          created_at?: string
+          dinner_by?: string
+          doses_enabled?: boolean
+          lunch_by?: string
+          meals_enabled?: boolean
+          quiet_after?: string
+          snoozed_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       manual_bookmarks: {
         Row: {
           created_at: string
@@ -1262,6 +1638,143 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_plan_slots: {
+        Row: {
+          calories: number | null
+          carbs_g: number | null
+          created_at: string
+          fat_g: number | null
+          id: string
+          items: Json
+          label: string
+          logged_meal_id: string | null
+          meal_slot: string
+          planned_on: string
+          protein_g: number | null
+          source_meal_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          items?: Json
+          label: string
+          logged_meal_id?: string | null
+          meal_slot?: string
+          planned_on: string
+          protein_g?: number | null
+          source_meal_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          items?: Json
+          label?: string
+          logged_meal_id?: string | null
+          meal_slot?: string
+          planned_on?: string
+          protein_g?: number | null
+          source_meal_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_scan_corrections: {
+        Row: {
+          ai_calories: number
+          ai_carbs_g: number
+          ai_fat_g: number
+          ai_grams: number | null
+          ai_portion: string | null
+          ai_protein_g: number
+          calorie_drift_pct: number
+          created_at: string
+          food_id: string | null
+          id: string
+          item_name: string
+          item_name_norm: string
+          meal_id: string | null
+          read_from: string | null
+          resolved_source: string | null
+          scan_id: string | null
+          user_calories: number
+          user_carbs_g: number
+          user_fat_g: number
+          user_grams: number | null
+          user_id: string
+          user_portion: string | null
+          user_protein_g: number
+        }
+        Insert: {
+          ai_calories?: number
+          ai_carbs_g?: number
+          ai_fat_g?: number
+          ai_grams?: number | null
+          ai_portion?: string | null
+          ai_protein_g?: number
+          calorie_drift_pct?: number
+          created_at?: string
+          food_id?: string | null
+          id?: string
+          item_name: string
+          item_name_norm: string
+          meal_id?: string | null
+          read_from?: string | null
+          resolved_source?: string | null
+          scan_id?: string | null
+          user_calories?: number
+          user_carbs_g?: number
+          user_fat_g?: number
+          user_grams?: number | null
+          user_id: string
+          user_portion?: string | null
+          user_protein_g?: number
+        }
+        Update: {
+          ai_calories?: number
+          ai_carbs_g?: number
+          ai_fat_g?: number
+          ai_grams?: number | null
+          ai_portion?: string | null
+          ai_protein_g?: number
+          calorie_drift_pct?: number
+          created_at?: string
+          food_id?: string | null
+          id?: string
+          item_name?: string
+          item_name_norm?: string
+          meal_id?: string | null
+          read_from?: string | null
+          resolved_source?: string | null
+          scan_id?: string | null
+          user_calories?: number
+          user_carbs_g?: number
+          user_fat_g?: number
+          user_grams?: number | null
+          user_id?: string
+          user_portion?: string | null
+          user_protein_g?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_scan_corrections_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_times: {
         Row: {
           active: boolean
@@ -1301,6 +1814,96 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_timing_presets: {
+        Row: {
+          auto_mode: string
+          auto_weekdays: number[]
+          created_at: string
+          empty_stomach_gap_min: number
+          first_meal_protein_g: number
+          id: string
+          late_meal_hour: number
+          max_meals_per_day: number
+          name: string
+          suggestions_enabled: boolean
+          updated_at: string
+          user_id: string
+          with_food_window_min: number
+          workout_window_min: number
+        }
+        Insert: {
+          auto_mode?: string
+          auto_weekdays?: number[]
+          created_at?: string
+          empty_stomach_gap_min?: number
+          first_meal_protein_g?: number
+          id?: string
+          late_meal_hour?: number
+          max_meals_per_day?: number
+          name: string
+          suggestions_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          with_food_window_min?: number
+          workout_window_min?: number
+        }
+        Update: {
+          auto_mode?: string
+          auto_weekdays?: number[]
+          created_at?: string
+          empty_stomach_gap_min?: number
+          first_meal_protein_g?: number
+          id?: string
+          late_meal_hour?: number
+          max_meals_per_day?: number
+          name?: string
+          suggestions_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          with_food_window_min?: number
+          workout_window_min?: number
+        }
+        Relationships: []
+      }
+      meal_timing_rules: {
+        Row: {
+          created_at: string
+          empty_stomach_gap_min: number
+          first_meal_protein_g: number
+          late_meal_hour: number
+          max_meals_per_day: number
+          suggestions_enabled: boolean
+          updated_at: string
+          user_id: string
+          with_food_window_min: number
+          workout_window_min: number
+        }
+        Insert: {
+          created_at?: string
+          empty_stomach_gap_min?: number
+          first_meal_protein_g?: number
+          late_meal_hour?: number
+          max_meals_per_day?: number
+          suggestions_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          with_food_window_min?: number
+          workout_window_min?: number
+        }
+        Update: {
+          created_at?: string
+          empty_stomach_gap_min?: number
+          first_meal_protein_g?: number
+          late_meal_hour?: number
+          max_meals_per_day?: number
+          suggestions_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          with_food_window_min?: number
+          workout_window_min?: number
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           adj_calories: number | null
@@ -1314,10 +1917,14 @@ export type Database = {
           est_carbs_g: number | null
           est_fat_g: number | null
           est_protein_g: number | null
+          fiber_g: number | null
+          health_score: number | null
           id: string
           label: string | null
           logged_at: string | null
           meal_slot: string
+          meal_type: string | null
+          name: string | null
           notes: string | null
           photo_url: string | null
           source: string
@@ -1337,10 +1944,14 @@ export type Database = {
           est_carbs_g?: number | null
           est_fat_g?: number | null
           est_protein_g?: number | null
+          fiber_g?: number | null
+          health_score?: number | null
           id?: string
           label?: string | null
           logged_at?: string | null
           meal_slot?: string
+          meal_type?: string | null
+          name?: string | null
           notes?: string | null
           photo_url?: string | null
           source?: string
@@ -1360,10 +1971,14 @@ export type Database = {
           est_carbs_g?: number | null
           est_fat_g?: number | null
           est_protein_g?: number | null
+          fiber_g?: number | null
+          health_score?: number | null
           id?: string
           label?: string | null
           logged_at?: string | null
           meal_slot?: string
+          meal_type?: string | null
+          name?: string | null
           notes?: string | null
           photo_url?: string | null
           source?: string
@@ -1530,6 +2145,69 @@ export type Database = {
           step?: string | null
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      outrank_articles: {
+        Row: {
+          answer: string | null
+          body: string
+          body_format: string | null
+          created_at: string | null
+          faqs: Json | null
+          featured_image_url: string | null
+          id: string
+          lang: string | null
+          meta_description: string | null
+          meta_title: string | null
+          modified_at: string | null
+          published_at: string | null
+          raw_payload: Json | null
+          slug: string
+          status: string | null
+          target_keyword: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer?: string | null
+          body: string
+          body_format?: string | null
+          created_at?: string | null
+          faqs?: Json | null
+          featured_image_url?: string | null
+          id?: string
+          lang?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          modified_at?: string | null
+          published_at?: string | null
+          raw_payload?: Json | null
+          slug: string
+          status?: string | null
+          target_keyword?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: string | null
+          body?: string
+          body_format?: string | null
+          created_at?: string | null
+          faqs?: Json | null
+          featured_image_url?: string | null
+          id?: string
+          lang?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          modified_at?: string | null
+          published_at?: string | null
+          raw_payload?: Json | null
+          slug?: string
+          status?: string | null
+          target_keyword?: string | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1943,6 +2621,50 @@ export type Database = {
         }
         Relationships: []
       }
+      routine_shares: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          owner_user_id: string
+          public_id: string
+          routine_id: string
+          save_count: number
+          show_owner_name: boolean
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_user_id: string
+          public_id: string
+          routine_id: string
+          save_count?: number
+          show_owner_name?: boolean
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_user_id?: string
+          public_id?: string
+          routine_id?: string
+          save_count?: number
+          show_owner_name?: boolean
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_shares_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scan_history: {
         Row: {
           applied: boolean
@@ -2164,6 +2886,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sitemap_snapshots: {
+        Row: {
+          article_count: number
+          changed: boolean
+          created_at: string
+          fingerprint: string
+          id: string
+          image_count: number
+          regressions: Json
+          resubmit_ok: boolean | null
+          resubmitted: boolean
+          url_count: number
+          xml: string | null
+        }
+        Insert: {
+          article_count?: number
+          changed?: boolean
+          created_at?: string
+          fingerprint: string
+          id?: string
+          image_count?: number
+          regressions?: Json
+          resubmit_ok?: boolean | null
+          resubmitted?: boolean
+          url_count: number
+          xml?: string | null
+        }
+        Update: {
+          article_count?: number
+          changed?: boolean
+          created_at?: string
+          fingerprint?: string
+          id?: string
+          image_count?: number
+          regressions?: Json
+          resubmit_ok?: boolean | null
+          resubmitted?: boolean
+          url_count?: number
+          xml?: string | null
+        }
+        Relationships: []
       }
       standing_skip_rules: {
         Row: {
@@ -2602,53 +3366,82 @@ export type Database = {
       workout_sessions: {
         Row: {
           active: boolean | null
+          anchor_date: string | null
           at_time_alert_on: boolean | null
           created_at: string | null
           days_of_week: number[] | null
+          duration_min: number | null
           ended_at: string | null
           id: string
+          interval_weeks: number
           kind: string | null
           label: string | null
           planned_time: string | null
           post_window_min: number | null
           pre_alert_on: boolean | null
           pre_lead_min: number | null
+          repeat_until: string | null
+          skipped_dates: string[]
           started_at: string | null
+          template_id: string | null
+          time_overrides: Json
           user_id: string
         }
         Insert: {
           active?: boolean | null
+          anchor_date?: string | null
           at_time_alert_on?: boolean | null
           created_at?: string | null
           days_of_week?: number[] | null
+          duration_min?: number | null
           ended_at?: string | null
           id?: string
+          interval_weeks?: number
           kind?: string | null
           label?: string | null
           planned_time?: string | null
           post_window_min?: number | null
           pre_alert_on?: boolean | null
           pre_lead_min?: number | null
+          repeat_until?: string | null
+          skipped_dates?: string[]
           started_at?: string | null
+          template_id?: string | null
+          time_overrides?: Json
           user_id: string
         }
         Update: {
           active?: boolean | null
+          anchor_date?: string | null
           at_time_alert_on?: boolean | null
           created_at?: string | null
           days_of_week?: number[] | null
+          duration_min?: number | null
           ended_at?: string | null
           id?: string
+          interval_weeks?: number
           kind?: string | null
           label?: string | null
           planned_time?: string | null
           post_window_min?: number | null
           pre_alert_on?: boolean | null
           pre_lead_min?: number | null
+          repeat_until?: string | null
+          skipped_dates?: string[]
           started_at?: string | null
+          template_id?: string | null
+          time_overrides?: Json
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_sets: {
         Row: {
@@ -2840,6 +3633,21 @@ export type Database = {
       }
     }
     Functions: {
+      barcode_miss_report: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          cached_category: string
+          cached_name: string
+          cached_source: string
+          code: string
+          corrections: number
+          last_seen: string
+          misses: number
+          resolved_later: boolean
+          scan_sources: string[]
+        }[]
+      }
+      barcode_scan_stats: { Args: { _days?: number }; Returns: Json }
       closed_testing_funnel_by_source: {
         Args: never
         Returns: {
@@ -2875,6 +3683,32 @@ export type Database = {
           title: string
           token: string
         }[]
+      }
+      get_shared_routine: {
+        Args: { _public_id: string }
+        Returns: {
+          created_at: string
+          distance_m: number
+          duration_min: number
+          exercises: Json
+          owner_name: string
+          public_id: string
+          routine_name: string
+          rpe: number
+          save_count: number
+          target_hr: number
+          target_pace_s: number
+          view_count: number
+          workout_type: string
+        }[]
+      }
+      increment_routine_share_save: {
+        Args: { _public_id: string }
+        Returns: undefined
+      }
+      increment_routine_share_view: {
+        Args: { _public_id: string }
+        Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
     }

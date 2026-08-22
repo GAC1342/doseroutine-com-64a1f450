@@ -38,6 +38,7 @@ const APP_GUIDE_BLOCK = `APP GUIDE (how DoseRoutine features work — cite these
       .join(" ")}`,
 ).join("\n")}`;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function loadUserContext(supabase: any, userId: string) {
   const [{ data: stack }, { data: profile }] = await Promise.all([
     supabase
@@ -55,6 +56,7 @@ async function loadUserContext(supabase: any, userId: string) {
 
 /** Server-side tier resolution. Never trust a client header for entitlements —
  *  read the caller's own subscriptions row under RLS. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function resolveTier(supabase: any, userId: string): Promise<"free" | "pro"> {
   const { data } = await supabase
     .from("subscriptions")

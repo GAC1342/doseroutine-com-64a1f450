@@ -171,9 +171,7 @@ export function computeStats(
     .filter((d) => !Number.isNaN(d.getTime()));
 
   const currentWeek = startOfWeek(now);
-  const weekKeys = new Set(
-    completed.map((d) => startOfWeek(d).getTime()),
-  );
+  const weekKeys = new Set(completed.map((d) => startOfWeek(d).getTime()));
 
   let weeklyStreak = 0;
   let cursor = currentWeek.getTime();
@@ -186,10 +184,7 @@ export function computeStats(
 
   const monthDays = new Set(
     completed
-      .filter(
-        (d) =>
-          d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(),
-      )
+      .filter((d) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth())
       .map((d) => d.getDate()),
   );
 
@@ -252,11 +247,7 @@ export function weeklyCompletionSeries(
   for (let i = weeks - 1; i >= 0; i -= 1) {
     const start = currentWeek - i * WEEK_MS;
     const startDate = new Date(start);
-    const days = new Set(
-      dates
-        .filter((d) => startOfWeek(d).getTime() === start)
-        .map(dayKey),
-    );
+    const days = new Set(dates.filter((d) => startOfWeek(d).getTime() === start).map(dayKey));
     buckets.push({
       key: `${startDate.getFullYear()}-W${startDate.getMonth() + 1}-${startDate.getDate()}`,
       label: startDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
@@ -281,8 +272,7 @@ export function monthlyCompletionSeries(
     const days = new Set(
       dates
         .filter(
-          (d) =>
-            d.getFullYear() === anchor.getFullYear() && d.getMonth() === anchor.getMonth(),
+          (d) => d.getFullYear() === anchor.getFullYear() && d.getMonth() === anchor.getMonth(),
         )
         .map(dayKey),
     );

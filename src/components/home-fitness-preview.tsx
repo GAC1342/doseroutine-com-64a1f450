@@ -52,7 +52,7 @@ const LEGEND: WorkoutFamily[] = ["strength", "cardio", "mindbody", "sport"];
 
 /**
  * Static, non-interactive illustration of the Fitness & Body page for the
- * marketing homepage. Uses the same family colours as the real calendar.
+ * marketing homepage. Uses the same family colors as the real calendar.
  */
 export function HomeFitnessPreview() {
   return (

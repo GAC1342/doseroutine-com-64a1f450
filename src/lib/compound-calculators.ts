@@ -64,7 +64,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     description:
       "Free retatrutide dosage calculator. Enter vial mg and bacteriostatic water to get mg/mL, exact insulin-syringe units per dose and doses per vial.",
     intro:
-      "Retatrutide ships as a lyophilised powder, so every dose depends on how much bacteriostatic water you added. Enter your vial size, your BAC water volume and the dose you want, and this calculator returns the exact number of units to draw on a U-100 insulin syringe.",
+      "Retatrutide ships as a lyophilized powder, so every dose depends on how much bacteriostatic water you added. Enter your vial size, your BAC water volume and the dose you want, and this calculator returns the exact number of units to draw on a U-100 insulin syringe.",
     vialSizes: [5, 10, 15, 20, 24],
     defaults: { vialMg: 10, bacMl: 2, doseValue: 2, doseUnit: "mg" },
     presets: [
@@ -101,7 +101,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     ],
     notes: [
       "Retatrutide is investigational — it is not FDA-approved and no licensed product exists. Dosing figures come from the Phase 2 trial, not a label.",
-      "At 10 mg vial + 2 mL BAC water you get 5 mg/mL, so 1 mg = 20 units on a U-100 syringe. Easy mental maths.",
+      "At 10 mg vial + 2 mL BAC water you get 5 mg/mL, so 1 mg = 20 units on a U-100 syringe. Easy mental math.",
       "Adding more BAC water does not change the total drug — it only makes each unit smaller and easier to measure accurately.",
       "Under ~10 units per dose, small measuring errors become large percentage errors. Dilute further if your draw is tiny.",
     ],
@@ -134,7 +134,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     description:
       "Free BPC-157 dosage calculator. Convert vial mg and BAC water into mg/mL, insulin-syringe units per dose and doses per vial for 5 mg and 10 mg vials.",
     intro:
-      "BPC-157 is almost always sold as a 5 mg or 10 mg lyophilised vial, and typical doses are in the 250–500 mcg range — small enough that reconstitution volume matters a lot. Enter your numbers below to get the exact units to draw.",
+      "BPC-157 is almost always sold as a 5 mg or 10 mg lyophilized vial, and typical doses are in the 250–500 mcg range — small enough that reconstitution volume matters a lot. Enter your numbers below to get the exact units to draw.",
     vialSizes: [5, 10],
     defaults: { vialMg: 5, bacMl: 2, doseValue: 250, doseUnit: "mcg" },
     presets: [
@@ -173,7 +173,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
       "BPC-157 has no completed human efficacy trials. All dosing conventions are extrapolated from rodent studies and user reports.",
       "5 mg + 2 mL = 2.5 mg/mL, so 250 mcg = 10 units on a U-100 syringe — the single most common BPC-157 setup.",
       "If your draw comes out under 5 units, add more BAC water. Measuring 3 units accurately on a U-100 syringe is unrealistic.",
-      "Blends with TB-500 change the maths entirely — calculate each peptide's mg separately, not the combined label weight.",
+      "Blends with TB-500 change the math entirely — calculate each peptide's mg separately, not the combined label weight.",
     ],
     faqs: [
       {
@@ -190,7 +190,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
       },
       {
         q: "Does BPC-157 need to be refrigerated after mixing?",
-        a: "Yes. Reconstituted BPC-157 should be kept at 2–8 °C and protected from light. Unreconstituted lyophilised powder is far more stable and can sit at room temperature for shorter periods.",
+        a: "Yes. Reconstituted BPC-157 should be kept at 2–8 °C and protected from light. Unreconstituted lyophilized powder is far more stable and can sit at room temperature for shorter periods.",
       },
     ],
     libraryPath: "/library/bpc-157",
@@ -236,7 +236,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
         phase: "Maximum",
         dose: "15 mg",
         frequency: "Once weekly",
-        note: "Highest labelled dose for Mounjaro and Zepbound.",
+        note: "Highest labeled dose for Mounjaro and Zepbound.",
       },
     ],
     notes: [
@@ -328,7 +328,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
       },
       {
         q: "Is compounded semaglutide dosed the same as Ozempic?",
-        a: "The milligram amounts follow the same titration ladder, but pens deliver a fixed metered dose while a compounded vial relies entirely on your own measurement. That is exactly why the concentration maths matters.",
+        a: "The milligram amounts follow the same titration ladder, but pens deliver a fixed metered dose while a compounded vial relies entirely on your own measurement. That is exactly why the concentration math matters.",
       },
       {
         q: "How many doses in a 5 mg semaglutide vial?",
@@ -408,7 +408,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
       },
     ],
     notes: [
-      "A blended vial labelled '10 mg' is usually 5 mg of each peptide — calculate per-peptide, never on the combined weight.",
+      "A blended vial labeled '10 mg' is usually 5 mg of each peptide — calculate per-peptide, never on the combined weight.",
       "5 mg + 2.5 mL = 2 mg/mL, so 200 mcg = 10 units. Diluting to 5 mL makes the same dose 20 units and much easier to read.",
       "Dosing past the saturation point does not raise the GH pulse — it just burns through the vial faster.",
       "Ipamorelin is selective; GHRP-2 and GHRP-6 raise cortisol and prolactin more, which is why this pair is the common choice.",
@@ -513,7 +513,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     description:
       "Free TB-500 dosage calculator. Enter vial mg and bacteriostatic water for mg/mL concentration, exact insulin-syringe units and doses per vial.",
     intro:
-      "TB-500 is dosed in milligrams rather than micrograms, so draws are larger than most peptides — but the reconstitution maths is identical. Enter your vial and target dose below.",
+      "TB-500 is dosed in milligrams rather than micrograms, so draws are larger than most peptides — but the reconstitution math is identical. Enter your vial and target dose below.",
     vialSizes: [2, 5, 10],
     defaults: { vialMg: 5, bacMl: 2, doseValue: 2, doseUnit: "mg" },
     presets: [
@@ -722,7 +722,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     description:
       "Free HCG dosage calculator. Convert vial IU and bacteriostatic water into IU/mL and exact insulin-syringe units for 250 IU, 500 IU and 1000 IU doses.",
     intro:
-      "HCG is measured in international units rather than milligrams, but the reconstitution maths is identical — treat 1,000 IU as 1 'mg' in the calculator below and the unit conversions hold exactly.",
+      "HCG is measured in international units rather than milligrams, but the reconstitution math is identical — treat 1,000 IU as 1 'mg' in the calculator below and the unit conversions hold exactly.",
     vialSizes: [5, 10, 11],
     defaults: { vialMg: 5, bacMl: 5, doseValue: 250, doseUnit: "mcg" },
     presets: [
@@ -764,7 +764,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
       },
     ],
     notes: [
-      "In the calculator, enter 1,000 IU as 1 mg — the ratio maths is identical, so a '5 mg' vial mixed in 5 mL means 1,000 IU/mL and 250 IU = 25 units.",
+      "In the calculator, enter 1,000 IU as 1 mg — the ratio math is identical, so a '5 mg' vial mixed in 5 mL means 1,000 IU/mL and 250 IU = 25 units.",
       "HCG must be refrigerated after reconstitution and is generally treated as good for around 30 days.",
       "HCG raises oestradiol in some men on TRT — bloodwork matters more here than with most peptides.",
       "HCG is prescription-only. Purity and dose accuracy from unregulated sources are a real risk.",
@@ -780,7 +780,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
       },
       {
         q: "Why is HCG used alongside TRT?",
-        a: "Exogenous testosterone suppresses LH, which shuts down testicular signalling. HCG mimics LH, so it is used to maintain testicular volume and fertility during therapy.",
+        a: "Exogenous testosterone suppresses LH, which shuts down testicular signaling. HCG mimics LH, so it is used to maintain testicular volume and fertility during therapy.",
       },
       {
         q: "How long does mixed HCG last?",
@@ -873,7 +873,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     description:
       "Free BPC-157 and TB-500 blend dosage calculator. Work out mg/mL and exact insulin-syringe units when both peptides share one vial.",
     intro:
-      "Blended vials are where most dosing mistakes happen. A vial labelled '10 mg blend' usually contains 5 mg of each peptide — so calculate against the per-peptide amount, not the label total. Use the calculator with one peptide's mg at a time.",
+      "Blended vials are where most dosing mistakes happen. A vial labeled '10 mg blend' usually contains 5 mg of each peptide — so calculate against the per-peptide amount, not the label total. Use the calculator with one peptide's mg at a time.",
     vialSizes: [5, 10, 20],
     defaults: { vialMg: 5, bacMl: 3, doseValue: 250, doseUnit: "mcg" },
     presets: [
@@ -935,7 +935,7 @@ export const CALCULATOR_PAGES: CalculatorPage[] = [
     faqs: [
       {
         q: "How do I calculate a BPC-157 / TB-500 blend dose?",
-        a: "Split the vial into its two peptide amounts first. For a 10 mg blend that is 5 mg BPC-157 and 5 mg TB-500. Then run the reconstitution maths on one peptide's mg — the syringe units are the same for both because they share the same liquid volume.",
+        a: "Split the vial into its two peptide amounts first. For a 10 mg blend that is 5 mg BPC-157 and 5 mg TB-500. Then run the reconstitution math on one peptide's mg — the syringe units are the same for both because they share the same liquid volume.",
       },
       {
         q: "Is a blend better than separate vials?",

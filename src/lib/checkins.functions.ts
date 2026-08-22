@@ -16,6 +16,7 @@ export const getRecentCheckins = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const since = new Date(Date.now() - 365 * 86_400_000).toISOString().slice(0, 10);
     const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       .from("body_checkins" as any)
       .select("id, checked_at, weight_kg, body_fat_pct, waist_cm, notes")
       .eq("user_id", userId)
@@ -60,6 +61,7 @@ export const upsertCheckin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<Checkin> => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       .from("body_checkins" as any)
       .upsert({ user_id: userId, ...data }, { onConflict: "user_id,checked_at" })
       .select("id, checked_at, weight_kg, body_fat_pct, waist_cm, notes")
@@ -77,6 +79,7 @@ export const deleteCheckin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       .from("body_checkins" as any)
       .delete()
       .eq("id", data.id)

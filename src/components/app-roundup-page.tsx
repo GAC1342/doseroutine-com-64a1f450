@@ -6,6 +6,7 @@ import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { AnswerFirst, AeoFaq } from "@/components/aeo-faq";
 import { MarketingBlogLinks } from "@/components/marketing-blog-links";
+import { PageProse } from "@/components/page-prose";
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { aeoFaqScript, answerPageScript } from "@/lib/aeo";
@@ -80,7 +81,11 @@ export function RoundupPage({ data }: { data: Roundup }) {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <main id="main-content" tabIndex={-1} className="container mx-auto max-w-4xl px-4 py-10 md:py-16">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="container mx-auto max-w-4xl px-4 py-10 md:py-16"
+      >
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{data.h1}</h1>
         <p className="dr-speakable-intro mt-4 text-lg text-muted-foreground">{data.lead}</p>
 
@@ -192,6 +197,8 @@ export function RoundupPage({ data }: { data: Roundup }) {
           <p className="mt-3 text-muted-foreground">{data.caveat}</p>
         </section>
 
+        <PageProse id={data.slug} />
+
         <MarketingBlogLinks pageKey={data.slug} />
 
         <AeoFaq pairs={data.faq} />
@@ -256,7 +263,11 @@ export function UseCasePage({ data }: { data: UseCase }) {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <main id="main-content" tabIndex={-1} className="container mx-auto max-w-3xl px-4 py-10 md:py-16">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="container mx-auto max-w-3xl px-4 py-10 md:py-16"
+      >
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{data.h1}</h1>
         <p className="dr-speakable-intro mt-4 text-lg text-muted-foreground">{data.lead}</p>
 

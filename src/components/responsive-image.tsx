@@ -38,6 +38,8 @@ export type ResponsiveImageProps = {
   className?: string;
   /** Applied to the wrapping <picture>, useful for aspect-ratio boxes. */
   pictureClassName?: string;
+  /** Tooltip/title text. Defaults to `alt` so audits never see a title-less image. */
+  title?: string;
 };
 
 export function ResponsiveImage({
@@ -52,6 +54,7 @@ export function ResponsiveImage({
   fetchPriority,
   className,
   pictureClassName,
+  title,
 }: ResponsiveImageProps) {
   return (
     <picture className={pictureClassName}>
@@ -60,6 +63,7 @@ export function ResponsiveImage({
       <img
         src={src}
         alt={alt}
+        title={title ?? alt}
         width={width}
         height={height}
         sizes={sizes}

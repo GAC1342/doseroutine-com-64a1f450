@@ -8,6 +8,10 @@ import { AttributionFooter } from "@/components/attribution-footer";
 import { trackEvent } from "@/lib/analytics";
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
+import { mergeLdScripts } from "@/lib/head-budget";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { GOAL_HUB_FAQS } from "@/lib/aeo-faqs-hubs";
 
 export const Route = createFileRoute("/goals/$goal")({
   loader: async ({ params, context }) => {
@@ -26,11 +30,12 @@ export const Route = createFileRoute("/goals/$goal")({
       };
     }
     const g = loaderData.goal;
-    const title = `${g.title} — Compounds & Peptides | DoseRoutine`;
+    const title = `${g.title} Compounds | DoseRoutine`;
     const desc = withDoseRoutineDescriptionSuffix(
       `${g.blurb} Browse DoseRoutine's curated list of compounds studied for ${g.title.toLowerCase()}.`,
     );
     const url = `https://doseroutine.com/goals/${params.goal}`;
+    const faqPairs = GOAL_HUB_FAQS[g.slug] ?? [];
     return {
       meta: [
         { title },
@@ -51,7 +56,8 @@ export const Route = createFileRoute("/goals/$goal")({
         ...ogLocaleMeta("en"),
       ],
       links: [{ rel: "canonical", href: url }, ...hreflangLinks(`/goals/${params.goal}`)],
-      scripts: [
+      scripts: mergeLdScripts([
+        aeoFaqScript(url, faqPairs),
         {
           type: "application/ld+json",
           children: JSON.stringify({
@@ -75,7 +81,10 @@ export const Route = createFileRoute("/goals/$goal")({
               { "@type": "MedicalAudience", audienceType: "Consumer" },
             ],
             isPartOf: { "@id": "https://doseroutine.com/#website" },
-            publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+            publisher: {
+              "@type": "Organization",
+              "@id": "https://doseroutine.com/#organization",
+              name: "DoseRoutine",
               url: "https://doseroutine.com",
               logo: {
                 "@type": "ImageObject",
@@ -94,14 +103,14 @@ export const Route = createFileRoute("/goals/$goal")({
               {
                 "@type": "ListItem",
                 position: 2,
-                name: "Library",
-                item: "https://doseroutine.com/library",
+                name: "Goals",
+                item: "https://doseroutine.com/goals",
               },
               { "@type": "ListItem", position: 3, name: g.title, item: url },
             ],
           }),
         },
-      ],
+      ]),
     };
   },
   component: GoalHub,
@@ -118,8 +127,12 @@ function GoalHub() {
   return (
     <LibraryShell>
       <nav className="mb-4 text-xs text-muted-foreground">
+        <Link to="/goals" className="hover:text-foreground">
+          ← All health goals
+        </Link>
+        <span className="px-2">/</span>
         <Link to="/library" className="hover:text-foreground">
-          ← Compound Library
+          Compound Library
         </Link>
       </nav>
 
@@ -262,6 +275,8 @@ function GoalHub() {
           Sign up free →
         </Link>
       </section>
+      <AeoFaq pairs={GOAL_HUB_FAQS[goal.slug] ?? []} heading={`${goal.title} FAQ`} />
+
       <AttributionFooter sourceUrl={`https://doseroutine.com/goals/${goal.slug}`} />
     </LibraryShell>
   );

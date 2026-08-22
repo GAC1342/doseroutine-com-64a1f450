@@ -78,7 +78,7 @@ export function ReorderPanel() {
   return (
     <div className="rounded-2xl border border-amber-500/40 bg-amber-500/5 p-4">
       <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
-        <PackageX className="h-4 w-4 text-amber-600" />
+        <PackageX className="h-4 w-4 text-[color:var(--caution)]" />
         Reorder soon
       </div>
       <p className="mb-2 text-xs text-muted-foreground">Based on how often you take each one.</p>
@@ -91,7 +91,7 @@ export function ReorderPanel() {
               <span className="truncate text-foreground">{f.name}</span>
               <span
                 className={`shrink-0 text-xs font-medium ${
-                  empty || critical ? "text-red-600" : "text-amber-600"
+                  empty || critical ? "text-destructive" : "text-[color:var(--caution)]"
                 }`}
               >
                 {empty

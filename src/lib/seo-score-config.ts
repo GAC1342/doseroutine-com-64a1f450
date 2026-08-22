@@ -90,7 +90,11 @@ export function mergeSeoScoreConfig(raw: unknown): SeoScoreConfig {
   }
   const input = raw as Record<string, unknown>;
 
-  const passingScore = num(input["passingScore"], DEFAULT_SEO_SCORE_CONFIG.passingScore, "passingScore")!;
+  const passingScore = num(
+    input["passingScore"],
+    DEFAULT_SEO_SCORE_CONFIG.passingScore,
+    "passingScore",
+  )!;
   if (passingScore < 0 || passingScore > 100) {
     throw new Error("seo-score config: passingScore must be between 0 and 100");
   }

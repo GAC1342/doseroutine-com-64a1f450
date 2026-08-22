@@ -14,9 +14,11 @@ export function hreflangLinks(pathname: string) {
   // alternates made Google crawl 12 duplicate copies of every page (which all
   // canonicalise back here) and produced 404/5xx coverage noise. Keep a valid,
   // self-referential cluster instead.
-  const links: Array<{ rel: "alternate"; hrefLang: string; href: string }> = [
-    { rel: "alternate", hrefLang: DEFAULT_LOCALE as string, href: `${SITE}${path}` },
-    { rel: "alternate", hrefLang: "x-default", href: `${SITE}${path}` },
+  // Emit the attribute name in lowercase (`hreflang`, not React's camelCase
+  // `hrefLang`) so case-sensitive audit crawlers see a valid alternate.
+  const links: Array<{ rel: "alternate"; hreflang: string; href: string }> = [
+    { rel: "alternate", hreflang: DEFAULT_LOCALE as string, href: `${SITE}${path}` },
+    { rel: "alternate", hreflang: "x-default", href: `${SITE}${path}` },
   ];
   return links;
 }
@@ -48,4 +50,23 @@ export function ogLocaleMeta(currentLocale: string = DEFAULT_LOCALE) {
     meta.push({ property: "og:locale:alternate", content: ogMap[loc] });
   }
   return meta;
+}
+
+/**
+ * Canonical + self-referential hreflang cluster in one call.
+ *
+ * Every `?lang=xx` URL 301s to the clean path, so the destination must state
+ * plainly that it is the English original — a canonical alone left Google
+ * guessing on ~110 pages (articles, help, women's health, legal).
+ *
+ * Accepts an absolute URL or a bare path.
+ */
+export function canonicalLinks(href: string) {
+  const path = href.startsWith("http")
+    ? new URL(href).pathname
+    : href.startsWith("/")
+      ? href
+      : `/${href}`;
+  const canonical = href.startsWith("http") ? href : `${SITE}${path}`;
+  return [{ rel: "canonical", href: canonical } as const, ...hreflangLinks(path)];
 }

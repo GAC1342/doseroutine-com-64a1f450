@@ -129,6 +129,13 @@ const GROUPS = [
     cmd: (base) => ["python3", "scripts/validate-schema-sitemap.py", base],
   },
   {
+    id: "live-micromarkup",
+    title: "Lowercase micromarkup + JSON-LD on the served HTML",
+    ci: "micromarkup",
+    mode: "live",
+    cmd: (base) => ["node", "scripts/validate-micromarkup.mjs", base],
+  },
+  {
     id: "live-noindex",
     title: "Noindex consistency on the served site (incl. 404s)",
     ci: "noindex-audit",

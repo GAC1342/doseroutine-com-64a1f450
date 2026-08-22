@@ -21,9 +21,8 @@ const UPGRADE_URL = "https://doseroutine.com/upgrade";
  */
 export function buildUpgradeUrl(priceId: string | null | undefined, willRenew: boolean): string {
   if (willRenew) return UPGRADE_URL;
-  const plan = (priceId ?? "").includes("yearly") || (priceId ?? "").includes("annual")
-    ? "yearly"
-    : "monthly";
+  const plan =
+    (priceId ?? "").includes("yearly") || (priceId ?? "").includes("annual") ? "yearly" : "monthly";
   return `${UPGRADE_URL}?checkout=1&plan=${plan}`;
 }
 

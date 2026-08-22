@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { redeemCompCode } from "@/lib/comp-access.functions";
 import { TESTER_REWARD_MONTHS } from "@/lib/access";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/redeem")({
+  errorComponent: routeErrorComponent("redeem"),
   component: RedeemPage,
   head: () => ({
     meta: [

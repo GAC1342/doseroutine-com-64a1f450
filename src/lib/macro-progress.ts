@@ -54,6 +54,22 @@ export function shortWeekdayLabel(day: string): string {
   return new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short" });
 }
 
+/**
+ * Heading for the per-day macro row.
+ *
+ * Without this the row of zeroes reads as if it contradicts the weekly chart
+ * underneath it — saying "Today" makes clear the two are different windows.
+ */
+export function dayHeadingLabel(day: string, now: Date = new Date()): string {
+  const date = new Date(`${day}T00:00:00`);
+  const formatted = date.toLocaleDateString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  return day === dayKeyOf(now) ? `Today · ${formatted}` : formatted;
+}
+
 /** Percentage of a goal, clamped to 0-999 so a wild day cannot break layout. */
 export function goalPercent(value: number, target: number | null): number | null {
   if (!target || target <= 0) return null;

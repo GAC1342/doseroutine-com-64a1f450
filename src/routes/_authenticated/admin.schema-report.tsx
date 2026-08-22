@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { runSchemaValidationFn } from "@/lib/schema-validation.functions";
 import type { SchemaReport, UrlReport } from "@/lib/schema-validation.server";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/schema-report")({
+  errorComponent: routeErrorComponent("admin-schema-report"),
   head: () => ({
     meta: [
       { title: "Structured data report — DoseRoutine" },
@@ -168,7 +170,7 @@ function SchemaReportPage() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-muted-foreground">
               {report.urlsWithIssues === 0 ? (
-                <span className="inline-flex items-center gap-2 text-emerald-600">
+                <span className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="h-4 w-4" /> All {report.checkedUrls} URLs passed
                   structured-data validation.
                 </span>
@@ -224,7 +226,11 @@ function Stat({
   tone?: "ok" | "warn" | "danger";
 }) {
   const color =
-    tone === "danger" ? "text-destructive" : tone === "warn" ? "text-amber-600" : "text-foreground";
+    tone === "danger"
+      ? "text-destructive"
+      : tone === "warn"
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-foreground";
   return (
     <Card className="rounded-2xl border-border p-4">
       <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -262,12 +268,12 @@ function UrlCard({ r }: { r: UrlReport }) {
             </span>
           )}
           {warns.length > 0 && (
-            <span className="rounded-full bg-amber-500/10 px-2 py-0.5 font-medium text-amber-700">
+            <span className="rounded-full bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 font-medium text-amber-700 dark:text-amber-400">
               {warns.length} warning{warns.length === 1 ? "" : "s"}
             </span>
           )}
           {clean && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="h-3 w-3" /> clean
             </span>
           )}
@@ -298,7 +304,7 @@ function UrlCard({ r }: { r: UrlReport }) {
               className={`flex items-start gap-2 rounded-lg p-2 text-xs ${
                 i.severity === "error"
                   ? "bg-destructive/5 text-destructive"
-                  : "bg-amber-500/5 text-amber-800"
+                  : "bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200"
               }`}
             >
               <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />

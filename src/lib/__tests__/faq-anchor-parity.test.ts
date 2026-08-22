@@ -7,7 +7,6 @@ import {
 import { crawlSitemap } from "../crawl-cache";
 import { faqAnchorId } from "../faq-snippet";
 
-
 /**
  * FAQ anchor parity.
  *
@@ -51,7 +50,8 @@ function page(question: string, answer: string, anchor = faqAnchorId(question)):
 }
 
 const Q = "How long does retatrutide stay in your system?";
-const A = "Retatrutide has a half-life of about six days, so a single dose clears over roughly a month.";
+const A =
+  "Retatrutide has a half-life of about six days, so a single dose clears over roughly a month.";
 
 describe("faq-anchor-parity parser", () => {
   it("extracts question/answer pairs and their anchors", () => {
@@ -159,7 +159,6 @@ beforeAll(async () => {
   results = pageResults.filter((r) => r.faqCount > 0 || r.issues.length > 0);
 }, 180_000);
 
-
 describe("rendered pages: FAQ schema matches anchored on-page blocks", () => {
   it("reaches the site (or is explicitly allowed to skip)", () => {
     if (!serverUp && !REQUIRE_SERVER) {
@@ -172,9 +171,7 @@ describe("rendered pages: FAQ schema matches anchored on-page blocks", () => {
   it("has every Question/Answer anchored to its exact rendered block", () => {
     if (!serverUp) return;
     const failing = results.filter((r) => r.issues.length > 0);
-    const report = failing
-      .map((r) => `${r.path}\n  ${r.issues.join("\n  ")}`)
-      .join("\n");
+    const report = failing.map((r) => `${r.path}\n  ${r.issues.join("\n  ")}`).join("\n");
     expect(
       failing.length,
       `FAQ parity failures on ${failing.length}/${crawled} pages:\n${report}`,

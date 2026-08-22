@@ -40,10 +40,7 @@ describe("meal photo retention", () => {
   });
 
   it("summarises due-now vs expiring-soon buckets", () => {
-    const summary = mealPhotoSummary(
-      [row("a", 40), row("b", 26), row("c", 2)],
-      NOW,
-    );
+    const summary = mealPhotoSummary([row("a", 40), row("b", 26), row("c", 2)], NOW);
     expect(summary.total).toBe(3);
     expect(summary.dueNow.map((r) => r.id)).toEqual(["a"]);
     expect(summary.expiringSoon.map((r) => r.id)).toEqual(["b"]);

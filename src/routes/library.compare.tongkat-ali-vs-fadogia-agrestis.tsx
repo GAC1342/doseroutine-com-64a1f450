@@ -4,13 +4,14 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/compare/tongkat-ali-vs-fadogia-agrestis";
+export const CANONICAL = "https://doseroutine.com/library/compare/tongkat-ali-vs-fadogia-agrestis";
 const TITLE = "Tongkat Ali vs Fadogia Agrestis for T | DoseRoutine";
 const DESC =
   "Tongkat ali vs fadogia agrestis compared: mechanism, human evidence for testosterone, libido and performance, typical dose, cycling advice and stacking.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "Which has better human evidence?",
     a: "Tongkat ali. It has multiple RCTs showing free-testosterone increases in stressed or aging men. Fadogia agrestis has almost no human data — its popularity comes mostly from Andrew Huberman's podcast and rat studies.",
@@ -67,7 +68,7 @@ export const Route = createFileRoute("/library/compare/tongkat-ali-vs-fadogia-ag
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/compare/tongkat-ali-vs-fadogia-agrestis"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -82,8 +83,15 @@ export const Route = createFileRoute("/library/compare/tongkat-ali-vs-fadogia-ag
           url: CANONICAL,
           image: ["https://doseroutine.com/og/compare-tongkat-fadogia.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -130,7 +138,7 @@ export const Route = createFileRoute("/library/compare/tongkat-ali-vs-fadogia-ag
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });

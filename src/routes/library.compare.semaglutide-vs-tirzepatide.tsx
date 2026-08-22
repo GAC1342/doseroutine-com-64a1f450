@@ -5,15 +5,16 @@ import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { RelatedLinks } from "@/components/related-links";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/compare/semaglutide-vs-tirzepatide";
+export const CANONICAL = "https://doseroutine.com/library/compare/semaglutide-vs-tirzepatide";
 const TITLE = "Semaglutide vs Tirzepatide: Mechanism, Dosing & Side Effects";
 const DESC =
   "Semaglutide vs Tirzepatide compared: GLP-1 vs dual GIP/GLP-1 mechanism, typical research dosages, weight loss data and side effect profiles.";
 const OG_IMAGE_ALT =
   "Semaglutide vs Tirzepatide comparison — mechanism, dosing and side effects by DoseRoutine";
 
-const FAQS: { q: string; a: string }[] = [
+export const FAQS: { q: string; a: string }[] = [
   {
     q: "What is the main difference between semaglutide and tirzepatide?",
     a: "Semaglutide is a single GLP-1 receptor agonist. Tirzepatide is a dual agonist that activates both GIP and GLP-1 receptors, which appears to produce greater average weight loss in clinical trials.",
@@ -71,7 +72,7 @@ export const Route = createFileRoute("/library/compare/semaglutide-vs-tirzepatid
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/compare/semaglutide-vs-tirzepatide"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -89,8 +90,16 @@ export const Route = createFileRoute("/library/compare/semaglutide-vs-tirzepatid
           datePublished: "2026-07-27",
           dateModified: "2026-07-27",
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine", url: "https://doseroutine.com" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+            url: "https://doseroutine.com",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             url: "https://doseroutine.com",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
@@ -139,7 +148,7 @@ export const Route = createFileRoute("/library/compare/semaglutide-vs-tirzepatid
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: SemaVsTirzePage,
 });

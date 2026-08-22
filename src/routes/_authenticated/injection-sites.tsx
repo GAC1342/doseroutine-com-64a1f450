@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, MapPin, Trash2, Plus } from "lucide-react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/injection-sites")({
+  errorComponent: routeErrorComponent("injection-sites"),
   head: () => ({
     meta: [
       { title: "Injection Site Rotation — DoseRoutine" },

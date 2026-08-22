@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { PublicBackHeader } from "@/components/public-back-header";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { AttributionDebugPanel } from "@/components/attribution-debug-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +11,9 @@ import { Card, cardClassName } from "@/components/ui/card";
 import { TrustBadges } from "@/components/trust-badges";
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { aeoFaqScript } from "@/lib/aeo";
+import { AeoFaq } from "@/components/aeo-faq";
+import { CLOSED_TESTING_FAQ } from "@/lib/aeo-faqs-index";
 import { joinClosedTesting } from "@/lib/closed-testing.functions";
 import { trackEvent } from "@/lib/analytics";
 import { attributionProperties, captureAttribution } from "@/lib/utm";
@@ -56,7 +61,11 @@ export const Route = createFileRoute("/closed-testing")({
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
       { name: "twitter:image", content: ogImage },
-      { name: "twitter:image:alt", content: "DoseRoutine closed testing card — join the Android tester group for the tracking app" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine closed testing card — join the Android tester group for the tracking app",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: pageUrl }, ...hreflangLinks("/closed-testing")],
@@ -64,6 +73,7 @@ export const Route = createFileRoute("/closed-testing")({
       breadcrumbScript("https://doseroutine.com/closed-testing", [
         { name: "Closed Testing", path: "/closed-testing" },
       ]),
+      aeoFaqScript(pageUrl, CLOSED_TESTING_FAQ),
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -286,37 +296,9 @@ function ClosedTestingPage() {
           )}
         </Card>
 
-        <section className="mt-12">
-          <h2 className="font-display text-xl font-semibold text-foreground">
-            Frequently asked questions
-          </h2>
-          <dl className="mt-5 space-y-5">
-            <FAQ
-              q="Do I need to know the developer to join?"
-              a="No. Google requires 12 testers who use the app for 14 days, but they do not need to be friends or family. You can invite people from your audience, social followers, or anyone genuinely interested in tracking supplements, peptides, or hormones."
-            />
-            <FAQ
-              q="What does a tester actually do?"
-              a="Install the DoseRoutine app from the Play Store test track, create an account, add a few supplements or routines, and use the app for about 14 days. You can report bugs or share feedback through a short form we send by email."
-            />
-            <FAQ
-              q="Is there a cost?"
-              a="No. Closed testers get premium access free during the testing period. After testing, you can keep using the free plan or choose a paid subscription if you want the premium features."
-            />
-            <FAQ
-              q="What platforms are supported?"
-              a="Right now closed testing is focused on Android through Google Play. iOS testing will open later through TestFlight."
-            />
-            <FAQ
-              q="When does the test start?"
-              a="We’re collecting testers now and will email everyone on the list once we have enough people to open the test track. You don’t need to do anything else — just watch your inbox, including your spam folder."
-            />
-            <FAQ
-              q="How will I know I’m accepted?"
-              a="We email everyone on the list with a Play Store invite link as soon as the closed testing track is ready. Make sure you check your spam folder."
-            />
-          </dl>
-        </section>
+        {/* Rendered by <AeoFaq> so each answer carries the same anchor id the
+            FAQPage JSON-LD points at. */}
+        <AeoFaq pairs={CLOSED_TESTING_FAQ} />
 
         <section className="mt-12 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-6">
@@ -364,7 +346,7 @@ function ClosedTestingPage() {
               </li>
               <li>
                 <span className="font-medium text-foreground">One per person:</span> one reward per
-                tester and per household. Duplicate or throwaway signups are removed from the list.
+                tester and per household. Duplicate or throwaway sign-ups are removed from the list.
               </li>
               <li>
                 <span className="font-medium text-foreground">Your data:</span> we store your email,
@@ -394,6 +376,9 @@ function ClosedTestingPage() {
             to public launch.
           </p>
         </div>
+        <ProseContainer>
+          <PageProse id="closed-testing" />
+        </ProseContainer>
         <AttributionDebugPanel />
       </main>
     </>
@@ -462,15 +447,6 @@ function SuccessState({ email, onReset }: { email: string; onReset: () => void }
       <Button type="button" variant="outline" onClick={onReset} className="mt-6">
         Sign up another email
       </Button>
-    </div>
-  );
-}
-
-function FAQ({ q, a }: { q: string; a: string }) {
-  return (
-    <div>
-      <dt className="text-sm font-semibold text-foreground">{q}</dt>
-      <dd className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{a}</dd>
     </div>
   );
 }

@@ -98,7 +98,6 @@ describe("robots.txt", () => {
     expect(isBlocked("/blog/how-much-protein-while-on-a-glp-1")).toBeNull();
   });
 
-
   it("allows the homepage and library root", () => {
     expect(isBlocked("/")).toBeNull();
     expect(isBlocked("/library")).toBeNull();

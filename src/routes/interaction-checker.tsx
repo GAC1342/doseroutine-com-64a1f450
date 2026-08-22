@@ -35,10 +35,11 @@ import { AttributionFooter } from "@/components/attribution-footer";
 import { AeoFaq } from "@/components/aeo-faq";
 import { aeoFaqScript, answerPageScript } from "@/lib/aeo";
 import { INTERACTION_CHECKER_FAQ, LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { mergeLdScripts } from "@/lib/head-budget";
 
 type Compound = Database["public"]["Tables"]["compounds"]["Row"];
 
-const CANONICAL = "https://doseroutine.com/interaction-checker";
+export const CANONICAL = "https://doseroutine.com/interaction-checker";
 
 export const Route = createFileRoute("/interaction-checker")({
   head: () => ({
@@ -67,17 +68,20 @@ export const Route = createFileRoute("/interaction-checker")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: CANONICAL },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Interaction Checker — DoseRoutine" },
+      { name: "twitter:title", content: "Interaction Checker — Peptides, Hormones, Supplements" },
       {
         name: "twitter:description",
         content: withDoseRoutineDescriptionSuffix(
-          "Check peptide, hormone, GLP-1 and supplement interactions across 475+ compounds",
+          "Check interactions across 475+ peptides, hormones and supplements",
         ),
       },
+      // twitter:title / twitter:description are mirrored from the og:* pair
+      // above by SocialMetaFallbacks, so both networks show the same card.
+
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/interaction-checker")],
-    scripts: [
+    scripts: mergeLdScripts([
       breadcrumbScript("https://doseroutine.com/interaction-checker", [
         { name: "Interaction Checker", path: "/interaction-checker" },
       ]),
@@ -99,7 +103,7 @@ export const Route = createFileRoute("/interaction-checker")({
         ],
       }),
       aeoFaqScript(CANONICAL, INTERACTION_CHECKER_FAQ),
-      // Dataset node: describes the interaction ruleset itself so answer
+      // Dataset node: describes the interaction rule set itself so answer
       // engines and dataset crawlers can cite DoseRoutine as the data source,
       // not just the tool that displays it.
       {
@@ -110,7 +114,7 @@ export const Route = createFileRoute("/interaction-checker")({
           "@id": `${CANONICAL}#dataset`,
           name: "DoseRoutine Interaction Ruleset",
           description:
-            "Curated interaction ruleset covering 475+ supplements, vitamins, minerals, herbs, peptides, hormones, TRT compounds, GLP-1s and common prescriptions. Each rule records a severity level (avoid, caution, note, synergy), the mechanism, the recommended separation window, and the source references it was compiled from.",
+            "Curated interaction rule set covering 475+ supplements, vitamins, minerals, herbs, peptides, hormones, TRT compounds, GLP-1s and common prescriptions. Each rule records a severity level (avoid, caution, note, synergy), the mechanism, the recommended separation window, and the source references it was compiled from.",
           url: CANONICAL,
           license: "https://doseroutine.com/legal",
           isAccessibleForFree: true,
@@ -133,10 +137,16 @@ export const Route = createFileRoute("/interaction-checker")({
             "Editorial compilation from published literature, product labeling and public substance records.",
           dateModified: LAST_REVIEWED,
           datePublished: "2026-01-15",
-          creator: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          creator: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             url: "https://doseroutine.com",
           },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             url: "https://doseroutine.com",
           },
           isPartOf: { "@id": "https://doseroutine.com/#website" },
@@ -166,7 +176,7 @@ export const Route = createFileRoute("/interaction-checker")({
             "Free interaction checker for peptides, hormones, GLP-1s and supplements across 475+ compounds.",
         }),
       },
-    ],
+    ]),
   }),
   component: InteractionCheckerPage,
 });
@@ -452,7 +462,7 @@ function InteractionCheckerPage() {
                   {(() => {
                     // Resolve every stored ref to a real document URL (PubMed,
                     // DailyMed, publisher page) and render it as a numbered
-                    // source list rather than an unlabelled chip row.
+                    // source list rather than an unlabeled chip row.
                     const sources = resolveInteractionSources(ev.sources, ev.a.name, ev.b.name);
                     if (sources.length === 0) return null;
                     return (

@@ -57,6 +57,7 @@ import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { routeErrorComponent } from "@/components/route-error-panel";
 import {
   PairNoteDialog,
   PAIR_NOTES_QK,
@@ -65,6 +66,7 @@ import {
 } from "@/components/pair-note-dialog";
 
 export const Route = createFileRoute("/_authenticated/safety")({
+  errorComponent: routeErrorComponent("safety"),
   head: () => ({
     meta: [
       { title: "Safety — DoseRoutine" },
@@ -237,9 +239,9 @@ function SafetyPage() {
 
   const loading = ucQuery.isPending || rulesQuery.isPending || notesQuery.isPending;
   const errored = ucQuery.isError || rulesQuery.isError;
-  const ucs = ucQuery.data ?? [];
-  const rules = rulesQuery.data ?? [];
-  const notes = notesQuery.data ?? [];
+  const ucs = useMemo(() => ucQuery.data ?? [], [ucQuery.data]);
+  const rules = useMemo(() => rulesQuery.data ?? [], [rulesQuery.data]);
+  const notes = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
 
   const { evals, unknown, activeCount, noteByPair } = useMemo(() => {
     if (loading || errored) {
@@ -408,10 +410,13 @@ function SafetyPage() {
 
       {loading ? (
         <div className="mt-6">
+          <p className="mb-3 text-sm text-muted-foreground" role="status">
+            Checking your stack for interactions…
+          </p>
           <CardListSkeleton count={3} itemClassName="h-24 w-full rounded-2xl" />
         </div>
       ) : errored ? (
-        <div className="mt-6 rounded-2xl border border-border bg-[color:var(--severity-avoid-bg))] p-4 text-sm text-[color:var(--severity-avoid)]">
+        <div className="mt-6 rounded-2xl border border-border bg-[color:var(--severity-avoid-bg)] p-4 text-sm text-[color:var(--severity-avoid)]">
           <div className="flex items-center gap-2 font-semibold">
             <ShieldAlert className="h-4 w-4" /> We couldn't check interactions
           </div>

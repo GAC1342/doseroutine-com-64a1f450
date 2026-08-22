@@ -8,8 +8,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { todayInBrowserZone } from "@/lib/day-key";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/cycles")({
+  errorComponent: routeErrorComponent("cycles"),
   head: () => ({
     meta: [
       { title: "Cycle Tracker — DoseRoutine" },

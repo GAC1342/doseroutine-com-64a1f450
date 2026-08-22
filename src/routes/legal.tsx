@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { LEGAL_FAQ } from "@/lib/aeo-faqs-legal";
 
 const pageUrl = "https://doseroutine.com/legal";
-const pageTitle = "Legal — DoseRoutine";
+const pageTitle = "Legal — Terms, Privacy and Medical Disclaimer";
 const pageDescription =
   "DoseRoutine terms of use, privacy policy, and medical disclaimer. Educational… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
 
@@ -16,12 +20,13 @@ export const Route = createFileRoute("/legal")({
       { property: "og:description", content: pageDescription },
       { property: "og:type", content: "website" },
       { property: "og:url", content: pageUrl },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, LEGAL_FAQ),
       breadcrumbScript("https://doseroutine.com/legal", [{ name: "Legal", path: "/legal" }]),
       {
         type: "application/ld+json",
@@ -45,7 +50,7 @@ export const Route = createFileRoute("/legal")({
 function LegalPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-2xl px-4 pb-24 pt-8">
+      <main id="main-content" className="mx-auto max-w-2xl px-4 pb-24 pt-8">
         <Link
           to="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -90,7 +95,7 @@ function LegalPage() {
           <p>
             New accounts start with a 7-day free trial of Pro. If you don't cancel before the trial
             ends, your subscription (monthly $9.99 or annual $59.99) begins automatically and renews
-            until cancelled. One trial per user. Accounts created before the trial-first model was
+            until canceled. One trial per user. Accounts created before the trial-first model was
             introduced keep their existing free or paid access. Cancel anytime from More → Billing
             (or from your Apple/Google subscription settings if you subscribed on mobile); access
             continues until the end of the paid period. See our{" "}
@@ -153,7 +158,8 @@ function LegalPage() {
             Questions or data requests: <span className="font-medium">support@doseroutine.app</span>
           </p>
         </Section>
-      </div>
+        <AeoFaq pairs={LEGAL_FAQ} />
+      </main>
     </div>
   );
 }

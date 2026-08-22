@@ -1,3 +1,5 @@
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   makeSuggestShownGuard,
@@ -24,7 +26,6 @@ import {
   normalizeBlogPageSize,
   BLOG_PAGE_SIZE_OPTIONS,
   DEFAULT_BLOG_PAGE_SIZE,
-
 } from "@/lib/blog-list-canonical";
 import {
   BLOG_LIST_COALESCE_MS,
@@ -52,6 +53,10 @@ import {
   type BlogSort,
   type BlogTagKind,
 } from "@/lib/blog-posts";
+import { mergeLdScripts } from "@/lib/head-budget";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { BLOG_INDEX_FAQ } from "@/lib/aeo-faqs-index";
 
 const PAGE_SIZE_OPTIONS = BLOG_PAGE_SIZE_OPTIONS;
 type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
@@ -93,10 +98,10 @@ function validateBlogSearch(input: Record<string, unknown>): Partial<BlogSearch>
 
 /** Applies the schema defaults to a (possibly partial) blog search. */
 export function resolveBlogSearch(raw: Partial<BlogSearch> | undefined): BlogSearch {
-  return blogIndexSearchSchema.parse(raw ?? {});
+  return blogIndexSearchSchema.parse(raw ?? {}) as BlogSearch;
 }
 
-const CANONICAL = "https://doseroutine.com/blog";
+export const CANONICAL = "https://doseroutine.com/blog";
 const TITLE = "Research & Updates — Peptide and GLP-1 News | DoseRoutine";
 const DESC =
   "Plain-English updates on peptide, GLP-1, hormone and longevity research, with sources cited and links to the DoseRoutine guides and calculators.";
@@ -104,8 +109,6 @@ const DESC =
 export const Route = createFileRoute("/blog/")({
   validateSearch: validateBlogSearch,
   loaderDeps: ({ search }) => resolveBlogSearch(search),
-
-
 
   // The canonical/meta params are fully derivable from the search params, so
   // client navigations (sort, page size, pagination) resolve locally instead of
@@ -156,7 +159,8 @@ export const Route = createFileRoute("/blog/")({
         ...ogLocaleMeta("en"),
       ],
       links: [{ rel: "canonical", href: canonical }, ...pageLinks, ...hreflangLinks(canonicalPath)],
-      scripts: [
+      scripts: mergeLdScripts([
+        ...(page === 1 ? [aeoFaqScript(CANONICAL, BLOG_INDEX_FAQ)] : []),
         {
           type: "application/ld+json",
           children: JSON.stringify({
@@ -205,7 +209,7 @@ export const Route = createFileRoute("/blog/")({
             ],
           }),
         },
-      ],
+      ]),
     };
   },
 
@@ -217,11 +221,7 @@ const TAG_KINDS: BlogTagKind[] = ["compound", "mechanism", "phase"];
 function BlogIndex() {
   const rawSearch = Route.useSearch();
   // URL keys may be absent; resolveBlogSearch applies the schema defaults.
-  const search: BlogSearch = useMemo(
-    () => resolveBlogSearch(rawSearch),
-    [rawSearch.sort, rawSearch.page, rawSearch.pageSize],
-  );
-
+  const search: BlogSearch = useMemo(() => resolveBlogSearch(rawSearch), [rawSearch]);
 
   const navigate = Route.useNavigate();
   const [query, setQuery] = useState("");
@@ -304,7 +304,6 @@ function BlogIndex() {
     pageSize: pageSize === DEFAULT_BLOG_PAGE_SIZE ? undefined : pageSize,
   });
 
-
   // Blog search filters as you type, so a "committed" search is a settled
   // query rather than an Enter press. Both events share one debounce.
   const suggestShownGuard = useRef(makeSuggestShownGuard());
@@ -325,7 +324,6 @@ function BlogIndex() {
 
   // Pagination is rendered as real <a href> links so crawlers can reach every
   // page; no imperative page setter is needed here.
-
 
   /** Any change to the result set sends the reader back to page 1. */
   function resetPage() {
@@ -430,12 +428,20 @@ function BlogIndex() {
             approvals, phase 3 readouts and first-in-human trials — with every claim traceable to a
             citation and a clear line between what is proven and what is being sold.
           </p>
-          <Link
-            to="/blog/tag"
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary"
-          >
-            Browse by compound, mechanism or trial phase
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Link
+              to="/blog/tag"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary"
+            >
+              Browse by compound, mechanism or trial phase
+            </Link>
+            <Link
+              to="/articles"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary"
+            >
+              Read our longer guides and articles
+            </Link>
+          </div>
         </header>
 
         <section className="space-y-4" aria-label="Search and filter updates">
@@ -773,7 +779,6 @@ function BlogIndex() {
           </ul>
         </section>
 
-
         <Card className="p-5 space-y-2 border-l-4 border-l-primary">
           <div className="text-sm font-semibold">Track what you actually take</div>
           <p className="text-sm text-muted-foreground">
@@ -788,6 +793,10 @@ function BlogIndex() {
           </Link>
         </Card>
 
+        {page === 1 ? <AeoFaq pairs={BLOG_INDEX_FAQ} /> : null}
+        <ProseContainer>
+          <PageProse id="blog-index" />
+        </ProseContainer>
         <AttributionFooter sourceUrl={CANONICAL} />
       </div>
     </main>

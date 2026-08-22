@@ -28,7 +28,7 @@ function Row({ label, value }: { label: string; value: unknown }) {
 
 /**
  * Admin-only debug panel: shows the attribution captured in this browser and
- * which closed-testing signup row it links to.
+ * which closed-testing sign-up row it links to.
  */
 export function AttributionDebugPanel() {
   const lookup = useServerFn(lookupTesterAttribution);
@@ -107,7 +107,7 @@ export function AttributionDebugPanel() {
             </div>
             <div className="mt-3">
               <p className="mb-1 text-[11px] font-medium text-muted-foreground">
-                Fields sent with a signup
+                Fields sent with a sign-up
               </p>
               {props && Object.entries(props).map(([k, v]) => <Row key={k} label={k} value={v} />)}
             </div>
@@ -115,7 +115,7 @@ export function AttributionDebugPanel() {
 
           <section className="border-t border-border pt-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Linked signup row
+              Linked sign-up row
             </h3>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Input
@@ -124,7 +124,7 @@ export function AttributionDebugPanel() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tester@example.com"
                 className="h-9 max-w-xs"
-                aria-label="Look up signup by email"
+                aria-label="Look up sign-up by email"
               />
               <Button
                 type="button"
@@ -174,7 +174,7 @@ export function AttributionDebugPanel() {
                 </p>
                 {data.rows.length === 0 && (
                   <p className="text-xs text-muted-foreground">
-                    No signup row matches — this visitor has not converted yet.
+                    No sign-up row matches — this visitor has not converted yet.
                   </p>
                 )}
                 {data.rows.map((r) => (
@@ -196,7 +196,7 @@ export function AttributionDebugPanel() {
                     <Row label="retained_14d_at" value={r.retained_14d_at} />
                     <Row label="attribution (raw)" value={r.attribution} />
                     {props && r.utm_source && r.utm_source !== props.utm_source && (
-                      <p className="mt-2 text-[11px] text-amber-600">
+                      <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400">
                         Mismatch: browser says “{props.utm_source}”, row says “{r.utm_source}”.
                       </p>
                     )}

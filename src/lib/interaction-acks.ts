@@ -35,7 +35,9 @@ function writeAll(map: AckMap) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
     window.dispatchEvent(new Event(CHANGE_EVENT));
-  } catch {}
+  } catch {
+    // localStorage unavailable (private mode) — non-critical.
+  }
 }
 
 /** Stable signature for an unordered pair + severity. Slug pair guards against

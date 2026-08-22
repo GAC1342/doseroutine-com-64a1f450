@@ -3,6 +3,9 @@ import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { articleScript } from "@/lib/article-schema";
 import { hreflangLinks } from "@/lib/hreflang";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { SOURCES_FAQ } from "@/lib/aeo-faqs-info";
 
 const pageUrl = "https://doseroutine.com/sources";
 const pageTitle = "Sources & Methodology — DoseRoutine";
@@ -20,12 +23,13 @@ export const Route = createFileRoute("/sources")({
       { property: "og:type", content: "article" },
       { property: "og:url", content: pageUrl },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
     links: [{ rel: "canonical", href: pageUrl }, ...hreflangLinks("/sources")],
     scripts: [
+      aeoFaqScript(pageUrl, SOURCES_FAQ),
       breadcrumbScript(pageUrl, [{ name: "Sources & Methodology", path: "/sources" }]),
       articleScript({
         url: pageUrl,
@@ -65,7 +69,7 @@ const PUBLISHERS: { name: string; url: string; what: string }[] = [
   {
     name: "DailyMed (NIH)",
     url: "https://dailymed.nlm.nih.gov/dailymed/",
-    what: "FDA-submitted prescribing information and product labelling for approved drugs.",
+    what: "FDA-submitted prescribing information and product labeling for approved drugs.",
   },
   {
     name: "PubChem",
@@ -109,7 +113,7 @@ function SourcesPage() {
 
         <div className="mt-6 rounded-lg border border-border/60 bg-muted/30 p-4 text-sm text-foreground/90">
           <strong>In one line:</strong> every compound page and every interaction rule is built from
-          published literature, regulatory labelling and public reference databases — each with a
+          published literature, regulatory labeling and public reference databases — each with a
           direct link to the document, not just the publisher's homepage.
         </div>
 
@@ -211,6 +215,8 @@ function SourcesPage() {
             .
           </p>
         </Section>
+
+        <AeoFaq pairs={SOURCES_FAQ} />
       </main>
     </div>
   );

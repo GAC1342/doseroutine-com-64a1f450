@@ -90,7 +90,6 @@ export interface PublishImpactPoint {
   after: number | null;
 }
 
-
 function toDay(value: string): string {
   return value.slice(0, 10);
 }
@@ -138,9 +137,7 @@ function describe(metrics: MetricComparison[]): string {
     parts.push(`Impressions are ${pct > 0 ? "up" : "down"} ${Math.abs(round(pct, 1))}%`);
   }
   if (indexed && indexed.change !== null && indexed.change !== 0) {
-    parts.push(
-      `${indexed.change > 0 ? "+" : ""}${round(indexed.change, 0)} indexed pages`,
-    );
+    parts.push(`${indexed.change > 0 ? "+" : ""}${round(indexed.change, 0)} indexed pages`);
   }
   if (position && position.change !== null && Math.abs(position.change) >= 0.1) {
     parts.push(

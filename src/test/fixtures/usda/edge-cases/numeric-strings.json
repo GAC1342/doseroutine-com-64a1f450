@@ -1,0 +1,33 @@
+{
+  "fdcId": "7000002",
+  "description": "Cheese, cheddar (numeric strings)",
+  "dataType": "SR Legacy",
+  "foodNutrients": [
+    {
+      "nutrientId": "1008",
+      "value": "403"
+    },
+    {
+      "nutrientId": "1003",
+      "value": "22.9"
+    },
+    {
+      "nutrientId": "1005",
+      "value": "3.1"
+    },
+    {
+      "nutrientId": "1004",
+      "value": "33.1"
+    },
+    {
+      "nutrientId": "1093",
+      "value": "621"
+    }
+  ],
+  "foodPortions": [
+    {
+      "gramWeight": "28.4",
+      "portionDescription": "1 oz"
+    }
+  ]
+}

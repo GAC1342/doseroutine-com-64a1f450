@@ -2,7 +2,7 @@
  * Pure aggregation helpers for the Insights dashboard.
  *
  * Everything here is deliberately free of network / Supabase access so the
- * bucketing and delta maths can be unit-tested, mirroring the approach used by
+ * bucketing and delta math can be unit-tested, mirroring the approach used by
  * `src/lib/publish-impact.ts`.
  */
 
@@ -157,7 +157,13 @@ export function deltaAcross(points: readonly SeriesPoint[], how: Aggregation = "
     SeriesPoint & { value: number }
   >;
   if (withValues.length < 2) {
-    return { current: withValues[0]?.value ?? null, previous: null, change: null, pct: null, direction: "flat" };
+    return {
+      current: withValues[0]?.value ?? null,
+      previous: null,
+      change: null,
+      pct: null,
+      direction: "flat",
+    };
   }
   const mid = Math.floor(withValues.length / 2);
   const previous = reduceBucket(

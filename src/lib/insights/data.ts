@@ -17,6 +17,37 @@ export interface SupplyRow {
   note?: string;
 }
 
+/**
+ * Average intake split by what else happened that day, so people can see how
+ * their eating tracks with dosing and training rather than guessing.
+ *
+ * Only days with at least one logged meal count, and each side needs two such
+ * days before we report it — otherwise the fields stay null.
+ */
+export interface NutritionContext {
+  doseDayCalories: number | null;
+  restDayCalories: number | null;
+  doseDayProtein: number | null;
+  restDayProtein: number | null;
+  trainDayCalories: number | null;
+  offDayCalories: number | null;
+  trainDayProtein: number | null;
+  offDayProtein: number | null;
+  loggedDays: number;
+}
+
+export const EMPTY_NUTRITION_CONTEXT: NutritionContext = {
+  doseDayCalories: null,
+  restDayCalories: null,
+  doseDayProtein: null,
+  restDayProtein: null,
+  trainDayCalories: null,
+  offDayCalories: null,
+  trainDayProtein: null,
+  offDayProtein: null,
+  loggedDays: 0,
+};
+
 export interface RotationSeries {
   data: Array<Record<string, string | number>>;
   sites: string[];
@@ -35,6 +66,12 @@ export interface InsightsData {
   bodyFat: SeriesPoint[];
   /** Training minutes per bucket. */
   trainingMinutes: SeriesPoint[];
+  /** Calories logged per bucket. */
+  calories: SeriesPoint[];
+  /** Protein grams logged per bucket. */
+  protein: SeriesPoint[];
+  /** How eating differs on dose days and training days. */
+  nutritionContext: NutritionContext;
   /** Completed sessions per bucket. */
   sessions: SeriesPoint[];
   rotation: RotationSeries;
@@ -88,7 +125,7 @@ export async function fetchInsightsData(days: number): Promise<InsightsData> {
 
   if (!user) return emptyInsights(days);
 
-  const [profileRes, eventsRes, checkinsRes, workoutsRes, sitesRes, compoundsRes] =
+  const [profileRes, eventsRes, checkinsRes, workoutsRes, sitesRes, compoundsRes, mealsRes] =
     await Promise.all([
       supabase.from("profiles").select("unit_pref").eq("id", user.id).maybeSingle(),
       supabase
@@ -119,6 +156,12 @@ export async function fetchInsightsData(days: number): Promise<InsightsData> {
         )
         .eq("user_id", user.id)
         .eq("active", true),
+      supabase
+        .from("meals")
+        .select("logged_at, adj_calories, adj_protein_g, est_calories, est_protein_g")
+        .eq("user_id", user.id)
+        .gte("logged_at", startISO)
+        .order("logged_at", { ascending: true }),
     ]);
 
   const units: "metric" | "imperial" =
@@ -169,6 +212,31 @@ export async function fetchInsightsData(days: number): Promise<InsightsData> {
     value: Number(w.duration_min ?? 0),
   }));
   const sessionsRaw: RawPoint[] = completed.map((w) => ({ date: w.performed_on, value: 1 }));
+
+  // ---- Nutrition -----------------------------------------------------------
+  const perDayFood = new Map<string, { calories: number; protein: number }>();
+  for (const m of mealsRes.data ?? []) {
+    if (!m.logged_at) continue;
+    const key = dayKey(m.logged_at);
+    const bucketRow = perDayFood.get(key) ?? { calories: 0, protein: 0 };
+    bucketRow.calories += Number(m.adj_calories ?? m.est_calories ?? 0);
+    bucketRow.protein += Number(m.adj_protein_g ?? m.est_protein_g ?? 0);
+    perDayFood.set(key, bucketRow);
+  }
+  const caloriesRaw: RawPoint[] = [];
+  const proteinRaw: RawPoint[] = [];
+  for (const [date, b] of perDayFood) {
+    caloriesRaw.push({ date, value: b.calories });
+    proteinRaw.push({ date, value: b.protein });
+  }
+  const doseDays = new Set<string>();
+  for (const e of eventsRes.data ?? []) {
+    if (getEffectiveDoseStatus(e.status, e.scheduled_at, now) === "taken") {
+      doseDays.add(dayKey(e.scheduled_at));
+    }
+  }
+  const trainDays = new Set(completed.map((w) => dayKey(w.performed_on)));
+  const nutritionContext = buildNutritionContext(perDayFood, doseDays, trainDays);
 
   // ---- Injection rotation --------------------------------------------------
   const rotation = buildRotation(sitesRes.data ?? [], days, end);
@@ -240,6 +308,9 @@ export async function fetchInsightsData(days: number): Promise<InsightsData> {
     weight: bucket(weightRaw, days, "avg", end),
     bodyFat: bucket(bodyFatRaw, days, "avg", end),
     trainingMinutes: bucket(minutesRaw, days, "sum", end),
+    calories: bucket(caloriesRaw, days, bucketFor(days) === "day" ? "sum" : "avg", end),
+    protein: bucket(proteinRaw, days, bucketFor(days) === "day" ? "sum" : "avg", end),
+    nutritionContext,
     sessions: bucket(sessionsRaw, days, "sum", end),
     rotation,
     vials: vials.slice(0, 4),
@@ -247,6 +318,48 @@ export async function fetchInsightsData(days: number): Promise<InsightsData> {
     monthlySpendTotal: spend.reduce((s, r) => s + r.value, 0),
     currency,
     bucket: bucketFor(days),
+  };
+}
+
+/**
+ * Compare average intake on dose days vs the rest, and training days vs rest
+ * days. Each side needs at least two logged days so a single outlier meal
+ * can't produce a confident-looking comparison.
+ */
+function buildNutritionContext(
+  perDayFood: Map<string, { calories: number; protein: number }>,
+  doseDays: ReadonlySet<string>,
+  trainDays: ReadonlySet<string>,
+): NutritionContext {
+  const split = (member: ReadonlySet<string>) => {
+    const inside: Array<{ calories: number; protein: number }> = [];
+    const outside: Array<{ calories: number; protein: number }> = [];
+    for (const [day, totals] of perDayFood) {
+      (member.has(day) ? inside : outside).push(totals);
+    }
+    const avg = (
+      rows: Array<{ calories: number; protein: number }>,
+      key: "calories" | "protein",
+    ) => (rows.length >= 2 ? Math.round(rows.reduce((s, r) => s + r[key], 0) / rows.length) : null);
+    return {
+      inCalories: avg(inside, "calories"),
+      outCalories: avg(outside, "calories"),
+      inProtein: avg(inside, "protein"),
+      outProtein: avg(outside, "protein"),
+    };
+  };
+  const dose = split(doseDays);
+  const train = split(trainDays);
+  return {
+    doseDayCalories: dose.inCalories,
+    restDayCalories: dose.outCalories,
+    doseDayProtein: dose.inProtein,
+    restDayProtein: dose.outProtein,
+    trainDayCalories: train.inCalories,
+    offDayCalories: train.outCalories,
+    trainDayProtein: train.inProtein,
+    offDayProtein: train.outProtein,
+    loggedDays: perDayFood.size,
   };
 }
 
@@ -310,6 +423,9 @@ export function emptyInsights(days: number): InsightsData {
     bodyFat: blank,
     trainingMinutes: blank,
     sessions: blank,
+    calories: blank,
+    protein: blank,
+    nutritionContext: EMPTY_NUTRITION_CONTEXT,
     rotation: { data: [], sites: [] },
     vials: [],
     spend: [],

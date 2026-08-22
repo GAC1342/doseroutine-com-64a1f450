@@ -1,3 +1,5 @@
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
@@ -19,7 +21,7 @@ import { RelatedLinks } from "@/components/related-links";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 
-const CANONICAL = "https://doseroutine.com/vs/medisafe";
+export const CANONICAL = "https://doseroutine.com/vs/medisafe";
 const TITLE = "Medisafe Alternative for Peptides and TRT";
 const DESC =
   "DoseRoutine is a Medisafe alternative with peptide reconstitution, interaction… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
@@ -41,7 +43,11 @@ export const Route = createFileRoute("/vs/medisafe")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/1f47c142-ab40-4a29-9e4f-f00a2de92669/og-vs-medisafe.jpg",
       },
-        { property: "og:image:alt", content: "DoseRoutine vs Medisafe comparison card — peptide and hormone tracking side by side" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine vs Medisafe comparison card — peptide and hormone tracking side by side",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
@@ -50,7 +56,11 @@ export const Route = createFileRoute("/vs/medisafe")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/1f47c142-ab40-4a29-9e4f-f00a2de92669/og-vs-medisafe.jpg",
       },
-        { name: "twitter:image:alt", content: "DoseRoutine vs Medisafe comparison card — peptide and hormone tracking side by side" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine vs Medisafe comparison card — peptide and hormone tracking side by side",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/vs/medisafe")],
@@ -74,6 +84,7 @@ export const Route = createFileRoute("/vs/medisafe")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
           mainEntity: FAQ.map((f) => ({
             "@type": "Question",
             name: f.q,
@@ -86,7 +97,7 @@ export const Route = createFileRoute("/vs/medisafe")({
   component: MedisafeAlternative,
 });
 
-const FAQ = [
+export const FAQ = [
   {
     q: "Is DoseRoutine a Medisafe alternative for peptides and hormones?",
     a: "Yes. Medisafe is a great pill reminder, but it wasn't designed for peptides, TRT/HRT, or complex longevity stacks. DoseRoutine adds a peptide reconstitution calculator, injection site rotation, vial inventory, blood work tracking, and a compound library of 475+ substances — the tools stack builders actually need.",
@@ -101,7 +112,7 @@ const FAQ = [
   },
   {
     q: "How much does DoseRoutine cost vs Medisafe Premium?",
-    a: "DoseRoutine Pro is $9.99/month or $59.99/year with a 7-day free trial. That's less than Medisafe Premium and includes the peptide calculator, interaction checker, AI stack planning, and doctor PDFs.",
+    a: "DoseRoutine Pro is $9.99/month or $59.99/year. That's less than Medisafe Premium and includes the peptide calculator, interaction checker, AI stack planning, and doctor PDFs.",
   },
   {
     q: "Can I log everything else I take alongside my supplements?",
@@ -124,7 +135,7 @@ const COMPARISON = [
   { feature: "Shareable PDF summaries", us: true, them: "Basic" },
   { feature: "Calendar (.ics) alarms for every dose", us: true, them: false },
   { feature: "Protocol sharing", us: true, them: false },
-  { feature: "Free trial", us: "7 days", them: "14 days" },
+  { feature: "Free tier", us: "Yes", them: "14 days" },
   { feature: "Pro pricing", us: "$9.99/mo · $59.99/yr", them: "$4.99/mo · $39.99/yr" },
 ];
 
@@ -138,7 +149,11 @@ function MedisafeAlternative() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
+      <section
+        id="main-content"
+        tabIndex={-1}
+        className="container max-w-4xl mx-auto px-4 py-12 md:py-20"
+      >
         <div className="text-center space-y-4 mb-12">
           <span className="inline-block text-xs uppercase tracking-widest text-muted-foreground">
             Medisafe alternative
@@ -269,7 +284,7 @@ function MedisafeAlternative() {
         <div className="text-center space-y-4 py-8 border-t">
           <h2 className="text-2xl font-bold">Ready to switch?</h2>
           <p className="text-muted-foreground">
-            7-day free trial. Cancel anytime. $9.99/month or $59.99/year (50% off).
+            Cancel anytime. $9.99/month or $59.99/year (50% off).
           </p>
           <Button size="lg" asChild>
             <Link to="/install">
@@ -305,6 +320,11 @@ function MedisafeAlternative() {
         </div>
       </section>
       <RelatedLinks currentPath="/vs/medisafe" kind="comparisons" />
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="vs-medisafe" />
+        </ProseContainer>
+      </ProseContainer>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>
   );

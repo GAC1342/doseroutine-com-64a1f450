@@ -5,6 +5,8 @@ import { ArrowLeft, Bell, BellOff, CheckCheck, Dumbbell, Pill, Trash2 } from "lu
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingStatus } from "@/components/skeletons";
+import { routeErrorComponent } from "@/components/route-error-panel";
 import {
   clearReadNotifications,
   deleteNotification,
@@ -17,6 +19,7 @@ import {
 } from "@/lib/notifications";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
+  errorComponent: routeErrorComponent("notifications"),
   head: () => ({
     meta: [
       { title: "Notifications — DoseRoutine" },
@@ -61,7 +64,7 @@ function NotificationsPage() {
     refetchInterval: 60_000,
   });
 
-  const rows = notifications.data ?? [];
+  const rows = useMemo(() => notifications.data ?? [], [notifications.data]);
   const unread = useMemo(() => rows.filter((n) => !n.read_at).length, [rows]);
 
   const invalidate = () => {
@@ -123,10 +126,11 @@ function NotificationsPage() {
 
       <div className="mt-6 space-y-2">
         {notifications.isLoading && (
-          <>
-            <Skeleton className="h-20 w-full rounded-2xl" />
-            <Skeleton className="h-20 w-full rounded-2xl" />
-          </>
+          <div className="space-y-2" aria-busy="true">
+            <LoadingStatus label="Loading your notifications…" />
+            <Skeleton aria-hidden="true" className="h-20 w-full rounded-2xl" />
+            <Skeleton aria-hidden="true" className="h-20 w-full rounded-2xl" />
+          </div>
         )}
 
         {!notifications.isLoading && rows.length === 0 && (

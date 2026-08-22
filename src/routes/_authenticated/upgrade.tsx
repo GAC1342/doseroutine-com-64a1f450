@@ -9,8 +9,10 @@ import { PageHeader } from "@/components/page-header";
 import { NativePaywall } from "@/components/native-paywall";
 import { isNative } from "@/lib/platform";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/upgrade")({
+  errorComponent: routeErrorComponent("upgrade"),
   head: () => ({ meta: [{ title: "Upgrade — DoseRoutine" }] }),
   // `plan` + `checkout=1` power the one-click buttons in the trial-ending
   // banner and the trial reminder emails: they land here and Stripe checkout
@@ -88,20 +90,23 @@ function StripeUpgradePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClientSecret = useCallback(async (priceId: string) => {
-    const result = await createCheckoutSession({
-      data: {
-        priceId,
-        returnUrl: `${window.location.origin}/upgrade?checkout=return${
-          nextParam ? `&next=${encodeURIComponent(nextParam)}` : ""
-        }`,
-        environment: getStripeEnvironment(),
-      },
-    });
-    if ("error" in result) throw new Error(result.error);
-    if (!result.clientSecret) throw new Error("Stripe did not return a client secret");
-    return result.clientSecret;
-  }, [nextParam]);
+  const fetchClientSecret = useCallback(
+    async (priceId: string) => {
+      const result = await createCheckoutSession({
+        data: {
+          priceId,
+          returnUrl: `${window.location.origin}/upgrade?checkout=return${
+            nextParam ? `&next=${encodeURIComponent(nextParam)}` : ""
+          }`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      if ("error" in result) throw new Error(result.error);
+      if (!result.clientSecret) throw new Error("Stripe did not return a client secret");
+      return result.clientSecret;
+    },
+    [nextParam],
+  );
 
   const startCheckout = useCallback(
     async (planId: string, billingOverride?: Billing) => {

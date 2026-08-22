@@ -99,7 +99,7 @@ export function warmOnIntent(src: string | null | undefined) {
 }
 
 /**
- * iOS Safari-optimised intent warming.
+ * iOS Safari-optimized intent warming.
  *
  * Why native listeners instead of React props:
  *   - React delegates every handler to the root container, so `onTouchStart`

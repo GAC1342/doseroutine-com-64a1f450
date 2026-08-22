@@ -24,7 +24,7 @@ import { join, resolve } from "node:path";
 const ROUTES_DIR = join(process.cwd(), "src", "routes");
 const SITEMAP_SOURCE = readFileSync(join(ROUTES_DIR, "sitemap[.]xml.ts"), "utf8");
 const ROBOTS_TXT = readFileSync(resolve(process.cwd(), "public/robots.txt"), "utf8");
-const CANONICAL_ORIGIN = "https://doseroutine.com";
+export const CANONICAL_ORIGIN = "https://doseroutine.com";
 
 const BASE_URL = (process.env["SITEMAP_BASE_URL"] ?? "http://localhost:8080").replace(/\/+$/, "");
 const REQUIRE_SERVER = process.env["SITEMAP_REQUIRE_SERVER"] === "1";

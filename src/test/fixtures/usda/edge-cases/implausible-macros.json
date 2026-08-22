@@ -1,0 +1,23 @@
+{
+  "fdcId": 7000008,
+  "description": "Corrupt record, energy far beyond physical limits",
+  "dataType": "Foundation",
+  "foodNutrients": [
+    {
+      "nutrientId": 1008,
+      "value": 5200
+    },
+    {
+      "nutrientId": 1003,
+      "value": 12
+    },
+    {
+      "nutrientId": 1005,
+      "value": 10
+    },
+    {
+      "nutrientId": 1004,
+      "value": 4
+    }
+  ]
+}

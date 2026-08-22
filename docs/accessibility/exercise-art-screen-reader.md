@@ -10,13 +10,13 @@ real screen reader, so the device pass below is still required before release.
 
 ## Expected announcements
 
-| Step | VoiceOver (iOS) | TalkBack (Android) |
-| --- | --- | --- |
-| Swipe to thumbnail | "Enlarge Yoga illustration. `<caption sentence>`, button, pop-up dialog" | "Enlarge Yoga illustration. `<caption sentence>`, button, collapsed / activates dialog" |
-| Activate (double-tap) | "Yoga illustration, full size, dialog. `<caption sentence>`" | "Yoga illustration, full size, dialog. `<caption sentence>`" |
-| Swipe right inside | "Close, button" → "Yoga" → "`<caption sentence>`" | same order |
-| Swipe past last item | Stays inside the dialog (does not reach page content) | Stays inside the dialog |
-| Close (Escape / Close / two-finger scrub / back) | "Enlarge Yoga illustration…, button" — focus is back on the thumbnail | same |
+| Step                                             | VoiceOver (iOS)                                                          | TalkBack (Android)                                                                      |
+| ------------------------------------------------ | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Swipe to thumbnail                               | "Enlarge Yoga illustration. `<caption sentence>`, button, pop-up dialog" | "Enlarge Yoga illustration. `<caption sentence>`, button, collapsed / activates dialog" |
+| Activate (double-tap)                            | "Yoga illustration, full size, dialog. `<caption sentence>`"             | "Yoga illustration, full size, dialog. `<caption sentence>`"                            |
+| Swipe right inside                               | "Close, button" → "Yoga" → "`<caption sentence>`"                        | same order                                                                              |
+| Swipe past last item                             | Stays inside the dialog (does not reach page content)                    | Stays inside the dialog                                                                 |
+| Close (Escape / Close / two-finger scrub / back) | "Enlarge Yoga illustration…, button" — focus is back on the thumbnail    | same                                                                                    |
 
 The caption sentence must be read **once** on entry and **once** more only if
 the user swipes to the caption itself. Hearing it three times means the image
@@ -68,7 +68,7 @@ regained an `alt` or a hidden duplicate description came back.
 
 ## Record of manual passes
 
-| Date | Build | Device / OS | Reader | Result | Notes |
-| --- | --- | --- | --- | --- | --- |
-| _pending_ | | iPhone / iOS 18 | VoiceOver | | |
-| _pending_ | | Pixel / Android 15 | TalkBack | | |
+| Date      | Build | Device / OS        | Reader    | Result | Notes |
+| --------- | ----- | ------------------ | --------- | ------ | ----- |
+| _pending_ |       | iPhone / iOS 18    | VoiceOver |        |       |
+| _pending_ |       | Pixel / Android 15 | TalkBack  |        |       |

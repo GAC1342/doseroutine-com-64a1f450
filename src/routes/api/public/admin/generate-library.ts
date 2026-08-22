@@ -34,6 +34,7 @@ overview_md, mechanism_md, benefits_md, evidence_md, side_effects_md,
 warnings_md, contraindications_md, do_not_mix_md, timing_md, faq_md (3–5 Q&A),
 sources_md (bulleted org list).`;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 async function callAI(apiKey: string, payload: unknown): Promise<any> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -142,6 +143,7 @@ export const Route = createFileRoute("/api/public/admin/generate-library")({
         const byId = new Map<string, ContentStatus>(
           ((content ?? []) as ContentStatus[]).map((r) => [r.compound_id, r]),
         );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const rows = (compounds ?? []).map((c: any) => {
           const cc = byId.get(c.id);
           const missing = ALL_TARGETS.filter((f) => statusMissing(cc, f));
@@ -227,8 +229,10 @@ export const Route = createFileRoute("/api/public/admin/generate-library")({
 
         const isMissing = statusMissing;
 
-        type Todo = { c: any; missing: string[] };
-        const todo: Todo[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
+        type PendingCompound = { c: any; missing: string[] };
+        const todo: PendingCompound[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         for (const c of (compounds ?? []) as any[]) {
           const row = contentById.get(c.id);
           if (mode === "repair") {
@@ -250,6 +254,7 @@ export const Route = createFileRoute("/api/public/admin/generate-library")({
         });
         const batch = todo.slice(0, limit);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const results: any[] = [];
         for (const { c, missing } of batch) {
           try {
@@ -269,10 +274,12 @@ export const Route = createFileRoute("/api/public/admin/generate-library")({
                     is_injectable: c.is_injectable,
                     is_controlled: c.is_controlled,
                   })
-                : Promise.resolve(null as any),
+                : // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
+                  Promise.resolve(null as any),
               needsImg ? fetchPubChem(c.name) : Promise.resolve(null),
             ]);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
             const patch: Record<string, any> = {
               compound_id: c.id,
               updated_at: new Date().toISOString(),
@@ -308,6 +315,7 @@ export const Route = createFileRoute("/api/public/admin/generate-library")({
             const rowExists = Boolean(contentById.get(c.id));
             const updatePatch = Object.fromEntries(
               Object.entries(patch).filter(([key]) => key !== "compound_id"),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
             ) as any;
             const { error: upErr } =
               mode === "repair" && rowExists
@@ -343,6 +351,7 @@ export const Route = createFileRoute("/api/public/admin/generate-library")({
           ((postContent ?? []) as ContentStatus[]).map((r) => [r.compound_id, r]),
         );
         let remaining = 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         for (const c of (compounds ?? []) as any[]) {
           const row = postById.get(c.id);
           const stillMissing = targetFields.some((f) => isMissing(row, f));

@@ -8,9 +8,9 @@ const ld = (obj: unknown) => `<script type="application/ld+json">${JSON.stringif
 describe("attribution crawler detection", () => {
   describe("visible credit line", () => {
     it("matches the AttributionFooter copy", () => {
-      expect(hasVisibleCredit("<p><strong>Original editorial compilation by DoseRoutine.</strong></p>")).toBe(
-        true,
-      );
+      expect(
+        hasVisibleCredit("<p><strong>Original editorial compilation by DoseRoutine.</strong></p>"),
+      ).toBe(true);
     });
 
     it("matches the help-article credit line", () => {

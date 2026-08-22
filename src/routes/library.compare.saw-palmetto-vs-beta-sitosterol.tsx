@@ -4,13 +4,14 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/compare/saw-palmetto-vs-beta-sitosterol";
+export const CANONICAL = "https://doseroutine.com/library/compare/saw-palmetto-vs-beta-sitosterol";
 const TITLE = "Saw Palmetto vs Beta-Sitosterol for Prostate | DoseRoutine";
 const DESC =
   "Saw palmetto vs beta-sitosterol compared: mechanism, evidence for BPH urinary symptoms, typical doses, side effects and how they stack together.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "Which works faster for urinary symptoms?",
     a: "Beta-sitosterol usually shows benefit in 4–6 weeks. Saw palmetto typically needs 8–12 weeks before urinary flow and nocturia improve.",
@@ -67,7 +68,7 @@ export const Route = createFileRoute("/library/compare/saw-palmetto-vs-beta-sito
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/compare/saw-palmetto-vs-beta-sitosterol"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -82,8 +83,15 @@ export const Route = createFileRoute("/library/compare/saw-palmetto-vs-beta-sito
           url: CANONICAL,
           image: ["https://doseroutine.com/og/compare-saw-beta.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -130,7 +138,7 @@ export const Route = createFileRoute("/library/compare/saw-palmetto-vs-beta-sito
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });

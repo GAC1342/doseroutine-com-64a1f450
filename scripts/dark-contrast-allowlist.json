@@ -1,0 +1,22 @@
+{
+  "note": "Pre-existing light-only colour usages. Do not add new entries; fix the component with a dark: variant or a semantic token instead.",
+  "entries": [
+    "src/components/meal-review-sheet.tsx::border-amber-500",
+    "src/components/meal-review-sheet.tsx::ring-amber-500",
+    "src/components/scanned-product-card.tsx::bg-amber-500",
+    "src/components/scanned-product-card.tsx::bg-emerald-500",
+    "src/components/stats-trend-card.tsx::text-amber-500",
+    "src/components/stats-trend-card.tsx::text-emerald-500",
+    "src/routes/_authenticated/cycles.tsx::bg-amber-500",
+    "src/routes/_authenticated/health-sync.tsx::text-amber-500",
+    "src/routes/_authenticated/health-sync.tsx::text-emerald-500",
+    "src/routes/_authenticated/labs.tsx::text-amber-500",
+    "src/routes/_authenticated/labs.tsx::text-emerald-500",
+    "src/routes/_authenticated/labs.tsx::text-rose-500",
+    "src/routes/_authenticated/side-effects.tsx::text-rose-500",
+    "src/routes/interaction-checker.tsx::bg-amber-500",
+    "src/routes/library.compare.bpc-157-vs-tb-500.tsx::text-amber-500",
+    "src/routes/library.peptide-stacks-for-muscle-growth.tsx::text-amber-500",
+    "src/routes/reconstitution-calculator.tsx::text-amber-500"
+  ]
+}

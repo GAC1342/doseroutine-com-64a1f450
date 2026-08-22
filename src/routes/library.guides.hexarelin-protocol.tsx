@@ -4,28 +4,29 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/guides/hexarelin-protocol";
+export const CANONICAL = "https://doseroutine.com/library/guides/hexarelin-protocol";
 const TITLE = "Hexarelin Protocol: Dosing, Benefits & Safety | DoseRoutine";
 const DESC =
-  "How Hexarelin works as a GH secretagogue: realistic benefits, typical dosing, desensitisation and cortisol risks, and how it compares to Ipamorelin.";
+  "How Hexarelin works as a GH secretagogue: realistic benefits, typical dosing, desensitization and cortisol risks, and how it compares to Ipamorelin.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "What is Hexarelin?",
     a: "Hexarelin is a synthetic hexapeptide growth hormone secretagogue (GHS) — a ghrelin-receptor (GHS-R1a) agonist that triggers a pulse of growth hormone release from the pituitary. It is a research peptide, not an approved medicine in the US, UK, EU, Canada or Australia.",
   },
   {
     q: "How does Hexarelin differ from Ipamorelin?",
-    a: "Both hit the same GHS-R1a receptor, but Hexarelin produces a stronger GH pulse while also raising cortisol and prolactin and desensitising faster. Ipamorelin is far more selective — a weaker pulse with essentially no cortisol or prolactin bump. Most people using GHS long-term choose Ipamorelin for that reason.",
+    a: "Both hit the same GHS-R1a receptor, but Hexarelin produces a stronger GH pulse while also raising cortisol and prolactin and desensitizing faster. Ipamorelin is far more selective — a weaker pulse with essentially no cortisol or prolactin bump. Most people using GHS long-term choose Ipamorelin for that reason.",
   },
   {
     q: "What are typical Hexarelin doses?",
-    a: "Protocols reported in the literature and in community use sit around 100 mcg per administration, 1–3 times daily, subcutaneously, on an empty stomach. Cycle lengths are usually kept short (roughly 4–8 weeks) specifically because receptor desensitisation blunts the GH response with continuous use. These are reported figures, not a recommendation — Hexarelin is not an approved medicine and dosing should never be self-directed.",
+    a: "Protocols reported in the literature and in community use sit around 100 mcg per administration, 1–3 times daily, subcutaneously, on an empty stomach. Cycle lengths are usually kept short (roughly 4–8 weeks) specifically because receptor desensitization blunts the GH response with continuous use. These are reported figures, not a recommendation — Hexarelin is not an approved medicine and dosing should never be self-directed.",
   },
   {
     q: "Why does Hexarelin stop working?",
-    a: "GHS-R1a downregulates with repeated stimulation. Studies of continuous Hexarelin administration show a substantially attenuated GH response within a few weeks. That desensitisation is the single biggest practical limitation of the compound and the reason cycles are kept short with washout periods.",
+    a: "GHS-R1a downregulates with repeated stimulation. Studies of continuous Hexarelin administration show a substantially attenuated GH response within a few weeks. That desensitization is the single biggest practical limitation of the compound and the reason cycles are kept short with washout periods.",
   },
   {
     q: "Does Hexarelin raise cortisol and prolactin?",
@@ -37,7 +38,7 @@ const FAQS = [
   },
   {
     q: "Is Hexarelin stacked with CJC-1295?",
-    a: "It's a commonly reported pairing — a GHRH analogue (CJC-1295 or Sermorelin) plus a GHS like Hexarelin acts on two separate pathways and produces a larger combined pulse than either alone. It also compounds the side-effect and desensitisation profile, and stacking two unapproved research peptides multiplies the unknowns.",
+    a: "It's a commonly reported pairing — a GHRH analogue (CJC-1295 or Sermorelin) plus a GHS like Hexarelin acts on two separate pathways and produces a larger combined pulse than either alone. It also compounds the side-effect and desensitization profile, and stacking two unapproved research peptides multiplies the unknowns.",
   },
   {
     q: "Is Hexarelin legal?",
@@ -89,7 +90,7 @@ const BENEFITS = [
 ];
 
 const RISKS = [
-  "Receptor desensitisation — GH response fades within weeks of continuous use",
+  "Receptor desensitization — GH response fades within weeks of continuous use",
   "Cortisol and prolactin elevation, unlike selective secretagogues such as Ipamorelin",
   "Reduced insulin sensitivity and higher fasting glucose",
   "Water retention, joint aches, carpal-tunnel-type symptoms — classic GH excess signs",
@@ -118,7 +119,7 @@ export const Route = createFileRoute("/library/guides/hexarelin-protocol")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/guides/hexarelin-protocol"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -132,12 +133,20 @@ export const Route = createFileRoute("/library/guides/hexarelin-protocol")({
           description: DESC,
           url: CANONICAL,
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-29",
           dateModified: "2026-07-29",
+          image: ["https://doseroutine.com/og/doseroutine-home.jpg"],
           mainEntityOfPage: { "@type": "WebPage", "@id": CANONICAL },
         }),
       },
@@ -175,7 +184,7 @@ export const Route = createFileRoute("/library/guides/hexarelin-protocol")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });
@@ -201,7 +210,7 @@ function Page() {
             <ShieldAlert className="h-4 w-4 text-warning" /> Not an approved medicine
           </div>
           <p className="text-sm text-muted-foreground">
-            Hexarelin has no marketing authorisation from the FDA, EMA, MHRA or TGA. It is sold as a
+            Hexarelin has no marketing authorization from the FDA, EMA, MHRA or TGA. It is sold as a
             research chemical, banned in tested sport under WADA category S2, and should only be
             considered under the supervision of a physician who knows your labs and history. This
             page is educational reference material, not a protocol to follow.
@@ -311,7 +320,7 @@ function Page() {
             </li>
             <li>
               <strong>Cycle length:</strong> commonly 4–8 weeks with an equal washout, because of
-              desensitisation.
+              desensitization.
             </li>
             <li>
               <strong>Reconstitution:</strong> bacteriostatic water; store reconstituted vials
@@ -322,10 +331,10 @@ function Page() {
 
         <Card className="p-5 space-y-2 border-l-4 border-l-primary">
           <div className="flex items-center gap-2 text-sm font-semibold">
-            <Syringe className="h-4 w-4 text-primary" /> Get the reconstitution maths right
+            <Syringe className="h-4 w-4 text-primary" /> Get the reconstitution math right
           </div>
           <p className="text-sm text-muted-foreground">
-            Microgram dosing from a lyophilised vial is where most errors happen — a 10× mistake on
+            Microgram dosing from a lyophilized vial is where most errors happen — a 10× mistake on
             a 100 mcg dose is easy and consequential. Enter your vial strength and diluent volume
             and get the exact units to draw.
           </p>
@@ -418,7 +427,7 @@ function Page() {
           <div className="text-sm">
             <p className="font-semibold">Track peptide cycles properly in DoseRoutine</p>
             <p className="text-muted-foreground">
-              Reconstitution maths, vial inventory, injection-site rotation, cycle windows and
+              Reconstitution math, vial inventory, injection-site rotation, cycle windows and
               blood-work tracking in one place.
             </p>
             <Link

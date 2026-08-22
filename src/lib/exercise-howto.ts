@@ -622,6 +622,292 @@ const HOWTO: Record<string, ExerciseHowTo> = {
       "Rushing so much the reps lose all form.",
     ],
   },
+  "Dumbbell bench press": {
+    steps: [
+      "Sit on the bench with a dumbbell on each thigh, then kick them back as you lie down.",
+      "Pin the shoulder blades down and hold the weights over the mid-chest.",
+      "Lower until the elbows are level with the torso, elbows about 45 degrees out.",
+      "Press up and slightly together until the arms are straight.",
+    ],
+    mistakes: [
+      "Letting the elbows flare straight out to the sides.",
+      "Clanging the dumbbells together and losing chest tension.",
+      "Dropping the weights faster than you can control them.",
+    ],
+  },
+  "Machine chest press": {
+    steps: [
+      "Set the seat so the handles line up with the middle of your chest.",
+      "Sit tall with the back and shoulders flat against the pad.",
+      "Press the handles forward until the arms are straight but not locked.",
+      "Return slowly until you feel a stretch across the chest.",
+    ],
+    mistakes: [
+      "Setting the seat too high, which turns it into a shoulder press.",
+      "Letting the shoulders roll forward off the pad.",
+      "Slamming the weight stack down between reps.",
+    ],
+  },
+  "Decline push-up": {
+    steps: [
+      "Place your feet on a bench or box and hands under the shoulders.",
+      "Brace the abs and squeeze the glutes so the body is one line.",
+      "Lower the chest toward the floor with the elbows about 45 degrees out.",
+      "Press the floor away until the arms are straight.",
+    ],
+    mistakes: [
+      "Letting the hips sag toward the floor.",
+      "Only lowering halfway before pressing back up.",
+      "Poking the head forward instead of leading with the chest.",
+    ],
+  },
+  "Dumbbell floor press": {
+    steps: [
+      "Lie on the floor with knees bent and a dumbbell in each hand.",
+      "Start with the weights over the chest and the elbows tucked.",
+      "Lower until the upper arms rest lightly on the floor.",
+      "Pause, then press back up until the arms are straight.",
+    ],
+    mistakes: [
+      "Bouncing the elbows off the floor to start the press.",
+      "Flaring the elbows wide and stressing the shoulders.",
+      "Arching the lower back off the floor.",
+    ],
+  },
+  "Chest-supported row": {
+    steps: [
+      "Set the bench to a slight incline and lie chest-down on the pad.",
+      "Let the arms hang straight with the weights under the shoulders.",
+      "Pull the elbows back and down, squeezing the shoulder blades together.",
+      "Lower under control until the arms are straight again.",
+    ],
+    mistakes: [
+      "Lifting the chest off the pad to heave the weight.",
+      "Shrugging the shoulders up instead of rowing back.",
+      "Using so much weight the range of motion shrinks.",
+    ],
+  },
+  "Single-arm dumbbell row": {
+    steps: [
+      "Place one hand and knee on a bench with the other foot on the floor.",
+      "Hold the dumbbell with a straight arm and a flat back.",
+      "Row the elbow toward the hip, keeping it close to the body.",
+      "Lower slowly until the arm is fully extended.",
+    ],
+    mistakes: [
+      "Twisting the torso to lift heavier weight.",
+      "Rounding the lower back instead of holding a flat spine.",
+      "Yanking the weight up with the biceps only.",
+    ],
+  },
+  "T-bar row": {
+    steps: [
+      "Straddle the bar with knees soft and hinge forward from the hips.",
+      "Grip the handles and set a flat back with the chest up.",
+      "Pull the handles to the lower ribs, driving the elbows back.",
+      "Lower under control until the arms are straight.",
+    ],
+    mistakes: [
+      "Standing up out of the hinge as you pull.",
+      "Rounding the lower back under load.",
+      "Jerking the weight with the hips instead of rowing.",
+    ],
+  },
+  "Straight-arm pulldown": {
+    steps: [
+      "Stand facing a high cable with a bar or rope at chest height.",
+      "Hinge slightly forward with soft elbows and a flat back.",
+      "Sweep the bar down to the thighs using the lats, not the arms.",
+      "Return slowly until the arms are overhead and stretched.",
+    ],
+    mistakes: [
+      "Bending the elbows and turning it into a triceps pushdown.",
+      "Leaning back to add momentum.",
+      "Letting the shoulders shrug up at the top of each rep.",
+    ],
+  },
+  "Rack pull": {
+    steps: [
+      "Set the bar in a rack at about knee height and stand mid-foot.",
+      "Grip just outside the legs, chest up, flat back, lats tight.",
+      "Drive the floor away and stand tall, finishing with the hips through.",
+      "Lower under control back to the pins without bouncing.",
+    ],
+    mistakes: [
+      "Rounding the lower back to start the pull.",
+      "Hyperextending and leaning back at the top.",
+      "Bouncing the bar off the pins between reps.",
+    ],
+  },
+  "Dumbbell shoulder press": {
+    steps: [
+      "Sit tall with back support and dumbbells at shoulder height.",
+      "Brace the abs so the ribs stay down.",
+      "Press the weights overhead until the arms are straight.",
+      "Lower slowly until the elbows are level with the shoulders.",
+    ],
+    mistakes: [
+      "Arching the lower back to press heavier weight.",
+      "Letting the elbows drift far behind the body.",
+      "Bouncing out of the bottom of each rep.",
+    ],
+  },
+  "Arnold press": {
+    steps: [
+      "Start seated with palms facing you and dumbbells at chest height.",
+      "Rotate the palms outward as you begin pressing up.",
+      "Finish overhead with the arms straight and palms forward.",
+      "Reverse the rotation slowly on the way down.",
+    ],
+    mistakes: [
+      "Rushing the rotation and losing shoulder control.",
+      "Flaring the ribs and arching the lower back.",
+      "Using weight so heavy the rotation disappears.",
+    ],
+  },
+  "Cable lateral raise": {
+    steps: [
+      "Stand side-on to a low pulley and hold the handle across the body.",
+      "Keep a soft elbow and a tall chest.",
+      "Raise the arm out to the side to about shoulder height.",
+      "Lower slowly, resisting the cable the whole way.",
+    ],
+    mistakes: [
+      "Swinging the torso to start each rep.",
+      "Raising far above shoulder height and shrugging.",
+      "Letting the cable snap the arm back down.",
+    ],
+  },
+  "Rear delt fly": {
+    steps: [
+      "Sit or hinge forward with a light dumbbell in each hand.",
+      "Hold soft elbows and let the arms hang under the shoulders.",
+      "Open the arms out and back, leading with the elbows.",
+      "Lower under control without letting the weights swing.",
+    ],
+    mistakes: [
+      "Using the upper traps to shrug the weight up.",
+      "Going too heavy and turning it into a row.",
+      "Rounding the upper back through the rep.",
+    ],
+  },
+  "Upright row": {
+    steps: [
+      "Stand with a bar or dumbbells at the front of the thighs.",
+      "Set a tall chest and braced abs.",
+      "Pull the weight up toward the lower chest, elbows leading out and up.",
+      "Lower slowly to the starting position.",
+    ],
+    mistakes: [
+      "Pulling the bar up under the chin, which pinches the shoulder.",
+      "Using a grip so narrow the wrists twist.",
+      "Heaving with the lower back instead of the shoulders.",
+    ],
+  },
+  "Barbell shrug": {
+    steps: [
+      "Stand tall holding the bar at arms' length in front of the thighs.",
+      "Brace the abs and set the chin level.",
+      "Shrug the shoulders straight up toward the ears and pause.",
+      "Lower slowly until the traps are fully stretched.",
+    ],
+    mistakes: [
+      "Rolling the shoulders in circles instead of straight up.",
+      "Bending the elbows and rowing the bar.",
+      "Bouncing the weight with the knees.",
+    ],
+  },
+  "Hammer curl": {
+    steps: [
+      "Stand tall with a dumbbell in each hand, palms facing in.",
+      "Pin the elbows at your sides and brace the abs.",
+      "Curl the weights up without turning the wrists.",
+      "Lower slowly until the arms are straight.",
+    ],
+    mistakes: [
+      "Swinging the torso to launch the weight.",
+      "Letting the elbows drift forward at the top.",
+      "Cutting the lowering phase short.",
+    ],
+  },
+  "Incline dumbbell curl": {
+    steps: [
+      "Set a bench to about 45 degrees and sit back with arms hanging.",
+      "Let the shoulders stay back against the pad.",
+      "Curl the weights up while keeping the elbows still.",
+      "Lower all the way until the biceps are stretched.",
+    ],
+    mistakes: [
+      "Letting the elbows swing forward to shorten the range.",
+      "Shrugging the shoulders off the pad.",
+      "Using weight so heavy the bottom stretch is skipped.",
+    ],
+  },
+  "Preacher curl": {
+    steps: [
+      "Set the pad so the armpits rest on the top edge.",
+      "Hold the bar with the arms extended along the pad.",
+      "Curl up until the forearms are just past vertical.",
+      "Lower slowly until the arms are almost straight.",
+    ],
+    mistakes: [
+      "Letting the arms snap straight at the bottom.",
+      "Lifting the elbows off the pad to cheat the weight up.",
+      "Standing up out of the seat to finish reps.",
+    ],
+  },
+  "Skull crusher": {
+    steps: [
+      "Lie on a bench holding the bar over the chest with straight arms.",
+      "Keep the upper arms angled slightly back and still.",
+      "Bend the elbows to lower the bar toward the forehead.",
+      "Extend the elbows to press the bar back up.",
+    ],
+    mistakes: [
+      "Letting the elbows flare wide on the way down.",
+      "Moving the upper arms instead of hinging only at the elbows.",
+      "Lowering faster than you can control.",
+    ],
+  },
+  "Overhead cable extension": {
+    steps: [
+      "Set a rope on a low or mid pulley and face away from the stack.",
+      "Hold the rope overhead with the elbows bent behind the head.",
+      "Keep the upper arms still and extend the elbows straight.",
+      "Return slowly to the deep stretch behind the head.",
+    ],
+    mistakes: [
+      "Letting the elbows flare wide and drop.",
+      "Leaning so far forward the lower back arches.",
+      "Using the shoulders to push the rope forward.",
+    ],
+  },
+  "Close-grip bench press": {
+    steps: [
+      "Lie on the bench and grip the bar about shoulder width.",
+      "Pin the shoulder blades and unrack over the chest.",
+      "Lower with the elbows tucked close to the ribs.",
+      "Press back up until the arms are straight.",
+    ],
+    mistakes: [
+      "Gripping so narrow the wrists bend painfully.",
+      "Flaring the elbows and turning it into a wide bench press.",
+      "Bouncing the bar off the chest.",
+    ],
+  },
+  "Reverse curl": {
+    steps: [
+      "Stand tall holding the bar with palms facing down.",
+      "Pin the elbows at your sides and brace the abs.",
+      "Curl the bar up without letting the wrists break backward.",
+      "Lower slowly until the arms are straight.",
+    ],
+    mistakes: [
+      "Swinging the body to move heavier weight.",
+      "Letting the wrists collapse under the bar.",
+      "Rushing the lowering phase.",
+    ],
+  },
 };
 
 const BY_KEY: Record<string, ExerciseHowTo> = Object.fromEntries(

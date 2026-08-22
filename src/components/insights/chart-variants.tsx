@@ -38,8 +38,6 @@ export interface ChartSeries {
   dashed?: boolean;
 }
 
-
-
 const axis = {
   tickLine: false,
   axisLine: false,
@@ -119,10 +117,12 @@ export const VariantChart = memo(function VariantChart({
   const keys = useMemo(() => series.map((s) => s.key), [series]);
   const single = series.length === 1;
   const rows = useMemo(
-    () => (variant === "stacked" && single ? cumulative(data, keys) : (data as Record<string, unknown>[])),
+    () =>
+      variant === "stacked" && single
+        ? cumulative(data, keys)
+        : (data as Record<string, unknown>[]),
     [variant, single, data, keys],
   );
-
 
   const config = Object.fromEntries(series.map((s) => [s.key, { label: s.label, color: ACCENT }]));
   const format = (v: unknown) => {
@@ -189,7 +189,6 @@ export const VariantChart = memo(function VariantChart({
   );
 
   const margin = { top: 6, right: 6, bottom: 0, left: -8 };
-
 
   if (variant === "bar" || (variant === "stacked" && stackAsBars)) {
     const stacked = variant === "stacked";
@@ -297,7 +296,10 @@ export function ChartVariantToggle({
     <div
       role="radiogroup"
       aria-label="Chart type"
-      className={cn("inline-flex items-center gap-1 rounded-full border border-border p-0.5", className)}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border border-border p-0.5",
+        className,
+      )}
     >
       {options.map((opt) => {
         const meta = CHART_VARIANT_META[opt];

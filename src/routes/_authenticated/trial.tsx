@@ -16,8 +16,10 @@ import {
   TRIAL_PRO_YEARLY_PRICE_ID,
 } from "@/lib/access";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/trial")({
+  errorComponent: routeErrorComponent("trial"),
   ssr: false,
   head: () => ({
     meta: [
@@ -100,7 +102,11 @@ function StripeTrialPage() {
 
   if (stage === "checkout" && clientSecret) {
     return (
-      <main id="main-content" tabIndex={-1} className="min-h-dvh bg-background px-4 pb-12 pt-6 sm:px-6">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="min-h-dvh bg-background px-4 pb-12 pt-6 sm:px-6"
+      >
         <div className="mx-auto max-w-2xl">
           <button
             type="button"
@@ -130,7 +136,11 @@ function StripeTrialPage() {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-dvh bg-background px-5 pb-12 pt-6 text-foreground">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="min-h-dvh bg-background px-5 pb-12 pt-6 text-foreground"
+    >
       <div className="mx-auto flex max-w-lg flex-col">
         {stage === "insight" ? (
           <InsightStage
@@ -337,7 +347,7 @@ function PaywallStage({
       </ul>
 
       {error ? (
-        <p className="mt-4 rounded-lg bg-[color:var(--severity-avoid-bg))] px-3 py-2 text-sm text-[color:var(--severity-avoid)]">
+        <p className="mt-4 rounded-lg bg-[color:var(--severity-avoid-bg)] px-3 py-2 text-sm text-[color:var(--severity-avoid)]">
           {error}
         </p>
       ) : null}

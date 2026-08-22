@@ -59,7 +59,7 @@ const ITEMS: FeedItem[] = [
   {
     path: "/library/cjc-1295-ipamorelin",
     title: "CJC-1295 with ipamorelin",
-    description: "Dosing, DAC vs no-DAC, timing, reconstitution maths and risks.",
+    description: "Dosing, DAC vs no-DAC, timing, reconstitution math and risks.",
     published: "2026-08-02",
   },
   {

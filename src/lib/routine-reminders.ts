@@ -1,4 +1,5 @@
 import { normalizeTime, occursOnDay } from "@/lib/routine-schedule";
+import { isSkipped, occursOnWeek, timeForDay } from "@/lib/routine-recurrence";
 
 /** Minimal shape the matcher needs from a recurring workout slot. */
 export type RoutineWorkoutRow = {
@@ -12,6 +13,12 @@ export type RoutineWorkoutRow = {
   at_time_alert_on: boolean | null;
   pre_alert_on: boolean | null;
   pre_lead_min: number | null;
+  /** Recurrence refinements: every-other-week, skips, per-day times. */
+  interval_weeks?: number | null;
+  anchor_date?: string | null;
+  repeat_until?: string | null;
+  skipped_dates?: string[] | null;
+  time_overrides?: unknown;
 };
 
 /** Minimal shape the matcher needs from a recurring meal time. */
@@ -83,10 +90,22 @@ export function routineRemindersDue(input: {
 
   for (const w of workouts) {
     if (w.active === false) continue;
-    const time = normalizeTime(w.planned_time);
-    const target = minutesOfDay(w.planned_time);
-    if (!time || target == null) continue;
+    const baseTime = normalizeTime(w.planned_time);
+    if (!baseTime) continue;
     if (!occursOnDay(w.days_of_week, dayKey)) continue;
+    const recurrence = {
+      intervalWeeks: w.interval_weeks ?? 1,
+      anchorDate: w.anchor_date ?? null,
+      repeatUntil: w.repeat_until ?? null,
+      skippedDates: w.skipped_dates ?? null,
+      timeOverrides: (w.time_overrides ?? null) as Record<string, unknown> | null,
+    };
+    // Off-weeks and one-off skips must never buzz.
+    if (!occursOnWeek(dayKey, recurrence)) continue;
+    if (isSkipped(dayKey, recurrence)) continue;
+    const time = timeForDay(dayKey, baseTime, recurrence);
+    const target = minutesOfDay(time);
+    if (target == null) continue;
 
     // A pre-alert replaces the at-time alert so a single slot never
     // double-buzzes; at-time is the default when no lead is configured.

@@ -80,7 +80,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     const reassert = () => {
       const wantDark = resolveScheme(scheme) === "dark";
-      if (root.getAttribute("data-theme") !== theme || root.classList.contains("dark") !== wantDark) {
+      if (
+        root.getAttribute("data-theme") !== theme ||
+        root.classList.contains("dark") !== wantDark
+      ) {
         applyTheme(theme, scheme);
       }
     };
@@ -89,7 +92,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     mo.observe(root, { attributes: true, attributeFilter: ["data-theme", "class"] });
     return () => mo.disconnect();
   }, [theme, scheme]);
-
 
   // Reconcile with the signed-in profile (cross-device sync). Local choice
   // wins on first paint; the profile is the durable source of truth.

@@ -82,7 +82,7 @@ const CONTENT: WomensHubContent = {
   faq: [
     {
       q: "What is the best supplement for hot flashes?",
-      a: "The best-evidenced non-prescription options for hot flashes are black cohosh (20–40 mg standardized extract twice daily) and soy isoflavones (~54 mg/day of genistein-equivalent). Both produce modest reductions in hot flash frequency in meta-analyses (Cochrane 2012; Menopause 2015), typically 20–30% versus placebo — real, but nothing like the 75%+ reduction that estradiol delivers. Choose one, not both. See each compound page for specific interactions.",
+      a: "The best-evidenced non-prescription options for hot flashes are black cohosh (20–40 mg standardized extract twice daily) and soy isoflavones (~54 mg/day of genistein-equivalent). Both produce modest reductions in hot flash frequency in meta-analyzes (Cochrane 2012; Menopause 2015), typically 20–30% versus placebo — real, but nothing like the 75%+ reduction that estradiol delivers. Choose one, not both. See each compound page for specific interactions.",
     },
     {
       q: "Can I take menopause supplements with HRT?",

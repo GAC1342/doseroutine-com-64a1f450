@@ -164,8 +164,16 @@ export function blogPostHead(post: BlogSeoInput) {
           dateModified: post.updated,
           articleSection: post.category,
           keywords: seo.keywords,
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: BLOG_SITE.name, url: BLOG_SITE.base },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: BLOG_SITE.name,
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: BLOG_SITE.name,
+            url: BLOG_SITE.base,
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: BLOG_SITE.name,
             logo: { "@type": "ImageObject", url: BLOG_SITE.logo },
           },
           citation: (post.refs ?? []).map((r) => ({

@@ -2,12 +2,12 @@ import { useRouterState } from "@tanstack/react-router";
 import { isHiddenPath } from "@/components/about-doseroutine-block";
 import { SignupCta } from "@/components/signup-cta";
 
-// Pages that already carry their own dedicated signup/conversion hero — a
+// Pages that already carry their own dedicated sign-up/conversion hero — a
 // second sitewide CTA there would just be duplication.
 const SKIP_EXACT = new Set<string>(["/", "/closed-testing", "/install", "/onboarding"]);
 
 /**
- * Renders the signup CTA on every public page. Hidden on authenticated app
+ * Renders the sign-up CTA on every public page. Hidden on authenticated app
  * screens, auth flows and shared-token pages (same rules as the About block).
  */
 export function PublicSignupCta() {

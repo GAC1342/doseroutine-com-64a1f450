@@ -26,7 +26,6 @@ test.use({
   trace: "retain-on-failure",
 });
 
-
 const VIEWPORTS: { name: string; size: ViewportSize }[] = [
   { name: "iPhone SE", size: { width: 360, height: 844 } },
   { name: "iPhone 14", size: { width: 390, height: 844 } },
@@ -72,7 +71,9 @@ async function measure(page: Page) {
 function report(where: string, m: Awaited<ReturnType<typeof measure>>) {
   return [
     `${where}: viewport ${m.viewport}px, document ${m.scrollWidth}px, body ${m.bodyScrollWidth}px`,
-    ...m.offenders.map((o) => `  overflows to ${o.right}px (w=${o.width}) <${o.tag} class="${o.cls}">`),
+    ...m.offenders.map(
+      (o) => `  overflows to ${o.right}px (w=${o.width}) <${o.tag} class="${o.cls}">`,
+    ),
   ].join("\n");
 }
 
@@ -88,7 +89,10 @@ async function attachOverflowEvidence(
   m: Awaited<ReturnType<typeof measure>>,
 ) {
   const info = test.info();
-  const slug = where.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+  const slug = where
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
 
   await info.attach(`overflow-${slug}.json`, {
     body: JSON.stringify({ where, ...m }, null, 2),
@@ -126,7 +130,6 @@ async function expectNoHorizontalOverflow(page: Page, where: string) {
   expect(m.canScrollX, report(where, m)).toBe(false);
   expect(m.offenders, report(where, m)).toEqual([]);
 }
-
 
 /** Selectors that match any rendered overlay surface (Radix + native). */
 const OVERLAY_SELECTOR = [
@@ -175,12 +178,10 @@ async function expectOverlaysWithinViewport(page: Page, where: string) {
     });
     const shot = await page.screenshot({ timeout: 10_000 }).catch(() => null);
     if (shot) {
-      await test
-        .info()
-        .attach(`overlay-${where.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`, {
-          body: shot,
-          contentType: "image/png",
-        });
+      await test.info().attach(`overlay-${where.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`, {
+        body: shot,
+        contentType: "image/png",
+      });
     }
   }
 
@@ -220,7 +221,6 @@ async function checkOverlayTriggers(page: Page, where: string) {
 
 const PUBLIC_ROUTES = ["/", "/library", "/calculator", "/blog", "/help"];
 
-
 for (const { name, size } of VIEWPORTS) {
   const { width } = size;
 
@@ -241,7 +241,6 @@ for (const { name, size } of VIEWPORTS) {
         await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
         await checkOverlayTriggers(page, `${path} @ ${width}px`);
       });
-
     }
 
     test("workout log sheet fits the viewport", async ({ authedPage: page }) => {
@@ -279,7 +278,6 @@ for (const { name, size } of VIEWPORTS) {
         // Any dialog/menu opened from inside the sheet must also fit.
         await checkOverlayTriggers(page, `/fitness (sheet) @ ${width}px`);
       }
-
     });
   });
 }

@@ -14,7 +14,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import {
   filterQueryRows,
@@ -118,15 +125,7 @@ function TrendChart({ daily, height = 220 }: { daily: DailyPoint[]; height?: num
   );
 }
 
-function QueryTrendRow({
-  slug,
-  query,
-  days,
-}: {
-  slug: string;
-  query: string;
-  days: number;
-}) {
+function QueryTrendRow({ slug, query, days }: { slug: string; query: string; days: number }) {
   const fetchTrend = useServerFn(getBlogQueryTrend);
   const { data, isFetching } = useQuery({
     queryKey: ["admin", "blog-seo", "query-trend", slug, query, days],
@@ -233,7 +232,9 @@ export function BlogPostSearchDetailSheet({
             </p>
           )}
           {data && !data.connected && <p className="text-sm text-muted-foreground">{data.error}</p>}
-          {data?.connected && data.error && <p className="text-sm text-destructive">{data.error}</p>}
+          {data?.connected && data.error && (
+            <p className="text-sm text-destructive">{data.error}</p>
+          )}
           {isFetching && !data && <p className="text-sm text-muted-foreground">Loading…</p>}
 
           {data?.totals && (
@@ -264,9 +265,7 @@ export function BlogPostSearchDetailSheet({
 
                 <section className="space-y-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold">
-                      All queries ({data.totals.queries})
-                    </h3>
+                    <h3 className="text-sm font-semibold">All queries ({data.totals.queries})</h3>
                     <div className="flex items-center gap-2">
                       <Input
                         value={search}
@@ -355,7 +354,9 @@ export function BlogPostSearchDetailSheet({
                                     <Delta value={row.deltaClicks} />
                                   </span>
                                 </TableCell>
-                                <TableCell className="text-right align-top">{pct(row.ctr)}</TableCell>
+                                <TableCell className="text-right align-top">
+                                  {pct(row.ctr)}
+                                </TableCell>
                                 <TableCell className="text-right align-top">
                                   <span className="inline-flex items-center gap-1">
                                     {row.position ? row.position.toFixed(1) : "—"}

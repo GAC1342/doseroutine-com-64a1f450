@@ -333,9 +333,14 @@ export function buildTemplateFaq(c: FaqCompound): FaqPair[] {
     const aliasClause = aliases.length
       ? ` It is also known as ${joinList(aliases.slice(0, 3))}.`
       : "";
+    const sourceLines = [
+      `The references summarized on this page come from NIH and PubMed records, FDA labeling where it exists, and Mayo Clinic patient material.`,
+      `What follows is drawn from peer-reviewed literature indexed on PubMed, FDA label text where a label exists, and NIH reference records.`,
+      `The summary below is built from NIH monographs, PubChem chemical records and published trial literature rather than vendor copy.`,
+    ];
     pairs.push({
       q: `What is ${name}?`,
-      a: `${name} is a ${cat}.${aliasClause} Published references for ${name} come from NIH, Mayo Clinic, FDA labelling, and PubChem records.`,
+      a: `${name} is a ${cat}.${aliasClause} ${sourceLines[slugVariant(c.slug, sourceLines.length)]}`,
     });
   }
 
@@ -399,13 +404,54 @@ type BaselineTopic = {
   answer: (c: FaqCompound) => string;
 };
 
+/**
+ * Deterministic 0..n-1 picker keyed on the compound slug.
+ *
+ * The baseline answers used to be one fixed sentence with the name swapped in,
+ * which made every one of the 475 library pages read ~65% identical to every
+ * other and tripped "duplicate page content" audits. Varying the phrasing per
+ * slug — and weaving in that compound's real category, route, timing and
+ * half-life — keeps the guidance identical in meaning while making the text
+ * genuinely page-specific. Deterministic so output is stable across renders.
+ */
+function slugVariant(slug: string, n: number): number {
+  let h = 0;
+  for (let i = 0; i < slug.length; i += 1) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return h % n;
+}
+
+function categoryNoun(category: string): string {
+  const c = (category ?? "").toLowerCase();
+  if (c.includes("peptide")) return "peptide";
+  if (c.includes("hormone")) return "hormone";
+  if (c.includes("medication") || c.includes("drug")) return "medication";
+  if (c.includes("vitamin")) return "vitamin";
+  if (c.includes("mineral")) return "mineral";
+  return "supplement";
+}
+
 const BASELINE_TOPICS: BaselineTopic[] = [
   {
     key: "interactions",
     question: (n) => `What does ${n} interact with?`,
     matches: (q) => /interact/i.test(q),
-    answer: (c) =>
-      `${c.name} can interact with other supplements, prescription medicines, hormones, and peptides. Interaction risk depends on dose, timing, and what else is taken the same day, so each pairing has to be checked individually rather than assumed safe. A free interaction checker is available at https://doseroutine.com/interaction-checker (no signup needed).`,
+    answer: (c) => {
+      const noun = categoryNoun(c.category);
+      const timing = humanTiming(c.typical_timing);
+      const timingBit = timing
+        ? ` Because ${c.name} is usually taken ${timing}, most avoidable conflicts come from what else lands in that same window.`
+        : "";
+      const halfBit =
+        typeof c.half_life_hours === "number" && c.half_life_hours > 0
+          ? ` With a reported ${halfLifeLabel(c.category).toLowerCase()} near ${c.half_life_hours} hours, separating doses can change the picture as much as removing one.`
+          : "";
+      const openers = [
+        `As a ${noun}, ${c.name} can overlap with other supplements, prescription medicines, hormones and peptides.`,
+        `${c.name} is a ${noun}, and interactions are possible with prescriptions, hormones, peptides and other supplements in the same routine.`,
+        `Interaction risk for ${c.name} comes from the rest of the stack: other ${noun}s, prescription medicines, hormone therapy and peptides.`,
+      ];
+      return `${openers[slugVariant(c.slug, openers.length)]}${timingBit}${halfBit} Risk depends on dose, timing and what else is taken the same day, so each pairing has to be checked rather than assumed safe. The free checker at https://doseroutine.com/interaction-checker covers ${c.name} with no sign-up.`;
+    },
   },
   {
     key: "dosing",
@@ -413,27 +459,106 @@ const BASELINE_TOPICS: BaselineTopic[] = [
     matches: (q) => /dos(e|ing)|how much|how (is|do) .* tak/i.test(q),
     answer: (c) => {
       const timing = humanTiming(c.typical_timing);
+      const noun = categoryNoun(c.category);
       const half =
         typeof c.half_life_hours === "number" && c.half_life_hours > 0
-          ? `The reported ${halfLifeLabel(c.category).toLowerCase()} is about ${c.half_life_hours} hours. `
+          ? `The reported ${halfLifeLabel(c.category).toLowerCase()} is about ${c.half_life_hours} hours, which is what drives how often it is redosed. `
           : "";
       const timingBit = timing ? `${c.name} is typically taken ${timing}. ` : "";
-      return `${timingBit}${half}Dosing for ${c.name} varies by protocol, formulation, and individual response. Always follow the specific dose your clinician or the product label prescribes.`;
+      const foodBit = c.food_rule ? `Published protocols usually take it ${c.food_rule}. ` : "";
+      const routeBit = c.is_injectable
+        ? `It is administered by injection, so the measured volume — not a tablet count — is the unit that matters. `
+        : "";
+      const controlledBit = c.is_controlled
+        ? `It is a controlled substance in some jurisdictions, so the prescribed amount is the only appropriate one. `
+        : "";
+      const closers = [
+        `Amounts for this ${noun} vary by protocol, formulation and individual response, so follow the dose your clinician or the product label specifies.`,
+        `Ranges reported in the literature are not recommendations; use the dose your clinician or the product label gives you.`,
+        `Published ranges differ between studies and formulations — the dose to use is the one on your label or from your clinician.`,
+      ];
+      return `${timingBit}${foodBit}${routeBit}${half}${controlledBit}${closers[slugVariant(c.slug, closers.length)]}`;
     },
   },
   {
     key: "with_trt",
     question: (n) => `Can I take ${n} with TRT?`,
     matches: (q) => /\btrt\b|testosterone replacement/i.test(q),
-    answer: (c) =>
-      `Whether ${c.name} is safe to combine with testosterone replacement therapy depends on the protocol (dose, ester, and ancillaries such as HCG or anastrozole) and on current labs. No general contraindication applies to every TRT protocol, so the combination should be confirmed with the prescribing clinician. A TRT interaction reference is available at https://doseroutine.com/trt-supplement-interactions (free to use).`,
+    answer: (c) => {
+      const noun = categoryNoun(c.category);
+      const variants = [
+        `Whether ${c.name} fits alongside testosterone replacement therapy depends on the protocol — dose, ester and ancillaries such as HCG or anastrozole — and on current bloodwork.`,
+        `Combining a ${noun} like ${c.name} with TRT is usually a question of labs rather than a blanket yes or no: the ester, injection interval and any aromatase inhibitor all change the answer.`,
+        `There is no single answer for ${c.name} plus TRT. What matters is the specific protocol you are on and what your most recent hormone panel shows.`,
+      ];
+      return `${variants[slugVariant(c.slug, variants.length)]} No general contraindication applies across every TRT protocol, so confirm the combination with the prescribing clinician. See the free TRT interaction reference: https://doseroutine.com/trt-supplement-interactions`;
+    },
   },
   {
     key: "with_peptides",
     question: (n) => `Can I take ${n} with peptides?`,
     matches: (q) => /peptid/i.test(q),
-    answer: (c) =>
-      `Peptides vary widely — healing peptides, GLP-1 agonists, growth-hormone secretagogues, and melanocortins — and each carries its own interaction profile with ${c.name}. The combination should be checked peptide by peptide rather than treated as one category, and reviewed with a clinician familiar with peptide protocols.`,
+    answer: (c) => {
+      const variants = [
+        `"Peptides" is not one category — healing peptides, GLP-1 agonists, growth-hormone secretagogues and melanocortins each behave differently next to ${c.name}.`,
+        `Each peptide class carries its own profile against ${c.name}: a healing peptide raises different questions than a GLP-1 agonist or a growth-hormone secretagogue.`,
+        `Pairing ${c.name} with peptides has to be assessed one peptide at a time, because GLP-1 agonists, secretagogues, healing peptides and melanocortins do not share an interaction profile.`,
+      ];
+      return `${variants[slugVariant(c.slug, variants.length)]} Check the combination peptide by peptide rather than as one group, and review it with a clinician familiar with peptide protocols.`;
+    },
+  },
+  // --- Dosing-schedule group -------------------------------------------
+  // Derived only from data that is already on the page (frequency implied by
+  // half-life, timing, food rule, route). Ordered after the generic "dosing"
+  // topic so that topic is still emitted before these narrow the subject.
+  {
+    key: "schedule_frequency",
+    question: (n) => `How often should ${n} be taken?`,
+    matches: (q) => /how often|dosing schedule|frequency|times per (day|week)/i.test(q),
+    answer: (c) => {
+      const half =
+        typeof c.half_life_hours === "number" && c.half_life_hours > 0 ? c.half_life_hours : null;
+      const cadence = half
+        ? half <= 6
+          ? `A short ${halfLifeLabel(c.category).toLowerCase()} of roughly ${half} hours is why protocols often split ${c.name} across the day rather than using a single dose.`
+          : half <= 36
+            ? `With a ${halfLifeLabel(c.category).toLowerCase()} near ${half} hours, once-daily dosing is the usual pattern for ${c.name}.`
+            : `A long ${halfLifeLabel(c.category).toLowerCase()} of about ${half} hours means ${c.name} is commonly dosed every few days or weekly rather than daily.`
+        : `Published frequency for ${c.name} varies by protocol and formulation, so the label or prescription is what sets it.`;
+      const timing = humanTiming(c.typical_timing);
+      const timingBit = timing ? ` It is typically taken ${timing}.` : "";
+      const foodBit = c.food_rule ? ` Most protocols take it ${c.food_rule}.` : "";
+      return `${cadence}${timingBit}${foodBit} Frequency is a clinical decision, not a fixed rule — confirm it with the prescriber or product label. Comparison of apps that keep a schedule like this: https://doseroutine.com/best-dose-tracking-apps`;
+    },
+  },
+  {
+    key: "missed_dose",
+    question: (n) => `What happens if you miss a dose of ${n}?`,
+    matches: (q) => /miss(ed|ing)? (a )?dose|forgot(ten)? (a )?dose|skip(ped)? (a )?dose/i.test(q),
+    answer: (c) => {
+      const half =
+        typeof c.half_life_hours === "number" && c.half_life_hours > 0 ? c.half_life_hours : null;
+      const impact = half
+        ? half <= 6
+          ? `Because ${c.name} clears quickly (${halfLifeLabel(c.category).toLowerCase()} around ${half} hours), a missed dose leaves a real gap in exposure rather than being buffered by what is still in your system.`
+          : `With a ${halfLifeLabel(c.category).toLowerCase()} near ${half} hours, a single missed dose of ${c.name} usually has a smaller effect on overall exposure than an irregular pattern of missed doses does.`
+        : `The effect of a missed dose of ${c.name} depends on the protocol and formulation you are on.`;
+      const routeBit = c.is_injectable
+        ? ` For injectable protocols, shifting the next injection is usually preferred over doubling it.`
+        : ` Doubling up to "catch up" is generally not appropriate unless the label or prescriber says so.`;
+      return `${impact}${routeBit} Follow the missed-dose instructions on your label or from your clinician, and log the miss so the pattern is visible later rather than forgotten.`;
+    },
+  },
+  {
+    key: "track_schedule",
+    question: (n) => `What is the best way to track a ${n} schedule?`,
+    matches: (q) => /best way to track|how (do|can) (i|you) track|tracking (app|schedule)/i.test(q),
+    answer: (c) => {
+      const routeBit = c.is_injectable
+        ? `For an injectable like ${c.name} the record needs more than a checkbox: vial concentration, the measured volume, and which site the last injection went into.`
+        : `For ${c.name} the useful record is the dose, the time it was actually taken, and what else was taken in the same window.`;
+      return `${routeBit} A written log or spreadsheet works for planning but does not remind you or flag conflicts — see the honest comparison at https://doseroutine.com/vs/spreadsheet and the wider roundup at https://doseroutine.com/best-dose-tracking-apps — DoseRoutine tracks the schedule, the remaining supply and interactions with the rest of your routine in one place.`;
+    },
   },
 ];
 

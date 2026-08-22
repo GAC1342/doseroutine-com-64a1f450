@@ -4,6 +4,7 @@ import { selectedLandscapeViewports } from "./exercise-art-viewports";
 import { expectVisualSnapshot } from "./visual-baseline";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { describeVisualThresholds, snapshotOptions } from "./visual-thresholds";
 
 /**
  * Landscape-orientation run of the illustration visual regression.
@@ -29,11 +30,10 @@ import { join } from "node:path";
 
 const GEOMETRY_DIR = join("test-results", "exercise-art-landscape");
 
-const SNAPSHOT_OPTS = {
-  maxDiffPixelRatio: 0.02,
-  animations: "disabled",
-  scale: "css",
-} as const;
+// Thresholds come from VISUAL_DIFF_PROFILE / VISUAL_* env overrides so
+// staging runs can absorb minor rendering drift without editing tests.
+const SNAPSHOT_OPTS = snapshotOptions("exercise-art-landscape");
+console.log(describeVisualThresholds("exercise-art-landscape"));
 
 /** Sub-pixel layout rounding; anything above this is a real cutoff. */
 const SLACK = 1;
@@ -67,7 +67,6 @@ for (const viewport of VIEWPORTS) {
         SNAPSHOT_OPTS,
         testInfo,
       );
-
 
       const thumbBox = round((await thumb.boundingBox())!);
       // Rotation must not change the declared 56x56 thumbnail.
@@ -157,8 +156,9 @@ for (const viewport of VIEWPORTS) {
       // y-overflow and aspect-ratio invariants across every project and
       // against the committed baseline.
       mkdirSync(GEOMETRY_DIR, { recursive: true });
-      const store = (globalThis as { __exerciseArtLandscape?: Record<string, unknown> })
-        .__exerciseArtLandscape ?? {};
+      const store =
+        (globalThis as { __exerciseArtLandscape?: Record<string, unknown> })
+          .__exerciseArtLandscape ?? {};
       store[viewport.name] = {
         thumb: thumbBox,
         dialog: dialogBox,

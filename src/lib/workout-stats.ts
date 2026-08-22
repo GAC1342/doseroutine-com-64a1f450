@@ -1,7 +1,7 @@
 /**
  * Aggregation helpers for the fitness calendar and summary strip.
  *
- * `performed_on` is a plain calendar date (YYYY-MM-DD) so no timezone maths is
+ * `performed_on` is a plain calendar date (YYYY-MM-DD) so no timezone math is
  * needed here — the caller supplies "today" already resolved in the user's
  * profile timezone.
  */

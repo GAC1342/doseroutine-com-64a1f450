@@ -18,20 +18,21 @@ import { TrustSafety } from "@/components/trust-safety";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { CalculatorScopeNote } from "@/components/calculator-scope-note";
 import { LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/trt-dosage-calculator";
+export const CANONICAL = "https://doseroutine.com/trt-dosage-calculator";
 const TITLE = "TRT Dosage Calculator — Weekly mg to Syringe Units";
 const DESC =
   "Free TRT calculator: turn weekly testosterone cypionate or enanthate mg into per-shot mL and U-100 syringe units for 100, 200 and 250 mg/mL vials.";
 
-const FAQ = [
+export const FAQ = [
   {
     q: "How do I calculate my TRT dose in syringe units?",
     a: "Testosterone cypionate and enanthate are typically 200 mg/mL. Divide weekly mg by 200 to get mL per week, then divide by injections per week for mL per shot. Multiply mL × 100 for U-100 insulin syringe units. Example: 140 mg/week ÷ 200 = 0.7 mL/week. Split twice weekly = 0.35 mL = 35 units per shot.",
   },
   {
     q: "What is a typical TRT dosage?",
-    a: "Clinical TRT is usually 100–200 mg/week of testosterone cypionate or enanthate, adjusted based on total and free testosterone, hematocrit, and estradiol labs. Never adjust dose without bloodwork and clinician guidance.",
+    a: "General reference range, not a recommendation: clinically supervised TRT is commonly 100–200 mg/week of testosterone cypionate or enanthate, adjusted based on total and free testosterone, hematocrit, and estradiol labs. Never adjust dose without bloodwork and clinician guidance.",
   },
   {
     q: "How often should I inject testosterone?",
@@ -64,7 +65,11 @@ export const Route = createFileRoute("/trt-dosage-calculator")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/00598d94-f4d3-4d4e-8e9d-20b3a6b62664/og-trt.jpg",
       },
-      { property: "og:image:alt", content: "DoseRoutine TRT Dosage Calculator card — testosterone cypionate mg per week, ester maths and syringe units" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine TRT Dosage Calculator card — testosterone cypionate mg per week, ester math and syringe units",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
@@ -73,11 +78,15 @@ export const Route = createFileRoute("/trt-dosage-calculator")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/00598d94-f4d3-4d4e-8e9d-20b3a6b62664/og-trt.jpg",
       },
-      { name: "twitter:image:alt", content: "DoseRoutine TRT Dosage Calculator card — testosterone cypionate mg per week, ester maths and syringe units" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine TRT Dosage Calculator card — testosterone cypionate mg per week, ester math and syringe units",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/trt-dosage-calculator")],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -148,7 +157,7 @@ export const Route = createFileRoute("/trt-dosage-calculator")({
           url: `${CANONICAL}#glossary`,
         }),
       },
-    ],
+    ]),
   }),
   component: TrtCalculatorPage,
 });
@@ -176,202 +185,204 @@ function TrtCalculatorPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <PublicBackHeader hideSignup />
-      <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
-        <div className="text-center space-y-4 mb-12">
-          <span className="inline-block text-xs uppercase tracking-widest text-muted-foreground">
-            TRT dosage calculator
-          </span>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">TRT Dosage Calculator</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Convert a weekly testosterone amount you already have into exact mL and syringe units
-            per shot. Works with cypionate, enanthate, propionate, Sustanon and any ester at any
-            concentration.
-          </p>
-          <CalculatorScopeNote className="mt-6" />
-        </div>
-
-        <Card className="mb-8">
-          <CardContent className="p-6 space-y-4">
-            <h2 className="text-xl font-semibold">Convert your amount</h2>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="weekly">Weekly dose (mg)</Label>
-                <Input
-                  id="weekly"
-                  type="number"
-                  min={0}
-                  value={weeklyMg}
-                  onChange={(e) => setWeeklyMg(Number(e.target.value))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="conc">Concentration (mg/mL)</Label>
-                <Input
-                  id="conc"
-                  type="number"
-                  min={1}
-                  value={concentration}
-                  onChange={(e) => setConcentration(Number(e.target.value))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="freq">Injections per week</Label>
-                <Input
-                  id="freq"
-                  type="number"
-                  min={1}
-                  max={14}
-                  value={injectionsPerWeek}
-                  onChange={(e) => setInjectionsPerWeek(Number(e.target.value))}
-                />
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Per shot</p>
-                <p className="text-2xl font-bold">
-                  {result.mgPerShot} mg · {result.mlPerShot} mL
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Syringe units
-                </p>
-                <p className="text-2xl font-bold">
-                  {result.unitsU100}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">U-100</span> ·{" "}
-                  {result.unitsU40}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">U-40</span>
-                </p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Weekly volume: {result.mlPerWeek} mL. Educational tool — always confirm dose with your
-              prescribing clinician and current bloodwork.
+      <PublicBackHeader hideSignup backTo="/calculators" backLabel="All calculators" />
+      <main id="main-content">
+        <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
+          <div className="text-center space-y-4 mb-12">
+            <span className="inline-block text-xs uppercase tracking-widest text-muted-foreground">
+              TRT dosage calculator
+            </span>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">TRT Dosage Calculator</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Convert a weekly testosterone amount you already have into exact mL and syringe units
+              per shot. Works with cypionate, enanthate, propionate, Sustanon and any ester at any
+              concentration.
             </p>
-          </CardContent>
-        </Card>
+            <CalculatorScopeNote className="mt-6" />
+          </div>
 
-        <SaveResultCta
-          tool="trt_dosage_calculator"
-          hasResult={Boolean(result)}
-          title="Save this protocol"
-          body="Keep your weekly amount, ester concentration and injection days in DoseRoutine — with site rotation, reminders and bloodwork tracking around them."
-          action="Save this protocol"
-        />
+          <Card className="mb-8">
+            <CardContent className="p-6 space-y-4">
+              <h2 className="text-xl font-semibold">Convert your amount</h2>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="weekly">Weekly dose (mg)</Label>
+                  <Input
+                    id="weekly"
+                    type="number"
+                    min={0}
+                    value={weeklyMg}
+                    onChange={(e) => setWeeklyMg(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="conc">Concentration (mg/mL)</Label>
+                  <Input
+                    id="conc"
+                    type="number"
+                    min={1}
+                    value={concentration}
+                    onChange={(e) => setConcentration(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="freq">Injections per week</Label>
+                  <Input
+                    id="freq"
+                    type="number"
+                    min={1}
+                    max={14}
+                    value={injectionsPerWeek}
+                    onChange={(e) => setInjectionsPerWeek(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Per shot</p>
+                  <p className="text-2xl font-bold">
+                    {result.mgPerShot} mg · {result.mlPerShot} mL
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                    Syringe units
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {result.unitsU100}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">U-100</span> ·{" "}
+                    {result.unitsU40}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">U-40</span>
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Weekly volume: {result.mlPerWeek} mL. Educational tool — always confirm dose with
+                your prescribing clinician and current bloodwork.
+              </p>
+            </CardContent>
+          </Card>
 
-        <TrustSafety variant="safety-only" id="trt-safety" className="mt-6 mb-8" />
+          <SaveResultCta
+            tool="trt_dosage_calculator"
+            hasResult={Boolean(result)}
+            title="Save this protocol"
+            body="Keep your weekly amount, ester concentration and injection days in DoseRoutine — with site rotation, reminders and bloodwork tracking around them."
+            action="Save this protocol"
+          />
 
-        <div className="grid md:grid-cols-3 gap-4 mb-12">
-          {[
-            {
-              title: "Cypionate 200 mg/mL",
-              body: "Most common ester in the US. 140 mg/week ÷ 2 shots = 0.35 mL = 35 units U-100.",
-            },
-            {
-              title: "Enanthate 250 mg/mL",
-              body: "Common outside US. 150 mg/week ÷ 2 shots = 0.30 mL = 30 units U-100.",
-            },
-            {
-              title: "Propionate 100 mg/mL",
-              body: "Short ester. 100 mg/week ÷ 4 shots (EOD) = 0.25 mL = 25 units U-100.",
-            },
-          ].map((p) => (
-            <Card key={p.title}>
-              <CardContent className="p-6 space-y-2">
-                <Syringe className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold">{p.title}</h3>
-                <p className="text-sm text-muted-foreground">{p.body}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+          <TrustSafety variant="safety-only" id="trt-safety" className="mt-6 mb-8" />
 
-        <Card className="mb-12">
-          <CardContent className="p-6 space-y-3">
-            <h2 className="text-2xl font-bold">Track your TRT protocol in DoseRoutine</h2>
-            <p className="text-muted-foreground text-sm">
-              This calculator gives you the number. DoseRoutine turns it into a full protocol:
-              injection schedule, site rotation, vial inventory, blood work tracker, and shareable
-              PDF summarys.
-            </p>
-            <ul className="space-y-2 text-sm">
-              {[
-                "Automatic SubQ / IM injection site rotation",
-                "Vial inventory + refill prediction based on your weekly volume",
-                "Total-T, free-T, E2, hematocrit trend charts",
-                "Interaction checks with AI, anastrozole, HCG, peptides",
-                "One-tap shareable PDF summary for lab review appointments",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button asChild className="w-full sm:w-auto">
-                <Link to="/install">
-                  Get started free <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-              <Button variant="outline" asChild className="w-full sm:w-auto">
-                <Link to="/peptide-dosage-calculator">Peptide calculator</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Frequently asked questions</h2>
-          <div className="space-y-4">
-            {FAQ.map((f) => (
-              <Card key={f.q} id={faqAnchorId(f.q)} className="scroll-mt-24">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-2">{f.q}</h3>
-                  <p className="text-sm text-muted-foreground">{f.a}</p>
+          <div className="grid md:grid-cols-3 gap-4 mb-12">
+            {[
+              {
+                title: "Cypionate 200 mg/mL",
+                body: "Most common ester in the US. 140 mg/week ÷ 2 shots = 0.35 mL = 35 units U-100.",
+              },
+              {
+                title: "Enanthate 250 mg/mL",
+                body: "Common outside US. 150 mg/week ÷ 2 shots = 0.30 mL = 30 units U-100.",
+              },
+              {
+                title: "Propionate 100 mg/mL",
+                body: "Short ester. 100 mg/week ÷ 4 shots (EOD) = 0.25 mL = 25 units U-100.",
+              },
+            ].map((p) => (
+              <Card key={p.title}>
+                <CardContent className="p-6 space-y-2">
+                  <Syringe className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">{p.title}</h3>
+                  <p className="text-sm text-muted-foreground">{p.body}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
-        </section>
 
-        <section id="glossary" className="mb-12 scroll-mt-24">
-          <PeptideDosageGlossary />
-        </section>
+          <Card className="mb-12">
+            <CardContent className="p-6 space-y-3">
+              <h2 className="text-2xl font-bold">Track your TRT protocol in DoseRoutine</h2>
+              <p className="text-muted-foreground text-sm">
+                This calculator gives you the number. DoseRoutine turns it into a full protocol:
+                injection schedule, site rotation, vial inventory, blood work tracker, and shareable
+                PDF summarys.
+              </p>
+              <ul className="space-y-2 text-sm">
+                {[
+                  "Automatic SubQ / IM injection site rotation",
+                  "Vial inventory + refill prediction based on your weekly volume",
+                  "Total-T, free-T, E2, hematocrit trend charts",
+                  "Interaction checks with AI, anastrozole, HCG, peptides",
+                  "One-tap shareable PDF summary for lab review appointments",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button asChild className="w-full sm:w-auto">
+                  <Link to="/install">
+                    Get started free <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full sm:w-auto">
+                  <Link to="/peptide-dosage-calculator">Peptide calculator</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-        <div className="text-center pt-4 border-t">
-          <p className="text-xs text-muted-foreground">
-            Related:{" "}
-            <Link to="/calculator" className="underline">
-              All calculators
-            </Link>{" "}
-            ·{" "}
-            <Link to="/peptide-dosage-calculator" className="underline">
-              Peptide dosage calculator
-            </Link>{" "}
-            ·{" "}
-            <Link to="/peptide-reconstitution-calculator" className="underline">
-              Peptide reconstitution guide
-            </Link>{" "}
-            ·{" "}
-            <Link to="/dosage-units-guide" className="underline">
-              Dosage units guide
-            </Link>{" "}
-            ·{" "}
-            <Link to="/vs/medisafe" className="underline">
-              Medisafe alternative
-            </Link>
-          </p>
-        </div>
-      </section>
-      <RelatedLinks currentPath="/trt-dosage-calculator" kind="calculators" />
-      <p className="text-xs text-muted-foreground">
-        Reviewed by the DoseRoutine editorial team. Last reviewed{" "}
-        <time dateTime={LAST_REVIEWED}>{LAST_REVIEWED}</time>.
-      </p>
-      <AttributionFooter sourceUrl={CANONICAL} />
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">Frequently asked questions</h2>
+            <div className="space-y-4">
+              {FAQ.map((f) => (
+                <Card key={f.q} id={faqAnchorId(f.q)} className="scroll-mt-24">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-2">{f.q}</h3>
+                    <p className="text-sm text-muted-foreground">{f.a}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          <section id="glossary" className="mb-12 scroll-mt-24">
+            <PeptideDosageGlossary />
+          </section>
+
+          <div className="text-center pt-4 border-t">
+            <p className="text-xs text-muted-foreground">
+              Related:{" "}
+              <Link to="/calculators" className="underline">
+                Browse all calculators
+              </Link>{" "}
+              ·{" "}
+              <Link to="/peptide-dosage-calculator" className="underline">
+                Peptide dosage calculator
+              </Link>{" "}
+              ·{" "}
+              <Link to="/peptide-reconstitution-calculator" className="underline">
+                Peptide reconstitution guide
+              </Link>{" "}
+              ·{" "}
+              <Link to="/dosage-units-guide" className="underline">
+                Dosage units guide
+              </Link>{" "}
+              ·{" "}
+              <Link to="/vs/medisafe" className="underline">
+                Medisafe alternative
+              </Link>
+            </p>
+          </div>
+        </section>
+        <RelatedLinks currentPath="/trt-dosage-calculator" kind="calculators" />
+        <p className="text-xs text-muted-foreground">
+          Reviewed by the DoseRoutine editorial team. Last reviewed{" "}
+          <time dateTime={LAST_REVIEWED}>{LAST_REVIEWED}</time>.
+        </p>
+        <AttributionFooter sourceUrl={CANONICAL} />
+      </main>
     </div>
   );
 }

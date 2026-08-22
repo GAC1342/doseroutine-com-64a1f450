@@ -80,7 +80,6 @@ export function photoWeeklyBuckets(
   return buckets;
 }
 
-
 export function mealPhotoSummary(
   rows: MealPhotoRow[],
   now = new Date(),

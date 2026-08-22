@@ -5,10 +5,10 @@ import type { ComponentType } from "react";
  * Trust badges shown directly under primary call-to-action buttons.
  *
  * One shared component so the reassurance copy stays identical everywhere
- * (homepage hero, sitewide signup CTA, auth screen, checkout, paywall).
+ * (homepage hero, sitewide sign-up CTA, auth screen, checkout, paywall).
  *
  * Variants:
- *  - "trial"    → signup CTAs: free trial, no card, cancel anytime
+ *  - "trial"    → sign-up CTAs: free trial, no card, cancel anytime
  *  - "checkout" → payment surfaces: secure Stripe checkout, cancel anytime
  *  - "privacy"  → email capture / non-payment forms
  */

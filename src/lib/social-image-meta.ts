@@ -48,7 +48,10 @@ export function pageCardUrl(slug: string): string | null {
 }
 
 function tidy(text: string): string {
-  return text.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, "");
+  return text
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[.\s]+$/, "");
 }
 
 /**
@@ -84,7 +87,9 @@ export function brandedImageAlt(
     case "use-case":
       return clamp(`DoseRoutine app card: ${name}, dose scheduling and interaction checks`);
     case "calculator":
-      return clamp(`DoseRoutine ${name} card — reconstitution maths, BAC water volume and syringe units`);
+      return clamp(
+        `DoseRoutine ${name} card — reconstitution math, BAC water volume and syringe units`,
+      );
     case "guide":
       return clamp(`DoseRoutine guide card: ${name}, with evidence summaries and dosing detail`);
     case "comparison":

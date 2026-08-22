@@ -187,10 +187,12 @@ export function useManualBookmarks() {
     void (async () => {
       const userId = await currentUserId();
       if (!userId) return;
-      await supabase.from("manual_bookmarks").upsert(
-        { user_id: userId, section_id: id, removed: removing, updated_at: updatedAt },
-        { onConflict: "user_id,section_id" },
-      );
+      await supabase
+        .from("manual_bookmarks")
+        .upsert(
+          { user_id: userId, section_id: id, removed: removing, updated_at: updatedAt },
+          { onConflict: "user_id,section_id" },
+        );
     })();
   }, []);
 
@@ -211,9 +213,7 @@ export function useManualBookmarks() {
         updated_at: updatedAt,
       }));
       if (rows.length === 0) return;
-      await supabase
-        .from("manual_bookmarks")
-        .upsert(rows, { onConflict: "user_id,section_id" });
+      await supabase.from("manual_bookmarks").upsert(rows, { onConflict: "user_id,section_id" });
     })();
   }, []);
 

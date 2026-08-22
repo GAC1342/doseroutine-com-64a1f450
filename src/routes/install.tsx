@@ -1,7 +1,10 @@
 import { cn } from "@/lib/utils";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { useEffect } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { createFileRoute } from "@tanstack/react-router";
+import { PublicBackHeader } from "@/components/public-back-header";
 
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import step1 from "@/assets/install/step1-share.jpeg";
@@ -21,6 +24,10 @@ import step4w750 from "@/assets/install/step4-installed-750.webp";
 import { ResponsiveImage } from "@/components/responsive-image";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
 import { Card, cardClassName } from "@/components/ui/card";
+import { mergeLdScripts } from "@/lib/head-budget";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { INSTALL_FAQ } from "@/lib/aeo-faqs-info";
 
 const pageUrl = "https://doseroutine.com/install";
 const pageTitle = "Install DoseRoutine on your Home Screen";
@@ -42,7 +49,8 @@ export const Route = createFileRoute("/install")({
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: pageUrl }, ...hreflangLinks("/install")],
-    scripts: [
+    scripts: mergeLdScripts([
+      aeoFaqScript(pageUrl, INSTALL_FAQ),
       breadcrumbScript("https://doseroutine.com/install", [{ name: "Install", path: "/install" }]),
       {
         type: "application/ld+json",
@@ -99,7 +107,7 @@ export const Route = createFileRoute("/install")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: InstallPage,
 });
@@ -163,106 +171,115 @@ function InstallPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="font-display text-3xl font-semibold tracking-tight">
-        Install DoseRoutine on your Home Screen
-      </h1>
-      <p className="mt-3 text-sm text-muted-foreground">
-        Takes about 20 seconds on iPhone. Once installed, DoseRoutine opens full-screen with its own
-        icon — just like a native app.
-      </p>
+    <div className="min-h-dvh bg-background">
+      <PublicBackHeader />
+      <div id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-6 py-10">
+        <h1 className="font-display text-3xl font-semibold tracking-tight">
+          Install DoseRoutine on your Home Screen
+        </h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Takes about 20 seconds on iPhone. Once installed, DoseRoutine opens full-screen with its
+          own icon — just like a native app.
+        </p>
 
-      <ol className="mt-10 space-y-12">
-        {STEPS.map((step) => (
-          <li key={step.n} className="scroll-mt-24">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                {step.n}
-              </span>
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">{step.title}</h2>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-              </div>
-            </div>
-
-            <Card className="relative mt-4 overflow-hidden rounded-2xl border-border">
-              <ResponsiveImage
-                src={step.img}
-                webpSrcSet={`${step.webp[0]} 375w, ${step.webp[1]} 750w`}
-                // The screenshot column is capped at 420px on desktop, so never
-                // ask the browser for more than that plus a 2x allowance.
-                sizes="(min-width: 640px) 420px, 100vw"
-                alt={step.alt}
-                // Intrinsic size of the screenshots — lets the browser reserve
-                // the right box before decode so the page doesn't shift (CLS).
-                width={750}
-                height={1334}
-                loading={step.n === 1 ? "eager" : "lazy"}
-                fetchPriority={step.n === 1 ? "high" : "low"}
-              />
-              {step.arrow && (
-                <div
-                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ top: step.arrow.top, left: step.arrow.left }}
-                >
-                  <div
-                    className="flex items-center gap-2"
-                    style={{ transform: `rotate(${step.arrow.rotate ?? 0}deg)` }}
-                  >
-                    <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
-                      {step.arrow.label ?? `Step ${step.n}`}
-                    </span>
-                    <svg
-                      width="56"
-                      height="56"
-                      viewBox="0 0 56 56"
-                      fill="none"
-                      className="drop-shadow-lg"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M6 28 L44 28"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M30 14 L46 28 L30 42"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        fill="none"
-                      />
-                    </svg>
-                  </div>
+        <ol className="mt-10 space-y-12">
+          {STEPS.map((step) => (
+            <li key={step.n} className="scroll-mt-24">
+              <div className="flex items-start gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                  {step.n}
+                </span>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">{step.title}</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
                 </div>
-              )}
-            </Card>
-          </li>
-        ))}
-      </ol>
+              </div>
 
-      <section className={cn(cardClassName, "mt-14 rounded-2xl p-5")}>
-        <h2 className="text-base font-semibold text-foreground">On Android (Chrome)</h2>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>Open doseroutine.com in Chrome.</li>
-          <li>Tap the ⋮ menu in the top right.</li>
-          <li>
-            Tap <span className="font-medium text-foreground">Add to Home screen</span> (or{" "}
-            <span className="font-medium text-foreground">Install app</span>).
-          </li>
-          <li>Confirm — the DoseRoutine icon appears on your home screen.</li>
+              <Card className="relative mt-4 overflow-hidden rounded-2xl border-border">
+                <ResponsiveImage
+                  src={step.img}
+                  webpSrcSet={`${step.webp[0]} 375w, ${step.webp[1]} 750w`}
+                  // The screenshot column is capped at 420px on desktop, so never
+                  // ask the browser for more than that plus a 2x allowance.
+                  sizes="(min-width: 640px) 420px, 100vw"
+                  alt={step.alt}
+                  // Intrinsic size of the screenshots — lets the browser reserve
+                  // the right box before decode so the page doesn't shift (CLS).
+                  width={750}
+                  height={1334}
+                  loading={step.n === 1 ? "eager" : "lazy"}
+                  fetchPriority={step.n === 1 ? "high" : "low"}
+                />
+                {step.arrow && (
+                  <div
+                    className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ top: step.arrow.top, left: step.arrow.left }}
+                  >
+                    <div
+                      className="flex items-center gap-2"
+                      style={{ transform: `rotate(${step.arrow.rotate ?? 0}deg)` }}
+                    >
+                      <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
+                        {step.arrow.label ?? `Step ${step.n}`}
+                      </span>
+                      <svg
+                        width="56"
+                        height="56"
+                        viewBox="0 0 56 56"
+                        fill="none"
+                        className="drop-shadow-lg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M6 28 L44 28"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth="5"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M30 14 L46 28 L30 42"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth="5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </li>
+          ))}
         </ol>
-      </section>
 
-      <p className="mt-8 text-xs text-muted-foreground">
-        Trouble installing? Email{" "}
-        <a href="mailto:support@doseroutine.com" className="text-primary underline">
-          support@doseroutine.com
-        </a>
-        .
-      </p>
+        <section className={cn(cardClassName, "mt-14 rounded-2xl p-5")}>
+          <h2 className="text-base font-semibold text-foreground">On Android (Chrome)</h2>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+            <li>Open doseroutine.com in Chrome.</li>
+            <li>Tap the ⋮ menu in the top right.</li>
+            <li>
+              Tap <span className="font-medium text-foreground">Add to Home screen</span> (or{" "}
+              <span className="font-medium text-foreground">Install app</span>).
+            </li>
+            <li>Confirm — the DoseRoutine icon appears on your home screen.</li>
+          </ol>
+        </section>
+
+        <p className="mt-8 text-xs text-muted-foreground">
+          Trouble installing? Email{" "}
+          <a href="mailto:support@doseroutine.com" className="text-primary underline">
+            support@doseroutine.com
+          </a>
+          .
+        </p>
+
+        <AeoFaq pairs={INSTALL_FAQ} />
+
+        <ProseContainer>
+          <PageProse id="install" />
+        </ProseContainer>
+      </div>
     </div>
   );
 }

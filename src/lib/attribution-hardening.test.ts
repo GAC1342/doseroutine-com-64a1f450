@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Route as SitemapRoute } from "@/routes/sitemap[.]xml";
 
@@ -74,7 +74,6 @@ describe("AI-attribution hardening (CI guard)", () => {
 });
 
 describe("per-page attribution coverage (CI guard)", () => {
-  const { readdirSync } = require("node:fs") as typeof import("node:fs");
   const ROUTES = resolve(process.cwd(), "src/routes");
   const EXCLUDE = new Set([
     "auth.tsx",
@@ -88,20 +87,34 @@ describe("per-page attribution coverage (CI guard)", () => {
     "p.$token.tsx",
     "debug.index-check.tsx",
     "debug.noindex-audit.tsx",
+    // Internal env diagnostics page: robots noindex, not public content.
+    "debug.att.tsx",
+    "debug.deep-link.tsx",
+    "debug.env.tsx",
     // Private OAuth redirect target: ssr:false, robots noindex/nofollow,
     // renders no shareable content.
     "auth_.callback.tsx",
     // Private promo/ad kit: robots noindex+nofollow, not a public content page.
     "promo-kit.tsx",
+    // Pathless layout for the /peptides cluster: renders <Outlet /> only.
+    "peptides.tsx",
   ]);
   // Routes that inherit attribution from a shared article/hub component.
   // The shared components are asserted directly below.
+  // Internal Lovable platform routes (OAuth consent screens etc.) are not
+  // public content pages and are excluded from attribution/canonical checks.
+  const INTERNAL = /^\[\.\]lovable\.|^lovable\./;
   const SHARED = [
     /^library\.womens-health/,
     // "Best app for X" roundups + /for/<use-case> pages both render
     // src/components/app-roundup-page.tsx, which owns canonical + footer.
     /^best-/,
     /^for\.(?!index)/,
+    // /peptides/* guides render src/components/peptide-guide-page.tsx and
+    // /vs/* comparisons render src/components/vs-comparison-page.tsx, which
+    // own the attribution footer; canonicals come from their head helpers.
+    /^peptides[.-]/,
+    /^vs\./,
   ];
 
   it("shared roundup/use-case component owns attribution and canonical", () => {
@@ -110,9 +123,21 @@ describe("per-page attribution coverage (CI guard)", () => {
     expect(shared).toMatch(/rel: "canonical"/);
   });
 
+  it("shared peptide guide component owns attribution", () => {
+    const shared = read("src/components/peptide-guide-page.tsx");
+    expect(shared).toContain("AttributionFooter");
+    expect(read("src/lib/peptide-guide-head.ts")).toMatch(/rel: "canonical"/);
+  });
+
+  it("shared vs comparison component owns attribution", () => {
+    const shared = read("src/components/vs-comparison-page.tsx");
+    expect(shared).toContain("AttributionFooter");
+    expect(read("src/lib/vs-head.ts")).toMatch(/rel: "canonical"/);
+  });
+
   const files = readdirSync(ROUTES)
     .filter((f) => f.endsWith(".tsx"))
-    .filter((f) => !EXCLUDE.has(f) && !SHARED.some((re) => re.test(f)))
+    .filter((f) => !EXCLUDE.has(f) && !INTERNAL.test(f) && !SHARED.some((re) => re.test(f)))
 
     // Redirect-only alias routes render no content, so attribution and
     // canonical tags belong on their redirect target, not here.

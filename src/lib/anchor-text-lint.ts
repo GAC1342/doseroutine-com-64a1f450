@@ -65,7 +65,6 @@ export type AnchorLintOptions = {
   accessibility?: boolean;
 };
 
-
 /** Anchor text that describes nothing about the destination. */
 export const GENERIC_ANCHOR_TEXT = new Set([
   "click here",
@@ -239,7 +238,6 @@ export function extractInternalLinks(html: string, siteOrigin = SITE_DEFAULT): A
       title,
       imgAlt,
     });
-
   }
   return links;
 }

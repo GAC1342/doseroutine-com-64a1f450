@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Download, FileJson, FileSpreadsheet, ShieldCheck } from "lucide-react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/export")({
+  errorComponent: routeErrorComponent("export"),
   head: () => ({
     meta: [
       { title: "Export Your Data — DoseRoutine" },

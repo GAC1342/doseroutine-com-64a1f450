@@ -39,12 +39,11 @@ describe("theme persistence", () => {
       },
       classList: { toggle: () => {} },
     };
-    const fn = new Function(
-      "document",
-      "localStorage",
-      "window",
-      THEME_BOOT_SCRIPT,
-    ) as (d: unknown, l: unknown, w: unknown) => void;
+    const fn = new Function("document", "localStorage", "window", THEME_BOOT_SCRIPT) as (
+      d: unknown,
+      l: unknown,
+      w: unknown,
+    ) => void;
     fn(
       { documentElement: root },
       { getItem: (k: string) => store[k] ?? null },

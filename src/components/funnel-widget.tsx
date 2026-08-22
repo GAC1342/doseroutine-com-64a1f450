@@ -28,7 +28,7 @@ export function FunnelWidget() {
         </div>
         <div
           role="tablist"
-          className="inline-flex rounded-full border border-border bg-muted/40 p-0.5 text-xs"
+          className="inline-flex rounded-full border border-border bg-surface-track p-1 text-xs"
         >
           {(["7d", "30d"] as const).map((w) => {
             const active = win === w;
@@ -40,7 +40,9 @@ export function FunnelWidget() {
                 aria-selected={active}
                 onClick={() => setWin(w)}
                 className={`rounded-full px-3 py-1 font-medium transition ${
-                  active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                  active
+                    ? "border border-border bg-card font-semibold text-primary shadow-sm"
+                    : "border border-transparent text-foreground/75 hover:text-foreground"
                 }`}
               >
                 {w === "7d" ? "7 days" : "30 days"}
@@ -72,7 +74,7 @@ export function FunnelWidget() {
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
             <span>
-              Visit → signup: <b className="text-foreground">{pct(data.signupRate)}</b>
+              Visit → sign-up: <b className="text-foreground">{pct(data.signupRate)}</b>
             </span>
             <span>
               Signup → activation: <b className="text-foreground">{pct(data.activationRate)}</b>

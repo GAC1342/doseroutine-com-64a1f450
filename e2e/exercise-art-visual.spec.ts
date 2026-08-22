@@ -4,6 +4,7 @@ import { selectedViewports } from "./exercise-art-viewports";
 import { expectVisualSnapshot } from "./visual-baseline";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { describeVisualThresholds, snapshotOptions } from "./visual-thresholds";
 
 /**
  * Pixel-diff visual regression for the workout-type illustration thumbnail and
@@ -24,11 +25,10 @@ import { join } from "node:path";
 
 const GEOMETRY_DIR = join("test-results", "exercise-art-geometry");
 
-const SNAPSHOT_OPTS = {
-  maxDiffPixelRatio: 0.02,
-  animations: "disabled",
-  scale: "css",
-} as const;
+// Thresholds come from VISUAL_DIFF_PROFILE / VISUAL_* env overrides so
+// staging runs can absorb minor rendering drift without editing tests.
+const SNAPSHOT_OPTS = snapshotOptions("exercise-art");
+console.log(describeVisualThresholds("exercise-art"));
 
 /**
  * Viewports come from e2e/exercise-art-viewports.ts and can be narrowed with
@@ -37,7 +37,6 @@ const SNAPSHOT_OPTS = {
  * regressions show up as geometry-assertion failures regardless of engine.
  */
 const VIEWPORTS = selectedViewports();
-
 
 type Box = { x: number; y: number; width: number; height: number };
 
@@ -124,11 +123,9 @@ for (const viewport of VIEWPORTS) {
       // One file per project+viewport so CI matrix shards never overwrite each
       // other; scripts/merge-exercise-art-geometry.mjs folds them back together.
       const file = join(GEOMETRY_DIR, `${testInfo.project.name}__${viewport.name}.json`);
-      const existing = (
-        testInfo.attachments.length,
-        (globalThis as { __exerciseArtGeometry?: Record<string, unknown> }).__exerciseArtGeometry ??
-          {}
-      ) as Record<string, unknown>;
+      const existing = (testInfo.attachments.length,
+      (globalThis as { __exerciseArtGeometry?: Record<string, unknown> }).__exerciseArtGeometry ??
+        {}) as Record<string, unknown>;
       existing[viewport.name] = { thumb: thumbBox, dialog: dialogBox, image: imageBox };
       (globalThis as { __exerciseArtGeometry?: Record<string, unknown> }).__exerciseArtGeometry =
         existing;

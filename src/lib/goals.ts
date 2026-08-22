@@ -72,7 +72,7 @@ export const GOALS = [
   {
     slug: "immune",
     title: "Immune Function",
-    blurb: "Compounds studied for immune defence, infection duration, and immune-cell function.",
+    blurb: "Compounds studied for immune defense, infection duration, and immune-cell function.",
   },
   {
     slug: "cardiovascular",
@@ -99,7 +99,6 @@ export const GOALS = [
     title: "Skin & Hair",
     blurb: "Skin elasticity, collagen density, wound healing, and hair quality.",
   },
-
 ] as const;
 
 export type GoalSlug = (typeof GOALS)[number]["slug"];

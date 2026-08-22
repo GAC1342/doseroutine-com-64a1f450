@@ -21,6 +21,7 @@ export function highRiskSignature(rows: RowLike[]): string {
   for (const r of rows) {
     if (r.active === false) continue;
     if (!r.compound) continue;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const cat = classifyHighRiskCardioMed(r.compound as any);
     if (cat) cats.add(cat);
   }
@@ -56,7 +57,9 @@ export function revokeHighRiskAck(): void {
   try {
     window.localStorage.removeItem(STORAGE_KEY);
     window.dispatchEvent(new CustomEvent("doseroutine:high-risk-ack", { detail: "" }));
-  } catch {}
+  } catch {
+    // localStorage unavailable (private mode) — non-critical.
+  }
 }
 
 /**
@@ -105,6 +108,7 @@ export function useHighRiskAck(rows: RowLike[]) {
  * loaded and need to gate a "publish" action.
  */
 export async function fetchCurrentHighRiskSignature(supabase: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   from: (t: string) => any;
 }): Promise<string> {
   const { data } = await supabase

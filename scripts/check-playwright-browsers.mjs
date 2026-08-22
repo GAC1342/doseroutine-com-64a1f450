@@ -162,7 +162,9 @@ async function main() {
     console.log("\nPlaywright browser availability\n");
     for (const r of results) {
       const label = r.ok ? "OK  " : "FAIL";
-      const detail = r.ok ? `${r.version}${r.executablePath ? ` (${r.executablePath})` : ""}` : r.reason;
+      const detail = r.ok
+        ? `${r.version}${r.executablePath ? ` (${r.executablePath})` : ""}`
+        : r.reason;
       console.log(`  ${label} ${r.engine.padEnd(9)} ${detail}`);
       if (!r.ok) {
         console.log(`       ${r.message}`);

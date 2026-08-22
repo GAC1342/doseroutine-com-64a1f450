@@ -1,5 +1,4 @@
-import { test, expect } from "@playwright/test";
-import type { APIRequestContext } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 
 /**
  * E2E: the library index-status badge must agree with the robots headers the

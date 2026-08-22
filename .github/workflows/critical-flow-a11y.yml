@@ -1,0 +1,81 @@
+name: critical-flow-a11y
+
+# Runs axe-core against the app's critical flows (scan screen, meal add +
+# review sheet, Today dosing actions) using Playwright, and FAILS the check
+# when any violation has impact `critical` or `serious`.
+#
+# Complements a11y-axe (static public pages) — this one exercises the
+# interactive states a real user works in.
+#
+# Auth-gated flows only run when TEST_USER_EMAIL / TEST_USER_PASSWORD repo
+# secrets are set; without them the spec skips those cases and still checks
+# the public scan screen.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: critical-flow-a11y-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  a11y-flows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Start app
+        run: |
+          npm run dev -- --port 8080 > dev-server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:8080/ && exit 0
+            sleep 2
+          done
+          echo "app did not boot"; cat dev-server.log; exit 1
+
+      - name: axe critical-flow checks (major issues are fatal)
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:8080
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: npm run test:e2e:a11y-flows
+
+      - name: Upload axe flow reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: critical-flow-a11y-reports
+          path: |
+            test-results/critical-flow-a11y/
+            playwright-report/
+          retention-days: 7
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Critical flow accessibility"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ No critical/serious axe violations in scan, review sheet or dosing flows."
+            else
+              echo "❌ Major accessibility violations found — see the uploaded reports."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

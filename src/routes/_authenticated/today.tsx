@@ -12,12 +12,16 @@ import {
   Sparkles,
   BookOpen,
   Activity,
+  Calculator,
+  Timer,
   ChevronDown,
   ChevronUp,
   RefreshCw,
   ScanLine,
   UtensilsCrossed,
+  CalendarOff,
 } from "lucide-react";
+import { QuickAddMealSheet } from "@/components/quick-add-meal-sheet";
 import { hapticTap, hapticSuccess, hapticWarning } from "@/lib/haptics";
 import { trackEvent } from "@/lib/analytics";
 import { trackFunnelStep } from "@/lib/funnel";
@@ -31,6 +35,7 @@ import { StatsTrendCard } from "@/components/stats-trend-card";
 import { AvatarMenu } from "@/components/avatar-menu";
 import { TimezoneCard } from "@/components/timezone-card";
 import { MacroProgress } from "@/components/macro-progress";
+import { TodayMealsCard } from "@/components/today-meals-card";
 import { MealPhotoExpiryBanner } from "@/components/meal-photo-storage-card";
 
 import { dayKeyOf } from "@/lib/macro-progress";
@@ -40,7 +45,8 @@ import { enqueueDoseMutation, flushQueue } from "@/lib/offline-queue";
 import { AppCapabilityShowcase } from "@/components/app-capability-showcase";
 import { TrialExpiredBanner } from "@/components/trial-expired-banner";
 import { TrialEndingBanner } from "@/components/trial-ending-banner";
-import { WelcomeCard } from "@/components/welcome-card";
+
+import { useEntitlementReturnRefresh } from "@/lib/entitlement-refresh";
 import { getEffectiveDoseStatus } from "@/lib/dose-status";
 import { TodayFooterBlock } from "@/components/today-footer-block";
 import { Card, cardClassName } from "@/components/ui/card";
@@ -51,12 +57,18 @@ import {
   fetchAdherenceEvents,
   type AdhEvent,
 } from "@/lib/adherence";
-import { CalendarOff } from "lucide-react";
+
 import { formatPauseRange, normalizePause } from "@/lib/pause";
 import { VacationModeCard, pauseQueryOptions } from "@/components/vacation-mode-card";
 import { StandingRulesCard } from "@/components/standing-rules-card";
+import { LoadingStatus } from "@/components/skeletons";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/today")({
+  errorComponent: routeErrorComponent("today"),
+  // Auth-gated: never prerender (the parent sets this too — explicit here so a
+  // future per-leaf prerender pass can't 401 the build).
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Today — DoseRoutine" },
@@ -158,6 +170,12 @@ async function fetchTodayData(): Promise<TodayData> {
 
 function TodayPage() {
   const qc = useQueryClient();
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+
+  // Landing back from /trial or checkout: billing changed server-side, so the
+  // cached entitlement is stale and would keep advertising the free trial.
+  useEntitlementReturnRefresh();
+
   const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: TODAY_KEY,
     queryFn: fetchTodayData,
@@ -178,7 +196,7 @@ function TodayPage() {
   const validData =
     data && Array.isArray(data.events) && typeof data.tz === "string" ? data : undefined;
   const tz = validData?.tz ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
-  const events = validData?.events ?? [];
+  const events = useMemo(() => validData?.events ?? [], [validData]);
   const adherence7 = validData?.adherence7 ?? { onTime: 0, total: 0, streak: 0 };
   const loading = isLoading && !validData;
 
@@ -432,11 +450,8 @@ function TodayPage() {
 
   if (loading) {
     return (
-      <div
-        className="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6"
-        aria-busy="true"
-        aria-label="Loading today's doses"
-      >
+      <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6" aria-busy="true">
+        <LoadingStatus label="Loading today's doses…" />
         <Skeleton className="h-7 w-24" />
         <Skeleton className="mt-2 h-4 w-48" />
         <div className="mt-6 space-y-3">
@@ -485,10 +500,15 @@ function TodayPage() {
         </div>
       </div>
 
-      <MacroProgress day={dayKeyOf(new Date())} className="mt-4" />
+      <TodayMealsCard className="mt-4" />
+
+      <MacroProgress
+        day={dayKeyOf(new Date())}
+        className="mt-4"
+        onLogMeal={() => setQuickAddOpen(true)}
+      />
 
       <MealPhotoExpiryBanner className="mt-4" />
-
 
       <nav aria-label="Quick actions" className="mt-4 grid grid-cols-3 gap-2">
         {[
@@ -503,6 +523,8 @@ function TodayPage() {
             label: "Fitness",
             Icon: Activity,
           },
+          { to: "/peptide-calculator", label: "Peptide calc", Icon: Calculator },
+          { to: "/timer", label: "Timer", Icon: Timer },
         ].map(
           ({
             to,
@@ -566,10 +588,6 @@ function TodayPage() {
 
       <TrialEndingBanner />
       <TrialExpiredBanner />
-
-      <div className="mt-4">
-        <WelcomeCard />
-      </div>
 
       {isPaused ? (
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/60 p-4">
@@ -780,6 +798,25 @@ function TodayPage() {
       </div>
 
       <TodayFooterBlock />
+
+      <button
+        type="button"
+        aria-label="Scan a meal"
+        onClick={() => {
+          hapticTap();
+          setQuickAddOpen(true);
+        }}
+        className="fixed bottom-24 right-4 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-5 text-primary-foreground shadow-lg transition-transform active:scale-95 hover:bg-[color:var(--primary-hover)] sm:bottom-8 sm:right-8"
+      >
+        <ScanLine className="h-6 w-6" aria-hidden="true" />
+        <span className="text-sm font-semibold">Scan</span>
+      </button>
+
+      <QuickAddMealSheet
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+        onSaved={() => qc.invalidateQueries({ queryKey: TODAY_KEY })}
+      />
     </div>
   );
 }
@@ -822,7 +859,7 @@ function DoseRow({
         isTaken
           ? "border-transparent bg-[color:var(--dose-taken-bg,rgba(30,122,79,0.10))]"
           : isMissed
-            ? "border-transparent bg-[color:var(--severity-avoid-bg))]"
+            ? "border-transparent bg-[color:var(--severity-avoid-bg)]"
             : isSkipped
               ? "border-border bg-muted"
               : "border-border bg-card",

@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, DollarSign, TrendingUp, Package, Save } from "lucide-react";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/costs")({
+  errorComponent: routeErrorComponent("costs"),
   head: () => ({
     meta: [
       { title: "Cost Tracker — DoseRoutine" },
@@ -90,9 +92,12 @@ function CostsPage() {
       const ids = ucs.map((u) => u.id);
       const { data: vials } = ids.length
         ? await supabase.from("vial_inventory").select("*").in("user_compound_id", ids)
-        : { data: [] as any[] };
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
+          { data: [] as any[] };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       const vialMap = new Map((vials ?? []).map((v: any) => [v.user_compound_id, v]));
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       return ucs.map((u: any) => {
         const v = vialMap.get(u.id);
         const dpw = dosesPerWeek(u);

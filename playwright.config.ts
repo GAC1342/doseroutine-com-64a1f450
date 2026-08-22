@@ -8,7 +8,6 @@ import { pinnedFirefoxPath } from "./scripts/install-playwright-firefox.mjs";
  */
 const FIREFOX_PATH = pinnedFirefoxPath();
 
-
 /**
  * E2E tests for DoseRoutine breadcrumbs across nested authenticated routes.
  *
@@ -108,7 +107,6 @@ export default defineConfig({
           : {}),
       },
     },
-
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined

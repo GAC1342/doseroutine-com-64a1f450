@@ -13,7 +13,9 @@ function isDebugEnabled() {
   if (new URLSearchParams(window.location.search).get("debug") === "1") {
     try {
       window.localStorage.setItem("doseroutine_debug", "1");
-    } catch {}
+    } catch {
+      // Non-critical: safe to ignore.
+    }
     return true;
   }
   try {
@@ -72,7 +74,9 @@ export function QueryDebugPanel() {
   const dismiss = () => {
     try {
       window.localStorage.removeItem("doseroutine_debug");
-    } catch {}
+    } catch {
+      // Non-critical: safe to ignore.
+    }
     setEnabled(false);
   };
 

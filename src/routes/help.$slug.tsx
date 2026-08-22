@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { HELP_LIST, type HelpArticle } from "@/lib/help-articles";
@@ -9,7 +10,7 @@ import { PublicBackHeader } from "@/components/public-back-header";
 type ReadingMode = "simple" | "detailed";
 const READING_MODE_KEY = "doseroutine.help.readingMode";
 
-const YEAR = new Date().getFullYear();
+export const YEAR = new Date().getFullYear();
 
 export const Route = createFileRoute("/help/$slug")({
   head: ({ params }) => {
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/help/$slug")({
         { name: "twitter:description", content: desc },
         ...(article ? [] : [{ name: "robots", content: "noindex" }]),
       ],
-      links: [{ rel: "canonical", href: url }],
+      links: [...canonicalLinks(url)],
       scripts: article
         ? [
             {

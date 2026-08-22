@@ -265,6 +265,23 @@ const BY_FAMILY: Record<WorkoutFamily, string[]> = {
   other: ["Warm-up", "Main set", "Cool down"],
 };
 
+/**
+ * Structural session blocks rather than movements. They are useful as rows in a
+ * logged workout ("Warm-up", "Cool down") but they have no illustration and
+ * never will, so browsing surfaces filter them out instead of rendering an
+ * empty "no illustration" tile in the exercise grid.
+ */
+export const SESSION_BLOCK_NAMES: readonly string[] = Array.from(
+  new Set(Object.values(BY_FAMILY).flat()),
+);
+
+const SESSION_BLOCK_KEYS = new Set(SESSION_BLOCK_NAMES.map((n) => n.toLowerCase()));
+
+/** Is this catalog name a session block ("Warm-up") rather than an exercise? */
+export function isSessionBlockName(name: string | null | undefined): boolean {
+  return SESSION_BLOCK_KEYS.has((name ?? "").trim().toLowerCase());
+}
+
 /** Suggested activity names for a workout type, most relevant first. */
 export function exerciseOptions(type: string | null | undefined): string[] {
   const specific = BY_TYPE[(type ?? "other") as WorkoutType] ?? [];

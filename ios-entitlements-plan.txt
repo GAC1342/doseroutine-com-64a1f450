@@ -15,6 +15,15 @@
 [required]
 application-identifier
 com.apple.developer.team-identifier
+# HealthKit: the Fitness/Body screens read weight, steps, active energy and
+# heart rate through @capgo/capacitor-health (src/lib/health-bridge.ts) and the
+# app degrades to manual entry when the user denies access. Usage strings live
+# in ios/App/App/Info.plist.
+com.apple.developer.healthkit
+com.apple.developer.healthkit.access
+# Sign in with Apple: offered on /auth (src/routes/auth.tsx) and required by
+# guideline 4.8 because the web build also offers Google sign-in.
+com.apple.developer.applesignin
 
 [optional]
 # StoreKit / IAP does NOT require an explicit entitlement — Apple grants it
@@ -23,9 +32,6 @@ com.apple.developer.team-identifier
 # is the Apple Pay (merchant IDs) entitlement, not StoreKit IAP — do not add it
 # unless the app actually integrates Apple Pay.
 com.apple.developer.in-app-payments
-
-
-[optional]
 # Push notifications: enabled for dose reminders only if the native build
 # opts in. Absent in the current Capacitor build; harmless if added later.
 aps-environment
@@ -38,12 +44,9 @@ get-task-allow
 
 [forbidden]
 # DoseRoutine is a logging + planner app. None of the below should ship.
-com.apple.developer.healthkit
-com.apple.developer.healthkit.access
 com.apple.developer.homekit
 com.apple.developer.family-controls
 com.apple.developer.associated-domains
-com.apple.developer.applesignin
 com.apple.developer.icloud-container-identifiers
 com.apple.developer.icloud-services
 com.apple.developer.ubiquity-kvstore-identifier

@@ -3,8 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cardClassName } from "@/components/ui/card";
-import type { Delta } from "@/lib/insights/aggregate";
-import { round } from "@/lib/insights/aggregate";
+import { type Delta, round } from "@/lib/insights/aggregate";
 
 export function DeltaBadge({
   delta,
@@ -45,7 +44,7 @@ export function DeltaBadge({
 
 export interface InsightCardProps {
   title: string;
-  /** Big number / short phrase summarising the card. */
+  /** Big number / short phrase summarizing the card. */
   headline?: ReactNode;
   /** Small line under the headline. */
   caption?: ReactNode;
@@ -87,7 +86,15 @@ export function InsightCard({
   return (
     <section
       data-testid="insight-card"
-      className={cn(cardClassName, "flex flex-col rounded-2xl p-4 [contain:layout_paint]", className)}
+      className={cn(
+        cardClassName,
+        // content-visibility lets the browser skip layout and paint for cards
+        // scrolled out of view; the intrinsic size reserves their space so the
+        // page doesn't jump. Recharts measures on mount, so keeping offscreen
+        // cards out of layout removes most of the chart reflow cost.
+        "flex flex-col rounded-2xl p-4 [contain:layout_paint] [content-visibility:auto] [contain-intrinsic-size:auto_260px]",
+        className,
+      )}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

@@ -21,7 +21,7 @@ function flag(name, fallback) {
   return i === -1 ? fallback : args[i + 1];
 }
 
-const BASE = (flag("base", process.env.SEO_ACCESS_BASE_URL ?? "https://doseroutine.com")).replace(
+const BASE = flag("base", process.env.SEO_ACCESS_BASE_URL ?? "https://doseroutine.com").replace(
   /\/+$/,
   "",
 );

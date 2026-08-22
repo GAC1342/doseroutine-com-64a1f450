@@ -42,6 +42,9 @@ export type ManualSection = {
     | "/interaction-checker"
     | "/upgrade"
     | "/more"
+    | "/account"
+    | "/timer"
+    | "/pill-id"
     | "/help";
   routeLabel?: string;
 };
@@ -219,7 +222,8 @@ export const MANUAL: ManualChapter[] = [
     id: "fitness",
     number: 4,
     title: "Fitness and body",
-    intro: "Training, the exercise library, and body measurements — all on one screen with two tabs.",
+    intro:
+      "Training, the exercise library, and body measurements — all on one screen with two tabs.",
     sections: [
       {
         id: "workouts",
@@ -239,6 +243,69 @@ export const MANUAL: ManualChapter[] = [
         ],
         route: "/fitness",
         routeLabel: "Open Fitness & Body",
+      },
+      {
+        id: "repeat-workouts",
+        title: "Repeating a workout every week",
+        what: "Pick the days, how often it repeats, and when it should stop.",
+        steps: [
+          "Open the workout sheet for the session you want to repeat.",
+          "Turn on Repeat.",
+          "Tap the days of the week it should land on — you can pick more than one.",
+          "Choose how often: every week, every 2 weeks, or every 4 weeks.",
+          "Set 'Repeat until' if it should stop on a date, or leave it as no end.",
+          "Check the preview list of upcoming dates, then Save.",
+        ],
+        tips: [
+          "Editing a repeating session asks whether you mean just that day or the whole series.",
+          "Clearing the 'Repeat until' date turns it back into an open-ended routine.",
+          "Use 'Duplicate week' on the calendar to copy a whole week of training forward.",
+        ],
+        route: "/fitness",
+        routeLabel: "Open Fitness & Body",
+      },
+      {
+        id: "calendar-day",
+        title: "The calendar day view",
+        what: "Tap any day to see what is scheduled, with exercise illustrations.",
+        steps: [
+          "Open Fitness & Body, or the Calendar, and tap a day.",
+          "Colored dots on the grid show which days already have something scheduled.",
+          "The day panel lists each planned workout with its exercises and illustrations.",
+          "Switch tabs to see doses, workouts or meals for that day.",
+          "Use the meals toggle to hide the food row when you only want training.",
+        ],
+        route: "/fitness",
+        routeLabel: "Open Fitness & Body",
+      },
+      {
+        id: "share-routine",
+        title: "Sharing a workout routine",
+        what: "A private link (and an image card) for a routine — training only, nothing personal.",
+        steps: [
+          "Open the routine you want to share in the workout sheet.",
+          "Tap Share routine to create a link.",
+          "Send the link, or save the image card to post it.",
+          "Anyone with the link sees the exercises, sets and reps — never your doses, stack, measurements, photos or notes.",
+          "Turn the link off again from the same Share panel whenever you want.",
+        ],
+        tips: [
+          "People who open your link can save the routine straight into their own DoseRoutine.",
+        ],
+        route: "/fitness",
+        routeLabel: "Open Fitness & Body",
+      },
+      {
+        id: "workout-timer",
+        title: "Workout timer",
+        what: "Interval and Tabata timing for rest periods and circuits.",
+        steps: [
+          "Open More → Workout timer.",
+          "Choose work and rest lengths and the number of rounds.",
+          "Start it and leave it running while you train.",
+        ],
+        route: "/timer",
+        routeLabel: "Open the timer",
       },
       {
         id: "exercise-library",
@@ -319,6 +386,23 @@ export const MANUAL: ManualChapter[] = [
         routeLabel: "Open Food",
       },
       {
+        id: "food-shortcuts",
+        title: "Recents and favorites",
+        what: "Re-log the meals you eat all the time in one tap.",
+        steps: [
+          "On Food, tap Add meal.",
+          "Use the Recent row for anything you logged in the last few days.",
+          "Tap the star on a meal to keep it in Favorites.",
+          "Pick one and adjust the portion — the macros scale for you.",
+        ],
+        tips: [
+          "The food diary groups everything by day and meal with a macro summary per day.",
+          "Scanned foods are cached, so repeat scans still work with a poor connection.",
+        ],
+        route: "/food",
+        routeLabel: "Open Food",
+      },
+      {
         id: "goals",
         title: "Macro goals and the day view",
         what: "Daily targets, plus one timeline showing food and workouts together.",
@@ -379,7 +463,7 @@ export const MANUAL: ManualChapter[] = [
           "Enter vial strength, the volume of water you're adding, and your target dose.",
           "Read off the units on the syringe.",
         ],
-        tips: ["The calculator does the maths you type in. It doesn't decide your dose."],
+        tips: ["The calculator does the math you type in. It doesn't decide your dose."],
         route: "/calculators",
         routeLabel: "Open Calculators",
       },
@@ -418,6 +502,19 @@ export const MANUAL: ManualChapter[] = [
         ],
         route: "/injection-sites",
         routeLabel: "Open Injection Sites",
+      },
+      {
+        id: "pill-identifier",
+        title: "Pill identifier",
+        what: "Work out what a loose tablet or capsule is from its look and markings.",
+        steps: [
+          "Open More → Pill identifier.",
+          "Enter the imprint, color and shape, or photograph the pill.",
+          "Check the suggested matches against the packaging before you take anything.",
+        ],
+        tips: ["Matches are informational — confirm with your pharmacist if there's any doubt."],
+        route: "/pill-id",
+        routeLabel: "Open Pill identifier",
       },
     ],
   },
@@ -570,8 +667,28 @@ export const MANUAL: ManualChapter[] = [
     id: "account",
     number: 10,
     title: "Account, billing and privacy",
-    intro: "Plans, devices, language, appearance, and how to leave with your data.",
+    intro:
+      "Sign-in methods, plans, devices, language, appearance, and how to leave with your data.",
     sections: [
+      {
+        id: "sign-in-methods",
+        title: "Google, Apple and email on one account",
+        what: "Connect more than one login so you never end up with two separate accounts.",
+        steps: [
+          "Open More → Sign-in methods.",
+          "You'll see every login already connected to this account.",
+          "Tap Connect Google or Connect Apple to add the other one.",
+          "Approve it with the provider — you come straight back, still signed in.",
+          "From then on either button signs you into this same stack and history.",
+        ],
+        tips: [
+          "Signing up with Google and later with Apple creates two accounts, because the providers hand us different email addresses. Connecting them here is the fix.",
+          "You can disconnect a method any time, as long as one is left.",
+          "Already have two accounts with data in both? Email support@doseroutine.com and we'll merge them.",
+        ],
+        route: "/account",
+        routeLabel: "Open Sign-in methods",
+      },
       {
         id: "plans",
         title: "Free vs Pro",
@@ -691,8 +808,6 @@ export function manualSearch(query: string): ManualChapter[] {
   const hit = (s: ManualSection) =>
     [s.title, s.what, ...s.steps, ...(s.tips ?? [])].join(" ").toLowerCase().includes(q);
   return MANUAL.map((c) =>
-    c.title.toLowerCase().includes(q)
-      ? c
-      : { ...c, sections: c.sections.filter(hit) },
+    c.title.toLowerCase().includes(q) ? c : { ...c, sections: c.sections.filter(hit) },
   ).filter((c) => c.sections.length > 0);
 }

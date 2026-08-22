@@ -4,7 +4,7 @@ import { sourceHost, sourceKind } from "@/lib/editorial-author";
 export type BlogSourceRef = { cite: string; url: string };
 
 /**
- * Clearly labelled sources list for a blog post. Each entry shows what kind
+ * Clearly labeled sources list for a blog post. Each entry shows what kind
  * of document it is, the citation, and a direct link to the primary source.
  * Renders nothing when a post has no references — never a placeholder.
  */

@@ -79,17 +79,20 @@ export const syncRevenueCatSubscription = createServerFn({ method: "POST" })
         Accept: "application/json",
         "X-Platform": "ios",
       },
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`RevenueCat sync failed (${res.status}): ${text.slice(0, 200)}`);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const body = (await res.json()) as any;
     const subscriber = body?.subscriber;
     if (!subscriber) {
       return { synced: false as const, reason: "no_subscriber" as const };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const subs: Record<string, any> = subscriber.subscriptions ?? {};
     const entries = Object.entries(subs);
     entries.sort(([, a], [, b]) => {
@@ -99,6 +102,7 @@ export const syncRevenueCatSubscription = createServerFn({ method: "POST" })
     });
 
     // Pick the newest Apple/Google subscription record.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     let picked: { productId: string; data: any } | null = null;
     for (const [productId, s] of entries) {
       if (providerFromStore(s?.store)) {
@@ -109,6 +113,7 @@ export const syncRevenueCatSubscription = createServerFn({ method: "POST" })
 
     const now = Date.now();
     const activeEntitlements = Object.entries(subscriber.entitlements ?? {})
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       .filter(([, v]: [string, any]) => {
         const exp = v?.expires_date;
         return exp ? new Date(exp).getTime() > now : true;
@@ -160,6 +165,7 @@ export const syncRevenueCatSubscription = createServerFn({ method: "POST" })
     const rowWithKey = { ...row, store_transaction_id: dedupeKey };
     const { error } = await supabase
       .from("subscriptions")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       .upsert(rowWithKey as any, { onConflict: "store_transaction_id" });
     if (error) throw error;
 

@@ -12,7 +12,7 @@ import { getCalculatorPage, type CalculatorPage } from "@/lib/compound-calculato
 import { pageCardMeta } from "@/lib/social-image-meta";
 import { LAST_REVIEWED } from "@/lib/aeo-page-faqs";
 
-const BASE = "https://doseroutine.com";
+export const BASE = "https://doseroutine.com";
 /** BAC water volumes shown in the per-vial reference table. */
 const BAC_VOLUMES = [1, 2, 3, 5];
 
@@ -90,7 +90,12 @@ export const Route = createFileRoute("/calculators/$slug")({
                 url,
                 description: page.description,
                 offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-                publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine", url: BASE },
+                publisher: {
+                  "@type": "Organization",
+                  "@id": "https://doseroutine.com/#organization",
+                  name: "DoseRoutine",
+                  url: BASE,
+                },
               },
               {
                 "@type": "HowTo",
@@ -101,19 +106,19 @@ export const Route = createFileRoute("/calculators/$slug")({
                     "@type": "HowToStep",
                     position: 1,
                     name: "Find concentration",
-                    text: "Divide the total milligrams in the vial by the millilitres of bacteriostatic water added. That is your mg/mL.",
+                    text: "Divide the total milligrams in the vial by the milliliters of bacteriostatic water added. That is your mg/mL.",
                   },
                   {
                     "@type": "HowToStep",
                     position: 2,
                     name: "Find volume per dose",
-                    text: "Divide your target dose in milligrams by the mg/mL concentration to get the millilitres to inject.",
+                    text: "Divide your target dose in milligrams by the mg/mL concentration to get the milliliters to inject.",
                   },
                   {
                     "@type": "HowToStep",
                     position: 3,
                     name: "Convert to syringe units",
-                    text: "Multiply the millilitres by 100 for a U-100 insulin syringe, or by 40 for a U-40 syringe.",
+                    text: "Multiply the milliliters by 100 for a U-100 insulin syringe, or by 40 for a U-40 syringe.",
                   },
                 ],
               },
@@ -135,7 +140,7 @@ export const Route = createFileRoute("/calculators/$slug")({
   component: CompoundCalculatorPage,
 });
 
-function CalculatorNotFound() {
+export function CalculatorNotFound() {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-5 py-20 text-center">
       <h1 className="font-display text-3xl font-semibold text-foreground">Calculator not found</h1>
@@ -160,7 +165,7 @@ function CompoundCalculatorPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <PublicBackHeader />
+      <PublicBackHeader backTo="/calculators" backLabel="All calculators" />
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
           <Link
@@ -256,7 +261,7 @@ function CompoundCalculatorPage() {
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             Reference ranges reported in the literature and in common practice — not a prescription,
-            and not personalised advice.
+            and not personalized advice.
           </p>
         </section>
 
@@ -274,12 +279,12 @@ function CompoundCalculatorPage() {
           </ul>
         </section>
 
-        <section className="mt-10" aria-labelledby="how-the-maths-works">
+        <section className="mt-10" aria-labelledby="how-the-math-works">
           <h2
-            id="how-the-maths-works"
+            id="how-the-math-works"
             className="font-display text-2xl font-semibold text-foreground"
           >
-            How the maths works
+            How the math works
           </h2>
           <ol className="mt-3 ml-5 list-decimal space-y-1 text-sm text-muted-foreground">
             <li>Concentration (mg/mL) = vial mg ÷ bacteriostatic water mL.</li>

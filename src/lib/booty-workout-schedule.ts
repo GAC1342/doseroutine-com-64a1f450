@@ -17,9 +17,7 @@ export function useBootyWorkoutScheduled() {
         .select("id,label,planned_time,active")
         .not("planned_time", "is", null);
       if (error) throw error;
-      return (data ?? []).some(
-        (row) => row.active !== false && isBootyRoutine(row.label),
-      );
+      return (data ?? []).some((row) => row.active !== false && isBootyRoutine(row.label));
     },
     staleTime: 60_000,
   });

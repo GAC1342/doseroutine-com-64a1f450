@@ -1,0 +1,51 @@
+name: Coverage gate (unit parsing + robots)
+
+# Fails the build when test coverage of the portion/unit parser or the
+# robots.txt policy generator drops below the thresholds in
+# vitest.coverage.config.ts (lines/statements/functions 85%, branches 80%).
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/lib/portion-units.ts"
+      - "src/lib/robots-*.ts"
+      - "src/lib/__tests__/portion-*.test.ts"
+      - "src/lib/__tests__/robots-*.test.ts"
+      - "src/routes/__tests__/robots-txt.test.ts"
+      - "vitest.coverage.config.ts"
+      - ".github/workflows/coverage-gate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/lib/portion-units.ts"
+      - "src/lib/robots-*.ts"
+      - "src/lib/__tests__/portion-*.test.ts"
+      - "src/lib/__tests__/robots-*.test.ts"
+      - "src/routes/__tests__/robots-txt.test.ts"
+      - "vitest.coverage.config.ts"
+      - ".github/workflows/coverage-gate.yml"
+
+concurrency:
+  group: coverage-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Unit parsing + robots coverage thresholds
+        run: bun run test:coverage:gate
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: units-robots-coverage-${{ github.run_attempt }}
+          path: coverage/units-robots/
+          if-no-files-found: warn
+          retention-days: 14

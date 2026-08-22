@@ -34,7 +34,6 @@ const VIEWPORTS = process.env.ART_VIEWPORTS
   ? selectedViewports()
   : ALL_VIEWPORTS.filter((v) => ["phone-320x568", "phone-390", "laptop-1280"].includes(v.name));
 
-
 for (const viewport of VIEWPORTS) {
   test.describe(`workout type illustration keyboard nav — ${viewport.name}`, () => {
     test.use({ viewport: { width: viewport.width, height: viewport.height } });

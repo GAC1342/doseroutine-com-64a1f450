@@ -1,11 +1,6 @@
 import { devices } from "@playwright/test";
 import { test, expect } from "./utils";
-import {
-  openYogaWorkoutSheet,
-  settle,
-  yogaThumbnail,
-  yogaLightbox,
-} from "./exercise-art-helpers";
+import { openYogaWorkoutSheet, settle, yogaThumbnail, yogaLightbox } from "./exercise-art-helpers";
 import { expectNoCutoff } from "./exercise-art-containment";
 
 /**
@@ -63,10 +58,7 @@ for (const profile of IOS_PROFILES) {
     test.describe(`iOS Safari — ${profile.name} ${orientation}`, () => {
       // Only meaningful on WebKit; Chromium/Firefox do not reproduce iOS
       // visual-viewport or Safari layout behaviour.
-      test.skip(
-        ({ browserName }) => browserName !== "webkit",
-        "iOS Safari checks require WebKit",
-      );
+      test.skip(({ browserName }) => browserName !== "webkit", "iOS Safari checks require WebKit");
       test.use({ ...preset, viewport, deviceScaleFactor: profile.dpr });
       test.describe.configure({ timeout: 120_000 });
 
@@ -98,10 +90,7 @@ for (const profile of IOS_PROFILES) {
         await expect(image).toBeVisible();
         await expect
           .poll(
-            () =>
-              image.evaluate(
-                (el: HTMLImageElement) => el.complete && el.naturalWidth > 0,
-              ),
+            () => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0),
             { timeout: 10_000 },
           )
           .toBe(true);
@@ -154,8 +143,7 @@ for (const profile of IOS_PROFILES) {
           currentSrc: el.currentSrc,
         }));
         const isVector =
-          source.currentSrc.includes(".svg") ||
-          source.currentSrc.startsWith("data:image/svg");
+          source.currentSrc.includes(".svg") || source.currentSrc.startsWith("data:image/svg");
         if (!isVector && imgBox.width > 0) {
           expect(
             source.naturalWidth,
@@ -166,9 +154,7 @@ for (const profile of IOS_PROFILES) {
         // iOS "rubber band": the page behind the modal must not gain scroll
         // width, and the document must not be pushed sideways.
         const overflow = await page.evaluate(() => ({
-          x:
-            document.documentElement.scrollWidth -
-            document.documentElement.clientWidth,
+          x: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           scrollX: window.scrollX,
         }));
         expect(overflow.x).toBeLessThanOrEqual(0);

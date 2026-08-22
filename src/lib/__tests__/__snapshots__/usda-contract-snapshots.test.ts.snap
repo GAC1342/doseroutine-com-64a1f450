@@ -1,0 +1,341 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`USDA fixture: 'branded-bar' > normalizes to the same UsdaFood 1`] = `
+{
+  "brand": "Test Brand",
+  "carbs100": 40,
+  "dataType": "Branded",
+  "defaultPortionG": 60,
+  "fat100": 10,
+  "fdcId": "555111",
+  "fiber100": null,
+  "gtin": "0012345678905",
+  "kcal100": 366,
+  "name": "Protein bar, chocolate",
+  "portions": [
+    {
+      "grams": 60,
+      "label": "1 bar",
+    },
+  ],
+  "protein100": 33.3,
+  "satfat100": null,
+  "sodium100mg": null,
+  "sugar100": null,
+}
+`;
+
+exports[`USDA fixture: 'branded-bar' > payload shape is unchanged (Branded payload: GTIN + servingSize instead of a portion table) 1`] = `
+{
+  "brandName": "string",
+  "brandOwner": "string",
+  "dataType": "string",
+  "description": "string",
+  "fdcId": "number",
+  "foodNutrients": [
+    {
+      "nutrientId": "number",
+      "value": "number",
+    },
+  ],
+  "gtinUpc": "string",
+  "householdServingFullText": "string",
+  "servingSize": "number",
+  "servingSizeUnit": "string",
+}
+`;
+
+exports[`USDA fixture: 'branded-bar' > produces the same chips, macros and cue downstream 1`] = `
+{
+  "chipLabelForDefault": "1 bar",
+  "chips": [
+    {
+      "grams": 60,
+      "isDefault": true,
+      "label": "1 bar",
+      "referenceHint": null,
+    },
+  ],
+  "cueClass": "any",
+  "qualityScore": 78,
+  "scaled": {
+    "calories": 220,
+    "carbs_g": 24,
+    "dataSource": "usda",
+    "fat_g": 6,
+    "fiber_g": null,
+    "protein_g": 20,
+    "satfat_g": null,
+    "sodium_mg": null,
+    "sugar_g": null,
+  },
+  "scaledTo": 60,
+  "visualHint": "golf ball — Dips, dressings, sauces",
+}
+`;
+
+exports[`USDA fixture: 'foundation-chicken' > normalizes to the same UsdaFood 1`] = `
+{
+  "brand": null,
+  "carbs100": 0,
+  "dataType": "Foundation",
+  "defaultPortionG": 174,
+  "fat100": 2.6,
+  "fdcId": "171077",
+  "fiber100": 0,
+  "gtin": null,
+  "kcal100": 120,
+  "name": "Chicken, broilers or fryers, breast, meat only, raw",
+  "portions": [
+    {
+      "grams": 174,
+      "label": "1 breast",
+    },
+    {
+      "grams": 85,
+      "label": "3 oz",
+    },
+  ],
+  "protein100": 22.5,
+  "satfat100": 0.7,
+  "sodium100mg": 63,
+  "sugar100": null,
+}
+`;
+
+exports[`USDA fixture: 'foundation-chicken' > payload shape is unchanged (Modern Foundation payload: flat nutrientId, real foodPortions table) 1`] = `
+{
+  "dataType": "string",
+  "description": "string",
+  "fdcId": "number",
+  "foodNutrients": [
+    {
+      "nutrientId": "number",
+      "value": "number",
+    },
+  ],
+  "foodPortions": [
+    {
+      "amount": "number",
+      "gramWeight": "number",
+      "measureUnit": {
+        "name": "string",
+      },
+    },
+    {
+      "gramWeight": "number",
+      "portionDescription": "string",
+    },
+  ],
+}
+`;
+
+exports[`USDA fixture: 'foundation-chicken' > produces the same chips, macros and cue downstream 1`] = `
+{
+  "chipLabelForDefault": "1 breast",
+  "chips": [
+    {
+      "grams": 174,
+      "isDefault": true,
+      "label": "1 breast",
+      "referenceHint": null,
+    },
+    {
+      "grams": 85,
+      "isDefault": false,
+      "label": "3 oz",
+      "referenceHint": null,
+    },
+  ],
+  "cueClass": "protein",
+  "qualityScore": 92,
+  "scaled": {
+    "calories": 102,
+    "carbs_g": 0,
+    "dataSource": "usda",
+    "fat_g": 2.2,
+    "fiber_g": 0,
+    "protein_g": 19.1,
+    "satfat_g": 0.6,
+    "sodium_mg": 54,
+    "sugar_g": null,
+  },
+  "scaledTo": 85,
+  "visualHint": "deck of cards — Cooked meat or fish, 3 oz",
+}
+`;
+
+exports[`USDA fixture: 'sr-legacy-broccoli' > normalizes to the same UsdaFood 1`] = `
+{
+  "brand": null,
+  "carbs100": 6.64,
+  "dataType": "SR Legacy",
+  "defaultPortionG": 91,
+  "fat100": 0.37,
+  "fdcId": "170379",
+  "fiber100": 2.6,
+  "gtin": null,
+  "kcal100": 34,
+  "name": "Broccoli, raw",
+  "portions": [
+    {
+      "grams": 91,
+      "label": "1 cup chopped",
+    },
+    {
+      "grams": 148,
+      "label": "1 stalk, large",
+    },
+  ],
+  "protein100": 2.82,
+  "satfat100": null,
+  "sodium100mg": null,
+  "sugar100": 1.7,
+}
+`;
+
+exports[`USDA fixture: 'sr-legacy-broccoli' > payload shape is unchanged (Legacy payload: nested nutrient.id + amount, measureUnit portions) 1`] = `
+{
+  "dataType": "string",
+  "description": "string",
+  "fdcId": "number",
+  "foodNutrients": [
+    {
+      "amount": "number",
+      "nutrient": {
+        "id": "number",
+        "number": "string",
+      },
+    },
+    {
+      "amount": "number",
+      "nutrient": {
+        "id": "number",
+      },
+    },
+  ],
+  "foodPortions": [
+    {
+      "amount": "number",
+      "gramWeight": "number",
+      "measureUnit": {
+        "name": "string",
+      },
+      "modifier": "string",
+    },
+    {
+      "gramWeight": "number",
+      "portionDescription": "string",
+    },
+  ],
+}
+`;
+
+exports[`USDA fixture: 'sr-legacy-broccoli' > produces the same chips, macros and cue downstream 1`] = `
+{
+  "chipLabelForDefault": "1 cup chopped",
+  "chips": [
+    {
+      "grams": 91,
+      "isDefault": true,
+      "label": "1 cup chopped",
+      "referenceHint": null,
+    },
+    {
+      "grams": 148,
+      "isDefault": false,
+      "label": "1 stalk, large",
+      "referenceHint": null,
+    },
+  ],
+  "cueClass": "vegetable",
+  "qualityScore": 88,
+  "scaled": {
+    "calories": 61,
+    "carbs_g": 12,
+    "dataSource": "usda",
+    "fat_g": 0.7,
+    "fiber_g": 4.7,
+    "protein_g": 5.1,
+    "satfat_g": null,
+    "sodium_mg": null,
+    "sugar_g": 3.1,
+  },
+  "scaledTo": 180,
+  "visualHint": "clenched fist — Cooked pasta, vegetables",
+}
+`;
+
+exports[`USDA fixture: 'survey-rice' > normalizes to the same UsdaFood 1`] = `
+{
+  "brand": null,
+  "carbs100": 25.6,
+  "dataType": "Survey (FNDDS)",
+  "defaultPortionG": 195,
+  "fat100": 0.97,
+  "fdcId": "999001",
+  "fiber100": null,
+  "gtin": null,
+  "kcal100": 123,
+  "name": "Rice, brown, cooked",
+  "portions": [
+    {
+      "grams": 195,
+      "label": "1 cup",
+    },
+  ],
+  "protein100": 2.74,
+  "satfat100": null,
+  "sodium100mg": null,
+  "sugar100": null,
+}
+`;
+
+exports[`USDA fixture: 'survey-rice' > payload shape is unchanged (Survey payload: string nutrientNumber only, single portion) 1`] = `
+{
+  "dataType": "string",
+  "description": "string",
+  "fdcId": "number",
+  "foodNutrients": [
+    {
+      "nutrientNumber": "string",
+      "value": "number",
+    },
+  ],
+  "foodPortions": [
+    {
+      "gramWeight": "number",
+      "portionDescription": "string",
+    },
+  ],
+}
+`;
+
+exports[`USDA fixture: 'survey-rice' > produces the same chips, macros and cue downstream 1`] = `
+{
+  "chipLabelForDefault": "1 cup",
+  "chips": [
+    {
+      "grams": 195,
+      "isDefault": true,
+      "label": "1 cup",
+      "referenceHint": null,
+    },
+  ],
+  "cueClass": "grain",
+  "qualityScore": 80,
+  "scaled": {
+    "calories": 240,
+    "carbs_g": 49.9,
+    "dataSource": "usda",
+    "fat_g": 1.9,
+    "fiber_g": null,
+    "protein_g": 5.3,
+    "satfat_g": null,
+    "sodium_mg": null,
+    "sugar_g": null,
+  },
+  "scaledTo": 195,
+  "visualHint": "clenched fist — Cooked pasta, vegetables",
+}
+`;

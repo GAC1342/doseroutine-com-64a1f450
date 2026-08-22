@@ -6,6 +6,7 @@ import {
   normalizeTime,
   occursOnDay,
   routineForDay,
+  routineForRange,
   weekdayOfDayKey,
   type MealTimeRow,
   type WorkoutSessionRow,
@@ -136,5 +137,25 @@ describe("describeDays", () => {
     expect(describeDays([1, 2, 3, 4, 5])).toBe("Weekdays");
     expect(describeDays([0, 6])).toBe("Weekends");
     expect(describeDays([1, 3, 5])).toBe("Mon, Wed, Fri");
+  });
+});
+
+describe("routineForRange", () => {
+  it("returns occurrences per day and omits days with nothing on them", () => {
+    const days = ["2026-08-03", "2026-08-04", "2026-08-05"]; // Mon, Tue, Wed
+    const map = routineForRange([workout({ days_of_week: [1, 3] })], [], days, "America/Edmonton");
+    expect([...map.keys()]).toEqual(["2026-08-03", "2026-08-05"]);
+    expect(map.get("2026-08-03")).toHaveLength(1);
+    expect(map.get("2026-08-04")).toBeUndefined();
+  });
+
+  it("includes meal anchors alongside workouts", () => {
+    const map = routineForRange(
+      [workout({ days_of_week: [1] })],
+      [meal({ days_of_week: [1] })],
+      ["2026-08-03"],
+      "America/Edmonton",
+    );
+    expect(map.get("2026-08-03")?.map((o) => o.kind)).toEqual(["meal", "workout"]);
   });
 });

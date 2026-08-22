@@ -7,12 +7,12 @@ import { RelatedLinks } from "@/components/related-links";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 
-const CANONICAL = "https://doseroutine.com/dosage-units-guide";
+export const CANONICAL = "https://doseroutine.com/dosage-units-guide";
 const TITLE = "Dosage Units Guide — U-100, U-40 and BAC Water";
 const DESC =
   "Understand U-100 vs U-40 insulin syringes, sterile vs bacteriostatic water, and how to read syringe units before you measure any dose.";
 
-const FAQ = [
+export const FAQ = [
   {
     q: "What is the difference between a U-100 and U-40 insulin syringe?",
     a: "A U-100 syringe holds 100 units per 1 mL. A U-40 syringe holds 40 units per 1 mL. Using the wrong syringe changes your dose by up to 60%. Nearly all human insulin and peptide protocols in the US use U-100. Check the barrel label before every injection.",
@@ -76,10 +76,16 @@ export const Route = createFileRoute("/dosage-units-guide")({
               inLanguage: "en",
               datePublished: "2026-07-24",
               dateModified: "2026-07-25",
-              author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+              author: {
+                "@type": "Organization",
+                "@id": "https://doseroutine.com/#organization",
+                name: "DoseRoutine",
                 url: "https://doseroutine.com",
               },
-              publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+              publisher: {
+                "@type": "Organization",
+                "@id": "https://doseroutine.com/#organization",
+                name: "DoseRoutine",
                 url: "https://doseroutine.com",
                 logo: { "@type": "ImageObject", url: "https://doseroutine.com/favicon.png" },
               },
@@ -161,7 +167,7 @@ function DosageUnitsGuidePage() {
               <Link to="/peptide-dosage-calculator">Open the calculator</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/calculator">All calculators</Link>
+              <Link to="/calculators">All DoseRoutine calculators</Link>
             </Button>
           </div>
         </div>
@@ -176,7 +182,7 @@ function DosageUnitsGuidePage() {
           </div>
           <h2 className="text-2xl font-bold sm:text-3xl">U-100 vs U-40: what the numbers mean</h2>
           <p className="mt-4 text-muted-foreground">
-            The <strong>U number</strong> is the number of units per millilitre the syringe barrel
+            The <strong>U number</strong> is the number of units per milliliter the syringe barrel
             is calibrated for. A <strong>U-100</strong> syringe reads 100 units per 1 mL. A{" "}
             <strong>U-40</strong> syringe reads 40 units per 1 mL. Same volume of liquid, different
             unit scale.
@@ -334,6 +340,85 @@ function DosageUnitsGuidePage() {
         </div>
       </section>
 
+      {/* Unit conversion reference — unique to this guide */}
+      <section className="border-b border-border px-5 py-12">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-2xl font-bold sm:text-3xl">
+            mg, mcg and IU: converting between them
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            Milligrams and micrograms are pure weight, so they convert with arithmetic alone: 1 mg
+            is 1000 mcg, and a 250 mcg dose is 0.25 mg. International units are different. An IU is
+            a measure of biological activity, defined separately for each substance, so there is no
+            universal IU-to-milligram factor. HCG, vitamin D and growth hormone each have their own
+            conversion, and applying one substance's factor to another produces a dose that is wrong
+            by an order of magnitude rather than a rounding error.
+          </p>
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
+              <caption className="sr-only">
+                Common dosing unit conversions used with insulin syringes
+              </caption>
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th scope="col" className="py-2 pr-4 font-semibold">
+                    You have
+                  </th>
+                  <th scope="col" className="py-2 pr-4 font-semibold">
+                    You want
+                  </th>
+                  <th scope="col" className="py-2 font-semibold">
+                    Conversion
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-muted-foreground">
+                <tr className="border-b border-border/60">
+                  <th scope="row" className="py-2 pr-4 font-normal">
+                    Milligrams (mg)
+                  </th>
+                  <td className="py-2 pr-4">Micrograms (mcg)</td>
+                  <td className="py-2">Multiply by 1000</td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <th scope="row" className="py-2 pr-4 font-normal">
+                    Milliliters (mL)
+                  </th>
+                  <td className="py-2 pr-4">U-100 syringe units</td>
+                  <td className="py-2">Multiply by 100</td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <th scope="row" className="py-2 pr-4 font-normal">
+                    Milliliters (mL)
+                  </th>
+                  <td className="py-2 pr-4">U-40 syringe units</td>
+                  <td className="py-2">Multiply by 40</td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <th scope="row" className="py-2 pr-4 font-normal">
+                    Dose (mg) + concentration (mg/mL)
+                  </th>
+                  <td className="py-2 pr-4">Volume to draw (mL)</td>
+                  <td className="py-2">Divide dose by concentration</td>
+                </tr>
+                <tr>
+                  <th scope="row" className="py-2 pr-4 font-normal">
+                    International units (IU)
+                  </th>
+                  <td className="py-2 pr-4">Milligrams (mg)</td>
+                  <td className="py-2">Substance-specific — check the label, never assume</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-6 text-sm text-muted-foreground">
+            One habit prevents most measurement mistakes: write the concentration on the vial in
+            marker the moment it is mixed. Every later conversion on this page needs that one
+            number, and it cannot be recovered by looking at the vial afterwards.
+          </p>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="border-b border-border px-5 py-12" aria-labelledby="faq-heading">
         <div className="mx-auto max-w-3xl">
@@ -342,7 +427,11 @@ function DosageUnitsGuidePage() {
           </h2>
           <div className="mt-6 space-y-4">
             {FAQ.map((f) => (
-              <details key={f.q} id={faqAnchorId(f.q)} className="group scroll-mt-24 rounded-lg border border-border p-4">
+              <details
+                key={f.q}
+                id={faqAnchorId(f.q)}
+                className="group scroll-mt-24 rounded-lg border border-border p-4"
+              >
                 <summary className="cursor-pointer font-semibold group-open:mb-2">{f.q}</summary>
                 <p className="text-sm leading-relaxed text-muted-foreground">{f.a}</p>
               </details>

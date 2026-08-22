@@ -1,16 +1,21 @@
-import { useMemo } from "react";
+import { lazy, Suspense } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { InsightsGrid } from "@/components/insights/insights-grid";
-import { buildDemoInsights } from "@/lib/insights/demo";
+import { DeferUntilVisible } from "@/components/defer-until-visible";
+
+// Charts pull in the recharts bundle and lay out on mount, which used to run
+// during the homepage's first paint. Load them only when they scroll into view.
+const DemoInsightsGrid = lazy(() =>
+  import("@/components/insights/demo-insights-grid").then((m) => ({
+    default: m.DemoInsightsGrid,
+  })),
+);
 
 /**
  * Marketing showcase of the in-app Insights dashboard, rendered with clearly
- * labelled sample data so visitors can see the charts before signing up.
+ * labeled sample data so visitors can see the charts before signing up.
  */
 export function HomeInsightsShowcase() {
-  const demo = useMemo(() => buildDemoInsights(), []);
-
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6" id="insights">
       <div className="mx-auto max-w-2xl text-center">
@@ -27,7 +32,11 @@ export function HomeInsightsShowcase() {
       </div>
 
       <div className="mt-8">
-        <InsightsGrid data={demo} showLinks={false} />
+        <DeferUntilVisible minHeight={520}>
+          <Suspense fallback={<div className="min-h-[520px]" aria-hidden="true" />}>
+            <DemoInsightsGrid />
+          </Suspense>
+        </DeferUntilVisible>
       </div>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">

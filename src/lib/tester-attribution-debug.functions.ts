@@ -25,7 +25,7 @@ export type AttributionRow = {
 };
 
 /**
- * Admin-only attribution debugger: look up the signup row(s) a visitor linked
+ * Admin-only attribution debugger: look up the sign-up row(s) a visitor linked
  * to, either by email or by the attribution values captured in their browser.
  */
 export const lookupTesterAttribution = createServerFn({ method: "POST" })

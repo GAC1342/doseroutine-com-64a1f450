@@ -1,0 +1,17 @@
+{
+  "fdcId": 170379,
+  "description": "Broccoli, raw",
+  "dataType": "SR Legacy",
+  "foodNutrients": [
+    { "nutrient": { "id": 1008, "number": "208" }, "amount": 34 },
+    { "nutrient": { "id": 1003 }, "amount": 2.82 },
+    { "nutrient": { "id": 1005 }, "amount": 6.64 },
+    { "nutrient": { "id": 1004 }, "amount": 0.37 },
+    { "nutrient": { "id": 1079 }, "amount": 2.6 },
+    { "nutrient": { "id": 2000 }, "amount": 1.7 }
+  ],
+  "foodPortions": [
+    { "gramWeight": 91, "amount": 1, "measureUnit": { "name": "cup" }, "modifier": "chopped" },
+    { "gramWeight": 148, "portionDescription": "1 stalk, large" }
+  ]
+}

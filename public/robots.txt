@@ -30,8 +30,10 @@ Disallow: /auth
 Disallow: /onboarding
 Disallow: /reset-password
 Disallow: /p/
+Disallow: /r/
 Disallow: /today
 Disallow: /adherence
+Disallow: /account
 Disallow: /redeem
 Disallow: /not-found
 Disallow: /stack
@@ -55,12 +57,17 @@ Disallow: /body-metrics
 Disallow: /fitness
 Disallow: /food
 Disallow: /notifications
+Disallow: /progress
 Disallow: /progress-photos
 Disallow: /side-effects
 Disallow: /templates
 Disallow: /scan
+Disallow: /pill-id
+Disallow: /timer
+Disallow: /meal-plan
 Disallow: /settings
 Disallow: /admin
+Disallow: /insights
 Disallow: /debug/
 Disallow: /lovable/
 Disallow: /api/
@@ -76,8 +83,10 @@ Disallow: /auth
 Disallow: /onboarding
 Disallow: /reset-password
 Disallow: /p/
+Disallow: /r/
 Disallow: /today
 Disallow: /adherence
+Disallow: /account
 
 Disallow: /redeem
 Disallow: /not-found
@@ -102,12 +111,17 @@ Disallow: /body-metrics
 Disallow: /fitness
 Disallow: /food
 Disallow: /notifications
+Disallow: /progress
 Disallow: /progress-photos
 Disallow: /side-effects
 Disallow: /templates
 Disallow: /scan
+Disallow: /pill-id
+Disallow: /timer
+Disallow: /meal-plan
 Disallow: /settings
 Disallow: /admin
+Disallow: /insights
 Disallow: /debug/
 Disallow: /lovable/
 Disallow: /api/

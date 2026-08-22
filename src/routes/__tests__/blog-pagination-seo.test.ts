@@ -36,15 +36,18 @@ function loaderDataFor(page: number, pageSize: BlogPageSize, sort = "newest") {
 }
 
 function headFor(page: number, pageSize: BlogPageSize, sort = "newest"): Head {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const head = (Route.options as any).head({ loaderData: loaderDataFor(page, pageSize, sort) });
   return { meta: head.meta ?? [], links: head.links ?? [], scripts: head.scripts ?? [] };
 }
 
 /** Parsed JSON-LD blocks emitted by the route head(). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 function jsonLd(head: Head): any[] {
-  return head.scripts
+  const parsed = head.scripts
     .filter((s) => s.type === "application/ld+json")
     .map((s) => JSON.parse(String(s.children)));
+  return parsed.flatMap((node) => (Array.isArray(node?.["@graph"]) ? node["@graph"] : [node]));
 }
 
 const graphOfType = (head: Head, type: string) =>
@@ -61,7 +64,6 @@ const metaValue = (head: Head, name: string) =>
 
 const linkHrefs = (head: Head, rel: string) =>
   head.links.filter((l) => l.rel === rel).map((l) => l.href);
-
 
 /** Expected canonical for a page: page 1 is clean /blog, deeper pages self-ref. */
 const expectedCanonical = (page: number) => (page > 1 ? `${BASE}?page=${page}` : `${BASE}`);
@@ -91,7 +93,8 @@ describe("blog pagination SEO fields", () => {
         expect(metaValue(head, "og:url")).toBe(expectedCanonical(1));
         expect(metaValue(head, "robots")).toBe(INDEXABLE);
         expect(linkHrefs(head, "prev")).toEqual([]);
-        if (totalPages > 1) expect(linkHrefs(head, "next")).toEqual([expectedPageHref(2, pageSize)]);
+        if (totalPages > 1)
+          expect(linkHrefs(head, "next")).toEqual([expectedPageHref(2, pageSize)]);
         else expect(linkHrefs(head, "next")).toEqual([]);
       });
 
@@ -211,6 +214,7 @@ describe("blog pagination SEO fields", () => {
             const posts = graphOfType(head, "Blog").blogPost;
             const expected = visiblePosts(page, pageSize, totalPages);
             expect(posts).toHaveLength(expected.length);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
             expect(posts.map((p: any) => p.url)).toEqual(
               expected.map((p) => `https://doseroutine.com/blog/${p.slug}`),
             );
@@ -222,7 +226,6 @@ describe("blog pagination SEO fields", () => {
               // so the entity consolidates instead of being redefined.
               expect(post.author?.["@id"]).toBe("https://doseroutine.com/#organization");
               expect(post.publisher?.["@id"]).toBe("https://doseroutine.com/#organization");
-
             }
           }
         });
@@ -243,10 +246,7 @@ describe("blog pagination SEO fields", () => {
             JSON.stringify(graphOfType(headFor(page, pageSize), "Blog").publisher),
           );
           expect(new Set(publishers).size).toBe(1);
-          expect(JSON.parse(publishers[0])["@id"]).toBe(
-            "https://doseroutine.com/#organization",
-          );
-
+          expect(JSON.parse(publishers[0])["@id"]).toBe("https://doseroutine.com/#organization");
         });
 
         it("out-of-range page still emits valid, canonical-consistent JSON-LD", () => {
@@ -263,7 +263,6 @@ describe("blog pagination SEO fields", () => {
         });
       });
     });
-
   }
 });
 
@@ -281,7 +280,9 @@ describe("blog pagination human-facing meta text", () => {
           const description = metaValue(head, "description");
           expect(title, `title on page ${page}`).toBeTruthy();
           expect(description, `description on page ${page}`).toBeTruthy();
-          expect(String(description).length, `description length on page ${page}`).toBeLessThan(160);
+          expect(String(description).length, `description length on page ${page}`).toBeLessThan(
+            160,
+          );
         }
       });
 
@@ -337,4 +338,3 @@ describe("blog pagination human-facing meta text", () => {
     });
   }
 });
-

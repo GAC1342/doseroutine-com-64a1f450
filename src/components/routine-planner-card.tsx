@@ -285,7 +285,7 @@ export function RoutinePlannerCard({ table }: { table: RoutineTable }) {
                 className={`rounded-full border px-2.5 py-1 text-[11px] font-medium capitalize ${
                   kind === k
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground hover:bg-muted"
+                    : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
                 }`}
               >
                 {k}
@@ -304,7 +304,7 @@ export function RoutinePlannerCard({ table }: { table: RoutineTable }) {
               className={`h-8 w-8 rounded-full border text-[11px] font-semibold ${
                 days.includes(i)
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-muted"
+                  : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
               }`}
             >
               {d}

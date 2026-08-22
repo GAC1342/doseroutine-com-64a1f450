@@ -14,7 +14,7 @@
 //
 // Rules for anything added here:
 //   * factual, neutral, sourced-in-prose — same standard as the AI pipeline,
-//   * NEVER prescribe a dose; describe what is commonly studied/labelled,
+//   * NEVER prescribe a dose; describe what is commonly studied/labeled,
 //   * no invented citations, DOIs or URLs.
 
 import type { FaqPair } from "@/lib/faq-schema";
@@ -68,7 +68,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Can you drink alcohol while taking acetaminophen?",
         a:
-          "Regular alcohol use depletes glutathione, the liver's defence against acetaminophen's toxic metabolite, so combining the two raises the risk of liver injury. FDA labelling advises anyone having three or more alcoholic drinks a day to ask a clinician before using it. " +
+          "Regular alcohol use depletes glutathione, the liver's defense against acetaminophen's toxic metabolite, so combining the two raises the risk of liver injury. FDA labeling advises anyone having three or more alcoholic drinks a day to ask a clinician before using it. " +
           EDU,
       },
       {
@@ -86,14 +86,14 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Lunesta is the brand name for eszopiclone, a prescription non-benzodiazepine sleep medication. How it works, side effects, and the FDA boxed warning.",
     answer:
-      'Lunesta is the brand name for eszopiclone, a prescription "Z-drug" hypnotic for insomnia. It acts on the same GABA-A receptor site as benzodiazepines but with a different chemical structure, shortening how long it takes to fall asleep and reducing night-time waking. The FDA carries a boxed warning for complex sleep behaviours — sleepwalking, sleep-driving and sleep-eating with no memory of the event.',
+      'Lunesta is the brand name for eszopiclone, a prescription "Z-drug" hypnotic for insomnia. It acts on the same GABA-A receptor site as benzodiazepines but with a different chemical structure, shortening how long it takes to fall asleep and reducing night-time waking. The FDA carries a boxed warning for complex sleep behaviors — sleepwalking, sleep-driving and sleep-eating with no memory of the event.',
     quickFacts: [
       { label: "Generic name", value: "Eszopiclone" },
       { label: "Drug class", value: 'Non-benzodiazepine hypnotic ("Z-drug")' },
       { label: "Schedule", value: "DEA Schedule IV controlled substance in the U.S." },
       { label: "Onset", value: "Roughly 30 minutes; taken immediately before bed" },
       { label: "Half-life", value: "About 6 hours (longer in older adults)" },
-      { label: "Boxed warning", value: "Complex sleep behaviours; discontinue after any episode" },
+      { label: "Boxed warning", value: "Complex sleep behaviors; discontinue after any episode" },
     ],
     extraFaq: [
       {
@@ -104,12 +104,12 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       },
       {
         q: "Why does Lunesta leave a metallic taste?",
-        a: "A bitter or metallic aftertaste is the single most commonly reported side effect of eszopiclone in FDA labelling, affecting a large minority of users. It is caused by the drug being secreted in saliva and typically persists into the next morning rather than fading overnight.",
+        a: "A bitter or metallic aftertaste is the single most commonly reported side effect of eszopiclone in FDA labeling, affecting a large minority of users. It is caused by the drug being secreted in saliva and typically persists into the next morning rather than fading overnight.",
       },
       {
         q: "How long can you take Lunesta?",
         a:
-          "Labelling and sleep-medicine guidelines frame Z-drugs as short-term treatment while the cause of the insomnia is addressed, because tolerance, dependence and rebound insomnia on stopping become more likely with prolonged nightly use. The American Academy of Sleep Medicine positions cognitive behavioural therapy for insomnia (CBT-I) as first-line instead. " +
+          "Labeling and sleep-medicine guidelines frame Z-drugs as short-term treatment while the cause of the insomnia is addressed, because tolerance, dependence and rebound insomnia on stopping become more likely with prolonged nightly use. The American Academy of Sleep Medicine positions cognitive behavioral therapy for insomnia (CBT-I) as first-line instead. " +
           EDU,
       },
       {
@@ -149,19 +149,19 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "How long does lisdexamfetamine last?",
         a:
-          "FDA labelling describes effects lasting roughly 10–14 hours from a single morning dose, which is why it is taken early in the day. Because the enzymatic conversion is rate-limited, taking more does not shorten onset — it mostly increases side effects. " +
+          "FDA labeling describes effects lasting roughly 10–14 hours from a single morning dose, which is why it is taken early in the day. Because the enzymatic conversion is rate-limited, taking more does not shorten onset — it mostly increases side effects. " +
           EDU,
       },
       {
         q: "Does lisdexamfetamine cause weight loss?",
         a:
-          "Appetite suppression is one of its most common labelled side effects, and weight loss frequently accompanies treatment. It is approved for binge eating disorder but explicitly not approved for obesity or weight loss, and FDA labelling warns against using it for that purpose. " +
+          "Appetite suppression is one of its most common labeled side effects, and weight loss frequently accompanies treatment. It is approved for binge eating disorder but explicitly not approved for obesity or weight loss, and FDA labeling warns against using it for that purpose. " +
           EDU,
       },
       {
         q: "What should be monitored on lisdexamfetamine?",
         a:
-          "FDA labelling recommends monitoring blood pressure and heart rate, growth in children, sleep, and any emergence of psychiatric symptoms. It carries a boxed warning for abuse, misuse and dependence, and is contraindicated within 14 days of an MAOI. " +
+          "FDA labeling recommends monitoring blood pressure and heart rate, growth in children, sleep, and any emergence of psychiatric symptoms. It carries a boxed warning for abuse, misuse and dependence, and is contraindicated within 14 days of an MAOI. " +
           EDU,
       },
     ],
@@ -173,7 +173,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Intuniv is extended-release guanfacine, a non-stimulant ADHD medication. How it differs from stimulants, what it treats, and common side effects.",
     answer:
-      "Intuniv is the extended-release form of guanfacine, a non-stimulant approved for ADHD in children and adolescents, alone or alongside a stimulant. It is a selective alpha-2A adrenergic agonist: rather than raising dopamine like a stimulant, it strengthens signalling in prefrontal cortex circuits that govern attention and impulse control. It is not a controlled substance, and the trade-off is sedation and lowered blood pressure.",
+      "Intuniv is the extended-release form of guanfacine, a non-stimulant approved for ADHD in children and adolescents, alone or alongside a stimulant. It is a selective alpha-2A adrenergic agonist: rather than raising dopamine like a stimulant, it strengthens signaling in prefrontal cortex circuits that govern attention and impulse control. It is not a controlled substance, and the trade-off is sedation and lowered blood pressure.",
     quickFacts: [
       { label: "Generic name", value: "Guanfacine (extended-release)" },
       { label: "Drug class", value: "Selective alpha-2A adrenergic agonist, non-stimulant" },
@@ -198,13 +198,13 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Why does Intuniv cause sleepiness?",
         a:
-          "Guanfacine reduces central sympathetic outflow, which lowers blood pressure and heart rate and produces sedation. Somnolence and fatigue are the most commonly reported effects in labelling, usually strongest in the first weeks and often eased by taking it in the evening under clinician guidance. " +
+          "Guanfacine reduces central sympathetic outflow, which lowers blood pressure and heart rate and produces sedation. Somnolence and fatigue are the most commonly reported effects in labeling, usually strongest in the first weeks and often eased by taking it in the evening under clinician guidance. " +
           EDU,
       },
       {
         q: "Can Intuniv be stopped suddenly?",
         a:
-          "Labelling advises tapering rather than stopping abruptly, because sudden withdrawal of an alpha-2 agonist can cause rebound hypertension, headache and nervousness. Any change should be planned with the prescriber. " +
+          "Labeling advises tapering rather than stopping abruptly, because sudden withdrawal of an alpha-2 agonist can cause rebound hypertension, headache and nervousness. Any change should be planned with the prescriber. " +
           EDU,
       },
     ],
@@ -244,7 +244,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Can you eat grapefruit with amlodipine?",
         a:
-          "Grapefruit inhibits CYP3A4, the enzyme that clears amlodipine, so it can raise blood levels and increase dizziness and swelling. The interaction is milder than with some other calcium channel blockers such as felodipine, but labelling still advises caution. " +
+          "Grapefruit inhibits CYP3A4, the enzyme that clears amlodipine, so it can raise blood levels and increase dizziness and swelling. The interaction is milder than with some other calcium channel blockers such as felodipine, but labeling still advises caution. " +
           EDU,
       },
       {
@@ -262,7 +262,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Cialis is the brand name for tadalafil, a PDE5 inhibitor for erectile dysfunction and BPH. How long it lasts and how it differs from Viagra.",
     answer:
-      "Cialis is the brand name for tadalafil, a PDE5 inhibitor approved for erectile dysfunction, the urinary symptoms of benign prostatic hyperplasia, and pulmonary arterial hypertension (as Adcirca). It blocks the enzyme that breaks down cGMP, so nitric-oxide signalling relaxes smooth muscle and blood flow improves. Its defining feature is duration — an effective window of roughly 36 hours, far longer than sildenafil.",
+      "Cialis is the brand name for tadalafil, a PDE5 inhibitor approved for erectile dysfunction, the urinary symptoms of benign prostatic hyperplasia, and pulmonary arterial hypertension (as Adcirca). It blocks the enzyme that breaks down cGMP, so nitric-oxide signaling relaxes smooth muscle and blood flow improves. Its defining feature is duration — an effective window of roughly 36 hours, far longer than sildenafil.",
     quickFacts: [
       { label: "Generic name", value: "Tadalafil" },
       { label: "Drug class", value: "PDE5 inhibitor" },
@@ -286,12 +286,12 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       },
       {
         q: "Does Cialis work without arousal?",
-        a: "No. PDE5 inhibitors preserve the nitric-oxide signal that arousal generates; they do not create it. Without sexual stimulation there is no cGMP for the drug to protect, which is why labelling describes it as facilitating rather than causing an erection.",
+        a: "No. PDE5 inhibitors preserve the nitric-oxide signal that arousal generates; they do not create it. Without sexual stimulation there is no cGMP for the drug to protect, which is why labeling describes it as facilitating rather than causing an erection.",
       },
       {
         q: "Why can't you take Cialis with nitrates?",
         a:
-          'Nitrates and PDE5 inhibitors act on the same nitric-oxide/cGMP pathway from different directions. Together they can cause a severe, sudden drop in blood pressure. FDA labelling makes any nitrate — including recreational "poppers" (amyl nitrite) — an absolute contraindication. ' +
+          'Nitrates and PDE5 inhibitors act on the same nitric-oxide/cGMP pathway from different directions. Together they can cause a severe, sudden drop in blood pressure. FDA labeling makes any nitrate — including recreational "poppers" (amyl nitrite) — an absolute contraindication. ' +
           EDU,
       },
       {
@@ -436,13 +436,13 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What are the most common sertraline side effects?",
         a:
-          "FDA labelling lists nausea, diarrhoea, insomnia or drowsiness, dry mouth, sweating, tremor and sexual side effects such as delayed orgasm or reduced libido as the most frequent. Gastrointestinal effects usually settle over the first weeks; sexual effects often persist while treatment continues. " +
+          "FDA labeling lists nausea, diarrhea, insomnia or drowsiness, dry mouth, sweating, tremor and sexual side effects such as delayed orgasm or reduced libido as the most frequent. Gastrointestinal effects usually settle over the first weeks; sexual effects often persist while treatment continues. " +
           EDU,
       },
       {
         q: "Can you stop sertraline suddenly?",
         a:
-          'Abrupt discontinuation can trigger discontinuation syndrome — dizziness, "brain zaps", irritability, flu-like symptoms — so labelling and guidelines advise a gradual taper supervised by the prescriber rather than stopping outright. ' +
+          'Abrupt discontinuation can trigger discontinuation syndrome — dizziness, "brain zaps", irritability, flu-like symptoms — so labeling and guidelines advise a gradual taper supervised by the prescriber rather than stopping outright. ' +
           EDU,
       },
     ],
@@ -470,7 +470,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What does L-theanine actually do?",
         a:
-          "Randomised trials and EEG research suggest it raises alpha-wave activity, modestly increases GABA and dopamine signalling, and blunts the subjective and physiological stress response to demanding tasks. It is not a sedative — most trials find attention preserved or improved rather than dulled. " +
+          "Randomized trials and EEG research suggest it raises alpha-wave activity, modestly increases GABA and dopamine signaling, and blunts the subjective and physiological stress response to demanding tasks. It is not a sedative — most trials find attention preserved or improved rather than dulled. " +
           EDU,
       },
       {
@@ -540,7 +540,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What does Cardarine claim to do?",
         a:
-          'Animal work showed increased fatty-acid oxidation, shifted muscle fibre metabolism and improved running endurance, which is the origin of the "exercise in a pill" framing. No controlled human efficacy trials support those endurance claims, and the carcinogenicity data ended clinical evaluation before that question was answered. ' +
+          'Animal work showed increased fatty-acid oxidation, shifted muscle fiber metabolism and improved running endurance, which is the origin of the "exercise in a pill" framing. No controlled human efficacy trials support those endurance claims, and the carcinogenicity data ended clinical evaluation before that question was answered. ' +
           EDU,
       },
     ],
@@ -632,13 +632,13 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Why does mirtazapine cause weight gain?",
         a:
-          "Blockade of H1 and 5-HT2C receptors both increase appetite, and labelling lists increased appetite and weight gain among the most common effects. In some settings — older adults with poor appetite, or depression with weight loss — this is the reason it is chosen. " +
+          "Blockade of H1 and 5-HT2C receptors both increase appetite, and labeling lists increased appetite and weight gain among the most common effects. In some settings — older adults with poor appetite, or depression with weight loss — this is the reason it is chosen. " +
           EDU,
       },
       {
         q: "Can mirtazapine be combined with an SSRI?",
         a:
-          'Combining them is a recognised strategy in treatment-resistant depression, sometimes called "California rocket fuel" when paired with venlafaxine, but it raises serotonin syndrome risk and must be prescriber-directed with monitoring. ' +
+          'Combining them is a recognized strategy in treatment-resistant depression, sometimes called "California rocket fuel" when paired with venlafaxine, but it raises serotonin syndrome risk and must be prescriber-directed with monitoring. ' +
           EDU,
       },
     ],
@@ -681,7 +681,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Who should not take exenatide?",
         a:
-          "Labelling contraindicates the extended-release form in anyone with a personal or family history of medullary thyroid carcinoma or MEN2, and advises against use with a history of pancreatitis or severe gastrointestinal disease. Kidney impairment also restricts its use. " +
+          "Labeling contraindicates the extended-release form in anyone with a personal or family history of medullary thyroid carcinoma or MEN2, and advises against use with a history of pancreatitis or severe gastrointestinal disease. Kidney impairment also restricts its use. " +
           EDU,
       },
     ],
@@ -721,7 +721,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Does the hCG diet work?",
         a:
-          "No. Randomised trials comparing hCG with placebo alongside a very-low-calorie diet found no difference in weight loss, hunger or fat distribution; any loss came from the extreme calorie restriction. The FDA prohibits marketing hCG for weight loss and requires labelling saying it is ineffective for that purpose. " +
+          "No. Randomized trials comparing hCG with placebo alongside a very-low-calorie diet found no difference in weight loss, hunger or fat distribution; any loss came from the extreme calorie restriction. The FDA prohibits marketing hCG for weight loss and requires labeling saying it is ineffective for that purpose. " +
           EDU,
       },
       {
@@ -773,7 +773,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Can you drink alcohol on a Z-Pak?",
         a:
-          "Alcohol does not directly block azithromycin's action the way it does with metronidazole, but it can worsen the nausea, stomach upset and diarrhoea the antibiotic already causes, and it interferes with rest and recovery. " +
+          "Alcohol does not directly block azithromycin's action the way it does with metronidazole, but it can worsen the nausea, stomach upset and diarrhea the antibiotic already causes, and it interferes with rest and recovery. " +
           EDU,
       },
     ],
@@ -785,7 +785,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Inositol is a sugar alcohol studied for PCOS, insulin sensitivity and anxiety. What myo-inositol does and why the 40:1 ratio is used.",
     answer:
-      "Inositol is a naturally occurring sugar alcohol that acts as a second messenger for insulin, FSH and serotonin signalling. Myo-inositol is the dominant form in the body; D-chiro-inositol is a converted derivative. It has the strongest evidence base in PCOS — where trials report improved insulin sensitivity, restored ovulation and lower androgens — with additional research in gestational diabetes and anxiety disorders.",
+      "Inositol is a naturally occurring sugar alcohol that acts as a second messenger for insulin, FSH and serotonin signaling. Myo-inositol is the dominant form in the body; D-chiro-inositol is a converted derivative. It has the strongest evidence base in PCOS — where trials report improved insulin sensitivity, restored ovulation and lower androgens — with additional research in gestational diabetes and anxiety disorders.",
     quickFacts: [
       { label: "What it is", value: "Sugar alcohol / carbocyclic polyol, once called vitamin B8" },
       { label: "Main forms", value: "Myo-inositol (MI) and D-chiro-inositol (DCI)" },
@@ -807,7 +807,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What is the difference between myo-inositol and D-chiro-inositol?",
         a:
-          "Myo-inositol is the abundant form, central to FSH signalling and egg quality; D-chiro-inositol is produced from it by an insulin-dependent enzyme and is more involved in glycogen storage and androgen production. Ovarian tissue needs mostly myo-inositol, which is why excess D-chiro can be counterproductive there. " +
+          "Myo-inositol is the abundant form, central to FSH signaling and egg quality; D-chiro-inositol is produced from it by an insulin-dependent enzyme and is more involved in glycogen storage and androgen production. Ovarian tissue needs mostly myo-inositol, which is why excess D-chiro can be counterproductive there. " +
           EDU,
       },
       {
@@ -825,7 +825,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Does inositol help with anxiety?",
         a:
-          "Small randomised trials, mostly in panic disorder and OCD and using high intakes, reported reductions in panic frequency comparable to fluvoxamine in one crossover study. The evidence base is much thinner than for PCOS, and results should be treated as preliminary. " +
+          "Small randomized trials, mostly in panic disorder and OCD and using high intakes, reported reductions in panic frequency comparable to fluvoxamine in one crossover study. The evidence base is much thinner than for PCOS, and results should be treated as preliminary. " +
           EDU,
       },
     ],
@@ -837,7 +837,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Lovastatin is a statin that lowers LDL cholesterol. Why it is taken at night, common muscle side effects, and the grapefruit interaction.",
     answer:
-      "Lovastatin (Mevacor, Altoprev) was the first statin approved in the United States. It inhibits HMG-CoA reductase, the rate-limiting enzyme in liver cholesterol synthesis, which lowers LDL cholesterol and cardiovascular risk. Because that enzyme is most active overnight and lovastatin is short-acting, labelling directs the immediate-release form to be taken with the evening meal.",
+      "Lovastatin (Mevacor, Altoprev) was the first statin approved in the United States. It inhibits HMG-CoA reductase, the rate-limiting enzyme in liver cholesterol synthesis, which lowers LDL cholesterol and cardiovascular risk. Because that enzyme is most active overnight and lovastatin is short-acting, labeling directs the immediate-release form to be taken with the evening meal.",
     quickFacts: [
       { label: "Brand names", value: "Mevacor, Altoprev (extended-release)" },
       { label: "Drug class", value: "HMG-CoA reductase inhibitor (statin)" },
@@ -889,7 +889,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "EAAs are the nine essential amino acids the body cannot make. How they compare with BCAAs and whey, and when supplementing makes sense.",
     answer:
-      "EAAs are the nine essential amino acids — histidine, isoleucine, leucine, lysine, methionine, phenylalanine, threonine, tryptophan and valine — that the body cannot synthesise and must obtain from food. In sports nutrition research, supplying all nine stimulates muscle protein synthesis, whereas BCAAs alone supply only three and cannot sustain new muscle protein. Anyone already hitting adequate daily protein gets little additional benefit.",
+      "EAAs are the nine essential amino acids — histidine, isoleucine, leucine, lysine, methionine, phenylalanine, threonine, tryptophan and valine — that the body cannot synthesize and must obtain from food. In sports nutrition research, supplying all nine stimulates muscle protein synthesis, whereas BCAAs alone supply only three and cannot sustain new muscle protein. Anyone already hitting adequate daily protein gets little additional benefit.",
     quickFacts: [
       { label: "What they are", value: "The nine amino acids the body cannot produce" },
       { label: "Includes", value: "Leucine, isoleucine, valine (the BCAAs) plus six others" },
@@ -923,7 +923,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Do you need EAAs if you eat enough protein?",
         a:
-          "Generally no. Position stands from bodies such as the ISSN emphasise total daily protein and per-meal leucine content as the drivers of muscle gain; EAA supplements add convenience rather than a distinct effect once intake is adequate. " +
+          "Generally no. Position stands from bodies such as the ISSN emphasize total daily protein and per-meal leucine content as the drivers of muscle gain; EAA supplements add convenience rather than a distinct effect once intake is adequate. " +
           EDU,
       },
       {
@@ -969,7 +969,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Does armodafinil interact with birth control?",
         a:
-          "Yes — this is a clinically important one. Armodafinil induces CYP3A4, which can reduce the effectiveness of hormonal contraceptives. Labelling advises an alternative or additional method during treatment and for a month after stopping. " +
+          "Yes — this is a clinically important one. Armodafinil induces CYP3A4, which can reduce the effectiveness of hormonal contraceptives. Labeling advises an alternative or additional method during treatment and for a month after stopping. " +
           EDU,
       },
       {
@@ -1004,7 +1004,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What is tamoxifen used for?",
         a:
-          "Tamoxifen is prescribed for hormone receptor-positive breast cancer — as adjuvant therapy after surgery, for metastatic disease, and for ductal carcinoma in situ — and to reduce breast cancer risk in people identified as high risk. It is also used off-label in some other estrogen-driven conditions. Because it changes hormone signalling throughout the body, it is only used under specialist supervision. " +
+          "Tamoxifen is prescribed for hormone receptor-positive breast cancer — as adjuvant therapy after surgery, for metastatic disease, and for ductal carcinoma in situ — and to reduce breast cancer risk in people identified as high risk. It is also used off-label in some other estrogen-driven conditions. Because it changes hormone signaling throughout the body, it is only used under specialist supervision. " +
           EDU,
       },
       {
@@ -1034,7 +1034,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Is tamoxifen a chemotherapy drug?",
         a:
-          "No. Tamoxifen is hormone (endocrine) therapy, not cytotoxic chemotherapy. It works by interfering with estrogen signalling rather than by killing rapidly dividing cells, so it does not cause the hair loss and marrow suppression associated with chemotherapy. It may be given after chemotherapy, alongside other treatments, or on its own. " +
+          "No. Tamoxifen is hormone (endocrine) therapy, not cytotoxic chemotherapy. It works by interfering with estrogen signaling rather than by killing rapidly dividing cells, so it does not cause the hair loss and marrow suppression associated with chemotherapy. It may be given after chemotherapy, alongside other treatments, or on its own. " +
           EDU,
       },
       {
@@ -1065,7 +1065,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Is survodutide approved by the FDA?",
         a:
-          "No. As of 2026 survodutide is investigational and has not been approved by the FDA or the EMA for any indication. It is being evaluated in the phase 3 SYNCHRONIZE programme for obesity and related conditions, so the only legitimate access is through an enrolled clinical trial. " +
+          "No. As of 2026 survodutide is investigational and has not been approved by the FDA or the EMA for any indication. It is being evaluated in the phase 3 SYNCHRONIZE program for obesity and related conditions, so the only legitimate access is through an enrolled clinical trial. " +
           EDU,
       },
       {
@@ -1083,7 +1083,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What are the reported side effects of survodutide?",
         a:
-          "Trial reports describe a gastrointestinal profile similar to other incretin drugs — nausea, vomiting, diarrhoea and constipation — most often during dose escalation, and these accounted for most discontinuations. Because the glucagon arm can affect heart rate and liver parameters, trial protocols monitor those specifically. " +
+          "Trial reports describe a gastrointestinal profile similar to other incretin drugs — nausea, vomiting, diarrhea and constipation — most often during dose escalation, and these accounted for most discontinuations. Because the glucagon arm can affect heart rate and liver parameters, trial protocols monitor those specifically. " +
           EDU,
       },
     ],
@@ -1095,7 +1095,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Boldenone undecylenate is a veterinary anabolic steroid sold as Equipoise. What it is, its long ester half-life, legal status and documented risks.",
     answer:
-      "Boldenone undecylenate is an injectable anabolic-androgenic steroid developed for veterinary use, best known under the brand name Equipoise. The long undecylenate ester releases boldenone slowly, giving an elimination half-life measured in weeks and detection windows of several months. It has no approved human medical use in the United States, is a Schedule III controlled substance, and is prohibited in sport by WADA. Documented risks mirror other AAS: suppressed natural testosterone, adverse lipid shifts, raised haematocrit and cardiovascular strain.",
+      "Boldenone undecylenate is an injectable anabolic-androgenic steroid developed for veterinary use, best known under the brand name Equipoise. The long undecylenate ester releases boldenone slowly, giving an elimination half-life measured in weeks and detection windows of several months. It has no approved human medical use in the United States, is a Schedule III controlled substance, and is prohibited in sport by WADA. Documented risks mirror other AAS: suppressed natural testosterone, adverse lipid shifts, raised hematocrit and cardiovascular strain.",
     quickFacts: [
       { label: "Brand name", value: "Equipoise (veterinary)" },
       { label: "Class", value: "Injectable anabolic-androgenic steroid (testosterone derivative)" },
@@ -1120,7 +1120,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What are the main risks of boldenone undecylenate?",
         a:
-          "Like other anabolic-androgenic steroids it suppresses endogenous testosterone production, worsens the HDL-to-LDL ratio, can raise haematocrit and blood pressure, and carries cardiovascular and mood risks. Boldenone also converts to estrogenic metabolites, so gynecomastia and fluid retention are reported. None of these are monitored when the drug is used outside clinical supervision. " +
+          "Like other anabolic-androgenic steroids it suppresses endogenous testosterone production, worsens the HDL-to-LDL ratio, can raise hematocrit and blood pressure, and carries cardiovascular and mood risks. Boldenone also converts to estrogenic metabolites, so gynecomastia and fluid retention are reported. None of these are monitored when the drug is used outside clinical supervision. " +
           EDU,
       },
       {
@@ -1138,10 +1138,13 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Dihexa is an experimental angiotensin IV-derived peptide studied for synapse formation. What the research shows and why it is not an approved drug.",
     answer:
-      "Dihexa (N-hexanoic-Tyr-Ile-(6) aminohexanoic amide) is an experimental small peptide derived from angiotensin IV, studied in preclinical models for its ability to promote synapse formation through the hepatocyte growth factor / c-Met pathway. Interest comes from rodent work in Alzheimer's and Parkinson's models. It has never completed human clinical trials, is not approved by any regulator, and is sold only as an unregulated research chemical, so its human safety profile — including any effect on tumour-relevant growth signalling — is unknown.",
+      "Dihexa (N-hexanoic-Tyr-Ile-(6) aminohexanoic amide) is an experimental small peptide derived from angiotensin IV, studied in preclinical models for its ability to promote synapse formation through the hepatocyte growth factor / c-Met pathway. Interest comes from rodent work in Alzheimer's and Parkinson's models. It has never completed human clinical trials, is not approved by any regulator, and is sold only as an unregulated research chemical, so its human safety profile — including any effect on tumour-relevant growth signaling — is unknown.",
     quickFacts: [
       { label: "Type", value: "Synthetic angiotensin IV-derived peptidomimetic" },
-      { label: "Proposed mechanism", value: "Potentiates hepatocyte growth factor / c-Met signalling" },
+      {
+        label: "Proposed mechanism",
+        value: "Potentiates hepatocyte growth factor / c-Met signaling",
+      },
       { label: "Evidence base", value: "Rodent and in-vitro studies only" },
       { label: "Regulatory status", value: "Not approved; no completed human trials" },
       { label: "Availability", value: "Sold as a research chemical, not a medicine" },
@@ -1157,7 +1160,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "What does dihexa actually do in research studies?",
         a:
-          "In rodent and cell studies dihexa augments hepatocyte growth factor signalling at the c-Met receptor, which increased dendritic spine and synapse formation and improved performance in memory tasks in impaired animals. These are preclinical findings in models, and effects in animal cognition models frequently fail to reproduce in humans. " +
+          "In rodent and cell studies dihexa augments hepatocyte growth factor signaling at the c-Met receptor, which increased dendritic spine and synapse formation and improved performance in memory tasks in impaired animals. These are preclinical findings in models, and effects in animal cognition models frequently fail to reproduce in humans. " +
           EDU,
       },
       {
@@ -1181,7 +1184,10 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Role", value: "Rate-limiting substrate for ATP and nucleotide synthesis" },
       { label: "Common study amount", value: "5 g, one to three times daily" },
       { label: "Studied in", value: "Heart failure, ischaemia, fibromyalgia, chronic fatigue" },
-      { label: "Common side effects", value: "GI upset and transient low blood sugar on an empty stomach" },
+      {
+        label: "Common side effects",
+        value: "GI upset and transient low blood sugar on an empty stomach",
+      },
       { label: "Regulatory status", value: "Sold as a dietary supplement, not a drug" },
     ],
     extraFaq: [
@@ -1200,7 +1206,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "When should you take d-ribose?",
         a:
-          "Study protocols usually split the total across the day and take it with food or a carbohydrate source to blunt the transient drop in blood sugar; athletes in trials often took a dose around training. Single large amounts on an empty stomach are the most common cause of the nausea and diarrhoea reported. " +
+          "Study protocols usually split the total across the day and take it with food or a carbohydrate source to blunt the transient drop in blood sugar; athletes in trials often took a dose around training. Single large amounts on an empty stomach are the most common cause of the nausea and diarrhea reported. " +
           EDU,
       },
     ],
@@ -1217,7 +1223,10 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Also spelled", value: "Epitalon, epithalone" },
       { label: "Sequence", value: "Ala-Glu-Asp-Gly (AEDG tetrapeptide)" },
       { label: "Origin", value: "Derived from the pineal peptide preparation epithalamin" },
-      { label: "Claimed mechanism", value: "Telomerase activation and pineal/melatonin regulation" },
+      {
+        label: "Claimed mechanism",
+        value: "Telomerase activation and pineal/melatonin regulation",
+      },
       { label: "Evidence quality", value: "Mostly animal and small unblinded human studies" },
       { label: "Regulatory status", value: "Not approved by FDA or EMA; research chemical only" },
     ],
@@ -1231,7 +1240,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Is epithalon approved or legal?",
         a:
-          "Epithalon has no FDA or EMA approval for any indication and is not a recognised dietary supplement ingredient in the U.S., so it is sold labelled for research use only. That means no manufacturing oversight, no purity guarantee and no sterility assurance for material intended for injection. " +
+          "Epithalon has no FDA or EMA approval for any indication and is not a recognized dietary supplement ingredient in the U.S., so it is sold labeled for research use only. That means no manufacturing oversight, no purity guarantee and no sterility assurance for material intended for injection. " +
           EDU,
       },
       {
@@ -1254,27 +1263,33 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Class", value: "Ghrelin receptor (GHS-R1a) agonist / growth hormone secretagogue" },
       { label: "Brand names", value: "Entyce (dogs), Elura (cats) — veterinary" },
       { label: "Route", value: "Oral solution" },
-      { label: "Approved use", value: "Appetite stimulation in dogs; weight management in CKD cats" },
-      { label: "Human status", value: "Trialled for age-related decline; development discontinued" },
+      {
+        label: "Approved use",
+        value: "Appetite stimulation in dogs; weight management in CKD cats",
+      },
+      {
+        label: "Human status",
+        value: "Trialled for age-related decline; development discontinued",
+      },
       { label: "Typical effects", value: "Increased food intake, GH and IGF-1 release" },
     ],
     extraFaq: [
       {
         q: "Is capromorelin approved for humans?",
         a:
-          "No. Capromorelin's only approvals are veterinary. It was studied in human trials for sarcopenia and age-related functional decline, where it increased IGF-1 and lean body mass over twelve months, but the programme did not continue to approval, so there is no human label, indication or dosing guidance. " +
+          "No. Capromorelin's only approvals are veterinary. It was studied in human trials for sarcopenia and age-related functional decline, where it increased IGF-1 and lean body mass over twelve months, but the program did not continue to approval, so there is no human label, indication or dosing guidance. " +
           EDU,
       },
       {
         q: "How does capromorelin work?",
         a:
-          "It binds the growth hormone secretagogue receptor GHS-R1a in the hypothalamus and pituitary — the same receptor the hunger hormone ghrelin uses — which drives appetite signalling and a pulse of growth hormone, followed by a rise in IGF-1. That dual effect is why it is used to restore food intake in animals that will not eat. " +
+          "It binds the growth hormone secretagogue receptor GHS-R1a in the hypothalamus and pituitary — the same receptor the hunger hormone ghrelin uses — which drives appetite signaling and a pulse of growth hormone, followed by a rise in IGF-1. That dual effect is why it is used to restore food intake in animals that will not eat. " +
           EDU,
       },
       {
         q: "What are capromorelin's side effects?",
         a:
-          "In veterinary labelling the most common effects are vomiting, hypersalivation and diarrhoea, with transient increases in blood glucose reported. Growth hormone secretagogues as a class can also cause fluid retention, joint discomfort and reduced insulin sensitivity, which is part of why human development of several of them stalled. " +
+          "In veterinary labeling the most common effects are vomiting, hypersalivation and diarrhea, with transient increases in blood glucose reported. Growth hormone secretagogues as a class can also cause fluid retention, joint discomfort and reduced insulin sensitivity, which is part of why human development of several of them stalled. " +
           EDU,
       },
     ],
@@ -1291,7 +1306,10 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Class", value: "Non-steroidal selective androgen receptor modulator (SARM)" },
       { label: "Original purpose", value: "Male hormonal contraceptive candidate" },
       { label: "Evidence base", value: "Rodent studies; no published human trials" },
-      { label: "Regulatory status", value: "Not approved; not a lawful dietary supplement ingredient" },
+      {
+        label: "Regulatory status",
+        value: "Not approved; not a lawful dietary supplement ingredient",
+      },
       { label: "Sport status", value: "Prohibited at all times under the WADA code" },
       { label: "Known effects in animals", value: "Suppressed spermatogenesis and LH/FSH" },
     ],
@@ -1299,7 +1317,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Is S-23 legal to buy or use?",
         a:
-          "S-23 is not approved as a drug and the FDA has stated SARMs are not lawful dietary supplement ingredients, so products are sold under research-chemical labelling. Selling them for human consumption has drawn FDA warning letters, and possession rules vary by country. Anti-doping bodies treat any detected SARM as a violation. " +
+          "S-23 is not approved as a drug and the FDA has stated SARMs are not lawful dietary supplement ingredients, so products are sold under research-chemical labeling. Selling them for human consumption has drawn FDA warning letters, and possession rules vary by country. Anti-doping bodies treat any detected SARM as a violation. " +
           EDU,
       },
       {
@@ -1326,11 +1344,17 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       "Zinc bisglycinate (zinc chelated to two glycine molecules) is a supplemental form of zinc chosen for absorption and tolerability. Chelation lets it bypass some of the competition and phytate binding that limits ionic salts like zinc oxide, and comparison studies generally show higher plasma zinc responses and less nausea than oxide or sulfate. The adult RDA is 8–11 mg of elemental zinc daily, and the tolerable upper intake level is 40 mg from all sources combined.",
     quickFacts: [
       { label: "Form", value: "Zinc chelated to two glycine molecules (bisglycinate)" },
-      { label: "Why it is used", value: "Higher absorption and less stomach upset than zinc oxide" },
+      {
+        label: "Why it is used",
+        value: "Higher absorption and less stomach upset than zinc oxide",
+      },
       { label: "Adult RDA", value: "8 mg/day for women, 11 mg/day for men (elemental zinc)" },
       { label: "Upper limit", value: "40 mg/day elemental zinc from all sources (US UL)" },
       { label: "Best taken", value: "With food if nausea occurs; away from high-phytate meals" },
-      { label: "Key interactions", value: "Copper, iron, calcium, tetracycline and quinolone antibiotics" },
+      {
+        label: "Key interactions",
+        value: "Copper, iron, calcium, tetracycline and quinolone antibiotics",
+      },
     ],
     extraFaq: [
       {
@@ -1342,7 +1366,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "How much zinc bisglycinate is safe per day?",
         a:
-          "Safety limits are set on elemental zinc, not on the total weight of the chelate, so check the elemental figure on the label. The US tolerable upper intake level is 40 mg of elemental zinc a day from all sources; sustained intake above that risks copper deficiency, anaemia and impaired immune function. " +
+          "Safety limits are set on elemental zinc, not on the total weight of the chelate, so check the elemental figure on the label. The US tolerable upper intake level is 40 mg of elemental zinc a day from all sources; sustained intake above that risks copper deficiency, anemia and impaired immune function. " +
           EDU,
       },
       {
@@ -1363,17 +1387,26 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       "GABA (gamma-aminobutyric acid) is the brain's main inhibitory neurotransmitter, which quiets neuronal firing. It is also sold as an oral supplement for stress and sleep, but how much swallowed GABA reaches the brain is disputed, because it crosses the blood-brain barrier poorly. Small trials report reduced stress markers and faster sleep onset; the evidence base remains small and short-term.",
     quickFacts: [
       { label: "Class", value: "Inhibitory neurotransmitter; sold as a dietary supplement" },
-      { label: "Common forms", value: "Capsules, powder, chewables; PharmaGABA (fermented) branded form" },
+      {
+        label: "Common forms",
+        value: "Capsules, powder, chewables; PharmaGABA (fermented) branded form",
+      },
       { label: "Amounts studied", value: "Roughly 100–300 mg in most small human trials" },
       { label: "Onset in studies", value: "Changes in stress markers within about 30–60 minutes" },
-      { label: "Main open question", value: "Limited blood-brain barrier penetration of oral GABA" },
-      { label: "Common side effects", value: "Drowsiness, tingling, mild stomach upset at higher intakes" },
+      {
+        label: "Main open question",
+        value: "Limited blood-brain barrier penetration of oral GABA",
+      },
+      {
+        label: "Common side effects",
+        value: "Drowsiness, tingling, mild stomach upset at higher intakes",
+      },
     ],
     extraFaq: [
       {
         q: "Does oral GABA actually cross the blood-brain barrier?",
         a:
-          "Only to a very limited extent. GABA is a polar molecule with poor passive permeability, and most pharmacology reviews conclude that swallowed GABA does not meaningfully raise brain GABA in healthy adults. Effects reported in small trials may come from the enteric nervous system and vagal signalling rather than direct central action. " +
+          "Only to a very limited extent. GABA is a polar molecule with poor passive permeability, and most pharmacology reviews conclude that swallowed GABA does not meaningfully raise brain GABA in healthy adults. Effects reported in small trials may come from the enteric nervous system and vagal signaling rather than direct central action. " +
           EDU,
       },
       {
@@ -1403,8 +1436,11 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Brand names", value: "Zetia, Ezetrol; with simvastatin as Vytorin/Inegy" },
       { label: "Label strength", value: "10 mg tablet, once daily" },
       { label: "Typical LDL effect", value: "About 15–20% alone; additive on top of a statin" },
-      { label: "Key trial", value: "IMPROVE-IT — fewer cardiovascular events added to simvastatin" },
-      { label: "Common side effects", value: "Diarrhoea, joint pain, fatigue; myopathy uncommon" },
+      {
+        label: "Key trial",
+        value: "IMPROVE-IT — fewer cardiovascular events added to simvastatin",
+      },
+      { label: "Common side effects", value: "Diarrhea, joint pain, fatigue; myopathy uncommon" },
     ],
     extraFaq: [
       {
@@ -1441,7 +1477,10 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Main uses", value: "Gout prevention, uric acid stones, tumour lysis syndrome" },
       { label: "Onset", value: "Uric acid falls within days; flare protection builds over months" },
       { label: "Key monitoring", value: "Serum urate target, renal function, liver enzymes" },
-      { label: "Serious risk", value: "Allopurinol hypersensitivity syndrome; higher with HLA-B*58:01" },
+      {
+        label: "Serious risk",
+        value: "Allopurinol hypersensitivity syndrome; higher with HLA-B*58:01",
+      },
     ],
     extraFaq: [
       {
@@ -1477,8 +1516,11 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Brand names", value: "Prevacid, Zoton; also sold over the counter" },
       { label: "Best taken", value: "30–60 minutes before the first meal of the day" },
       { label: "Onset", value: "Acid suppression starts within hours; full effect over 2–4 days" },
-      { label: "Common side effects", value: "Headache, diarrhoea, abdominal pain, nausea" },
-      { label: "Long-term associations", value: "Low magnesium and B12, C. difficile, fracture risk" },
+      { label: "Common side effects", value: "Headache, diarrhea, abdominal pain, nausea" },
+      {
+        label: "Long-term associations",
+        value: "Low magnesium and B12, C. difficile, fracture risk",
+      },
     ],
     extraFaq: [
       {
@@ -1508,12 +1550,18 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Bacopa monnieri is an ayurvedic herb studied for memory and learning. What the trials show, how long it takes, and its common side effects.",
     answer:
-      "Bacopa monnieri is an ayurvedic herb whose active bacoside compounds have been tested in randomised trials for memory and learning. Meta-analyses find modest improvements in delayed word recall and information-processing speed, but only after roughly 8–12 weeks of daily use — it is not acute. Gastrointestinal upset is the most common complaint, and taking it with food reduces that.",
+      "Bacopa monnieri is an ayurvedic herb whose active bacoside compounds have been tested in randomized trials for memory and learning. Meta-analyses find modest improvements in delayed word recall and information-processing speed, but only after roughly 8–12 weeks of daily use — it is not acute. Gastrointestinal upset is the most common complaint, and taking it with food reduces that.",
     quickFacts: [
       { label: "Class", value: "Ayurvedic nootropic herb (bacoside saponins)" },
-      { label: "Amounts studied", value: "Typically 300 mg/day of extract standardised to ~50% bacosides" },
+      {
+        label: "Amounts studied",
+        value: "Typically 300 mg/day of extract standardized to ~50% bacosides",
+      },
       { label: "Time to effect", value: "8–12 weeks of continuous use in most trials" },
-      { label: "Best measured effect", value: "Delayed recall; smaller effects on processing speed" },
+      {
+        label: "Best measured effect",
+        value: "Delayed recall; smaller effects on processing speed",
+      },
       { label: "Common side effects", value: "Nausea, cramping, loose stools, dry mouth" },
       { label: "Best taken", value: "With food; often split across the day" },
     ],
@@ -1533,7 +1581,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "How much bacopa is used in studies?",
         a:
-          "The common protocol is 300 mg a day of an extract standardised to about 50 percent bacosides, or roughly 750–1,500 mg a day of a less concentrated whole-herb preparation. Comparing products by total milligrams is misleading unless the bacoside percentage is stated. " +
+          "The common protocol is 300 mg a day of an extract standardized to about 50 percent bacosides, or roughly 750–1,500 mg a day of a less concentrated whole-herb preparation. Comparing products by total milligrams is misleading unless the bacoside percentage is stated. " +
           EDU,
       },
     ],
@@ -1545,12 +1593,21 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Glycine is an amino acid studied for sleep quality, collagen synthesis and metabolic health. What trials show and how much is typically used.",
     answer:
-      "Glycine is the smallest amino acid, a building block of collagen and glutathione and an inhibitory neurotransmitter in the brainstem and spinal cord. Small randomised trials report that 3 grams before bed improves subjective sleep quality and next-day alertness, apparently by lowering core body temperature. It is also studied in combination with N-acetylcysteine for glutathione status.",
+      "Glycine is the smallest amino acid, a building block of collagen and glutathione and an inhibitory neurotransmitter in the brainstem and spinal cord. Small randomized trials report that 3 grams before bed improves subjective sleep quality and next-day alertness, apparently by lowering core body temperature. It is also studied in combination with N-acetylcysteine for glutathione status.",
     quickFacts: [
       { label: "Class", value: "Non-essential amino acid; inhibitory neurotransmitter" },
-      { label: "Amounts studied", value: "3 g before bed for sleep; higher amounts in metabolic studies" },
-      { label: "Proposed sleep mechanism", value: "Peripheral vasodilation lowering core body temperature" },
-      { label: "Other roles", value: "Collagen synthesis, glutathione precursor, bile acid conjugation" },
+      {
+        label: "Amounts studied",
+        value: "3 g before bed for sleep; higher amounts in metabolic studies",
+      },
+      {
+        label: "Proposed sleep mechanism",
+        value: "Peripheral vasodilation lowering core body temperature",
+      },
+      {
+        label: "Other roles",
+        value: "Collagen synthesis, glutathione precursor, bile acid conjugation",
+      },
       { label: "Taste", value: "Naturally sweet; mixes easily in water" },
       { label: "Common side effects", value: "Mild nausea or loose stools at higher intakes" },
     ],
@@ -1588,7 +1645,10 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       { label: "Brand names", value: "Stromectol (oral); Soolantra, Sklice (topical)" },
       { label: "Approved oral uses", value: "Strongyloidiasis, onchocerciasis (river blindness)" },
       { label: "Dosing basis", value: "Weight-based, typically taken on an empty stomach" },
-      { label: "Common side effects", value: "Dizziness, nausea, itching, rash; Mazzotti reaction in filariasis" },
+      {
+        label: "Common side effects",
+        value: "Dizziness, nausea, itching, rash; Mazzotti reaction in filariasis",
+      },
       { label: "Important caution", value: "Veterinary formulations are not safe substitutes" },
     ],
     extraFaq: [
@@ -1601,7 +1661,7 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
       {
         q: "Is animal ivermectin the same as the human medicine?",
         a:
-          "No. Veterinary pastes and injectables are formulated and concentrated for large animals such as horses and cattle, so a human-sized portion is easy to mis-measure, and the excipients are not tested for humans. Poison centres have recorded serious overdoses — vomiting, confusion, seizures and hypotension — from these products. " +
+          "No. Veterinary pastes and injectables are formulated and concentrated for large animals such as horses and cattle, so a human-sized portion is easy to mis-measure, and the excipients are not tested for humans. Poison centers have recorded serious overdoses — vomiting, confusion, seizures and hypotension — from these products. " +
           EDU,
       },
       {
@@ -1617,34 +1677,34 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     targetQuery: "anastrozole",
     metaTitle: "Anastrozole: Uses, How It Works and Side Effects",
     metaDescription:
-      "Anastrozole is an aromatase inhibitor used in hormone-receptor-positive breast cancer. How it lowers oestrogen, its side effects and monitoring.",
+      "Anastrozole is an aromatase inhibitor used in hormone-receptor-positive breast cancer. How it lowers estrogen, its side effects and monitoring.",
     answer:
-      "Anastrozole is a non-steroidal aromatase inhibitor that blocks the enzyme converting androgens to oestrogens, cutting circulating oestradiol by around 80–90 percent. Its approved use is hormone-receptor-positive breast cancer in postmenopausal women, as adjuvant or advanced-disease therapy. Because oestrogen supports bone, joint pain, stiffness, hot flushes and accelerated bone loss are the characteristic side effects.",
+      "Anastrozole is a non-steroidal aromatase inhibitor that blocks the enzyme converting androgens to estrogens, cutting circulating estradiol by around 80–90 percent. Its approved use is hormone-receptor-positive breast cancer in postmenopausal women, as adjuvant or advanced-disease therapy. Because estrogen supports bone, joint pain, stiffness, hot flushes and accelerated bone loss are the characteristic side effects.",
     quickFacts: [
       { label: "Class", value: "Non-steroidal aromatase inhibitor" },
       { label: "Brand name", value: "Arimidex" },
       { label: "Label strength", value: "1 mg tablet once daily" },
       { label: "Approved use", value: "Hormone-receptor-positive breast cancer, postmenopausal" },
-      { label: "Oestradiol effect", value: "Roughly 80–90% suppression of circulating oestradiol" },
+      { label: "Oestradiol effect", value: "Roughly 80–90% suppression of circulating estradiol" },
       { label: "Monitoring", value: "Bone mineral density, lipids, joint symptoms" },
     ],
     extraFaq: [
       {
         q: "How does anastrozole differ from tamoxifen?",
         a:
-          "Tamoxifen blocks the oestrogen receptor and can be used before or after menopause; anastrozole removes the oestrogen itself by blocking aromatase and only works when the ovaries are no longer the main source, so it is for postmenopausal patients. Their side-effect profiles differ too: tamoxifen carries clot and endometrial risk, anastrozole carries bone and joint risk. " +
+          "Tamoxifen blocks the estrogen receptor and can be used before or after menopause; anastrozole removes the estrogen itself by blocking aromatase and only works when the ovaries are no longer the main source, so it is for postmenopausal patients. Their side-effect profiles differ too: tamoxifen carries clot and endometrial risk, anastrozole carries bone and joint risk. " +
           EDU,
       },
       {
         q: "What are the most common anastrozole side effects?",
         a:
-          "Joint pain and stiffness, hot flushes, fatigue, vaginal dryness, mood changes and headache. Longer term, the oestrogen suppression accelerates bone mineral density loss and can raise LDL cholesterol, which is why bone density and lipids are monitored during treatment. " +
+          "Joint pain and stiffness, hot flushes, fatigue, vaginal dryness, mood changes and headache. Longer term, the estrogen suppression accelerates bone mineral density loss and can raise LDL cholesterol, which is why bone density and lipids are monitored during treatment. " +
           EDU,
       },
       {
         q: "Is anastrozole used by men?",
         a:
-          "Off-label, some clinicians prescribe it for gynaecomastia or alongside testosterone therapy to reduce oestradiol conversion, but this is not an approved indication and the evidence base is thin. Over-suppressing oestradiol in men harms bone density, lipids, libido and mood, so it is not a benign addition. " +
+          "Off-label, some clinicians prescribe it for gynaecomastia or alongside testosterone therapy to reduce estradiol conversion, but this is not an approved indication and the evidence base is thin. Over-suppressing estradiol in men harms bone density, lipids, libido and mood, so it is not a benign addition. " +
           EDU,
       },
     ],
@@ -1656,13 +1716,22 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     metaDescription:
       "Huperzine A is a plant alkaloid that inhibits acetylcholinesterase. What the memory research shows, how it is used, and why cycling is advised.",
     answer:
-      "Huperzine A is an alkaloid from Huperzia serrata that inhibits acetylcholinesterase, the enzyme breaking down acetylcholine, so cholinergic signalling is prolonged. It has been studied mainly in Alzheimer's disease and in students, with meta-analyses reporting modest cognitive improvements from generally low-quality trials. Because it is a genuine enzyme inhibitor with a long duration, it is not a casual daily supplement.",
+      "Huperzine A is an alkaloid from Huperzia serrata that inhibits acetylcholinesterase, the enzyme breaking down acetylcholine, so cholinergic signaling is prolonged. It has been studied mainly in Alzheimer's disease and in students, with meta-analyses reporting modest cognitive improvements from generally low-quality trials. Because it is a genuine enzyme inhibitor with a long duration, it is not a casual daily supplement.",
     quickFacts: [
       { label: "Class", value: "Acetylcholinesterase inhibitor (plant alkaloid)" },
       { label: "Source", value: "Huperzia serrata (Chinese club moss)" },
-      { label: "Amounts studied", value: "50–200 mcg per day; measured in micrograms, not milligrams" },
-      { label: "Regulatory status", value: "Prescription drug in China; sold as a supplement in the U.S." },
-      { label: "Common side effects", value: "Nausea, sweating, vivid dreams, cramps, slowed heart rate" },
+      {
+        label: "Amounts studied",
+        value: "50–200 mcg per day; measured in micrograms, not milligrams",
+      },
+      {
+        label: "Regulatory status",
+        value: "Prescription drug in China; sold as a supplement in the U.S.",
+      },
+      {
+        label: "Common side effects",
+        value: "Nausea, sweating, vivid dreams, cramps, slowed heart rate",
+      },
       { label: "Practical note", value: "Often cycled rather than taken continuously" },
     ],
     extraFaq: [
@@ -1724,7 +1793,6 @@ export const PAGE2_RESCUE: Record<string, RescueEntry> = {
     ],
   },
 };
-
 
 export function getRescueEntry(slug: string): RescueEntry | null {
   return PAGE2_RESCUE[slug] ?? null;

@@ -13,19 +13,28 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Android App Links: verify doseoutine.com URLs open in the app -->
+            <!-- Android App Links: verify doseroutine.com URLs open in the app -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="doseroutine.com" />
                 <data android:scheme="https" android:host="www.doseroutine.com" />
+            </intent-filter>
+
+            <!-- Custom scheme used by the native OAuth round trip -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.doseroutine.app" />
             </intent-filter>
         </activity>
 
@@ -54,4 +63,24 @@
          alarm-clock/calendar apps and it blocks release publishing for health apps. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
+    <!-- Barcode + meal photo scanning runs through the WebView camera
+         (getUserMedia). Without CAMERA the scanner throws instead of prompting.
+         The hardware feature is optional so devices without a camera can still
+         install the app. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Health Connect — the @capgo/capacitor-health plugin ships the base
+         READ_/WRITE_* declarations for its own manifest merge, but we declare
+         the ones we actually request explicitly for clarity / review. -->
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_WEIGHT" />
+    <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
+    <uses-permission android:name="android.permission.health.WRITE_NUTRITION" />
+    <uses-permission android:name="android.permission.health.WRITE_ACTIVE_CALORIES_BURNED" />
+
 </manifest>
+

@@ -28,7 +28,7 @@ type RouteMod = {
 };
 
 const ROUTES_DIR = join(process.cwd(), "src", "routes");
-const CANONICAL_HOST = "https://doseroutine.com";
+export const CANONICAL_HOST = "https://doseroutine.com";
 
 // Paths that legitimately opt out of indexing. These only need title,
 // description, canonical, and a robots meta that includes "noindex"; OG
@@ -127,6 +127,9 @@ const SKIP_FILES = new Set<string>([
   "library.tsx", // parent layout, delegates to library.index.tsx
   "sitemap[.]xml.ts",
   "robots[.]txt.ts",
+  "debug.att.tsx",
+  "debug.deep-link.tsx",
+  "debug.env.tsx", // internal noindex env diagnostics page
   "debug.index-check.tsx", // internal noindex build-check page
   "debug.noindex-audit.tsx", // internal noindex smoke-test page
   // Private OAuth redirect target: ssr:false, robots noindex/nofollow,
@@ -190,7 +193,6 @@ async function loadHead(file: string): Promise<HeadResult | null> {
     return null;
   }
 }
-
 
 function findMeta(
   meta: Meta[] | undefined,

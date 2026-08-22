@@ -2,7 +2,6 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { lintAnchorText } from "../anchor-text-lint";
 import { crawlSitemap } from "../crawl-cache";
 
-
 /**
  * Internal anchor-text lint.
  *
@@ -49,14 +48,14 @@ describe("anchor-text-lint rules", () => {
   });
 
   it("flags the same anchor text pointing at different destinations", () => {
-    const html = wrap(
-      `<a href="/a">Dosage guide</a><a href="/b">Dosage guide</a>`,
-    );
+    const html = wrap(`<a href="/a">Dosage guide</a><a href="/b">Dosage guide</a>`);
     expect(lintAnchorText(html).issues.map((i) => i.code)).toContain("inconsistent-anchor-text");
   });
 
   it("allows a citation link that quotes its own URL", () => {
-    const html = wrap(`<a href="https://doseroutine.com/sources">https://doseroutine.com/sources</a>`);
+    const html = wrap(
+      `<a href="https://doseroutine.com/sources">https://doseroutine.com/sources</a>`,
+    );
     expect(lintAnchorText(html).ok).toBe(true);
   });
 
@@ -128,17 +127,19 @@ beforeAll(async () => {
   if (!crawl.reachable) return;
   serverUp = true;
 
-  const pageResults = crawl.pages.map((page) => ({
-    path: page.path,
-    issues: lintAnchorText(page.html).issues.map(
-      (i) => `[${i.code}] "${i.text}" -> ${i.href} — ${i.detail}`,
-    ),
-  } satisfies PageResult));
+  const pageResults = crawl.pages.map(
+    (page) =>
+      ({
+        path: page.path,
+        issues: lintAnchorText(page.html).issues.map(
+          (i) => `[${i.code}] "${i.text}" -> ${i.href} — ${i.detail}`,
+        ),
+      }) satisfies PageResult,
+  );
 
   crawled = crawl.paths.length;
   results = pageResults.filter((r) => r.issues.length > 0);
 }, 300_000);
-
 
 describe("rendered pages use descriptive internal anchor text", () => {
   it("reaches the site or is explicitly allowed to skip", () => {

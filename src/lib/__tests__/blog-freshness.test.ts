@@ -31,7 +31,10 @@ describe("blog freshness policy", () => {
   });
 
   it("never caches the sitemap for longer than a day at the edge", () => {
-    for (const p of [sitemapCachePolicy([daysAgo(1)], NOW), sitemapCachePolicy([daysAgo(999)], NOW)]) {
+    for (const p of [
+      sitemapCachePolicy([daysAgo(1)], NOW),
+      sitemapCachePolicy([daysAgo(999)], NOW),
+    ]) {
       const sMaxAge = Number(/s-maxage=(\d+)/.exec(p.cacheControl)?.[1]);
       expect(sMaxAge).toBeLessThanOrEqual(86400);
     }

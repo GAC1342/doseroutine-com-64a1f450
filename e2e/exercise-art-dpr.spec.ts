@@ -126,11 +126,7 @@ for (const dpr of RATIOS) {
         store[key] = existing;
         writeFileSync(
           join(LEDGER_DIR, `${testInfo.project.name}-dpr${dpr}__${viewport.name}.json`),
-          JSON.stringify(
-            { project: testInfo.project.name, dpr, viewports: existing },
-            null,
-            2,
-          ),
+          JSON.stringify({ project: testInfo.project.name, dpr, viewports: existing }, null, 2),
         );
 
         await page.keyboard.press("Escape");

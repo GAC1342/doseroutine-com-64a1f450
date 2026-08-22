@@ -5,8 +5,10 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listCronRunMetrics } from "@/lib/cron-metrics.functions";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/cron-metrics")({
+  errorComponent: routeErrorComponent("admin-cron-metrics"),
   head: () => ({
     meta: [
       { title: "Reminder job metrics — DoseRoutine" },

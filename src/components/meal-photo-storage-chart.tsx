@@ -73,7 +73,12 @@ export function MealPhotoStorageChart({
                   />
                 }
               />
-              <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar
+                dataKey="count"
+                fill="var(--color-count)"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={28}
+              />
             </BarChart>
           </ChartContainer>
 

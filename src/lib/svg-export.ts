@@ -4,7 +4,7 @@
  * The live diagrams paint with CSS classes and design tokens, so a plain
  * serialize would export an unstyled shape. We clone the node and inline the
  * *computed* paint properties, which keeps the exported file looking exactly
- * like what the user sees (including their accent colour and light/dark mode).
+ * like what the user sees (including their accent color and light/dark mode).
  */
 
 const PAINT_PROPS = [
@@ -23,7 +23,10 @@ const PAINT_PROPS = [
 function inlinePaint(source: SVGElement, clone: SVGElement) {
   const src = Array.from(source.querySelectorAll<SVGElement>("*"));
   const dst = Array.from(clone.querySelectorAll<SVGElement>("*"));
-  const pairs: [SVGElement, SVGElement][] = [[source, clone], ...src.map((n, i) => [n, dst[i]] as [SVGElement, SVGElement])];
+  const pairs: [SVGElement, SVGElement][] = [
+    [source, clone],
+    ...src.map((n, i) => [n, dst[i]] as [SVGElement, SVGElement]),
+  ];
 
   for (const [from, to] of pairs) {
     if (!to) continue;

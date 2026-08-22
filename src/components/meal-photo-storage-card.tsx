@@ -162,7 +162,6 @@ export function MealPhotoStorageCard({ className = "" }: { className?: string })
   const pending = [...data.dueNow, ...data.expiringSoon];
   const days = groupByDay(data.photos);
 
-
   return (
     <section className={`rounded-2xl bg-card p-4 ${className}`}>
       <div className="flex items-start justify-between gap-3">
@@ -187,8 +186,6 @@ export function MealPhotoStorageCard({ className = "" }: { className?: string })
       ) : null}
 
       <MealPhotoStorageChart photos={data.photos} className="mt-4" />
-
-
 
       <div className="mt-3 flex flex-wrap gap-2">
         <Button
@@ -294,8 +291,6 @@ export function MealPhotoStorageCard({ className = "" }: { className?: string })
         </ul>
       ) : null}
 
-
-
       <div className="mt-4 border-t border-border pt-3">
         <p className="text-xs font-medium">Keep photos for</p>
         <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Photo retention length">
@@ -357,8 +352,6 @@ function MealPhotoHistoryLog() {
     </div>
   );
 }
-
-
 
 export function MealPhotoExpiryBanner({ className = "" }: { className?: string }) {
   const { retentionDays } = useMealPhotoRetention();

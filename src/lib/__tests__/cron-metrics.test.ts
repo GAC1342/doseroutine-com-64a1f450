@@ -2,16 +2,21 @@ import { describe, it, expect, vi } from "vitest";
 import { createRunMetrics, evaluateBudget, instrumentSupabase } from "@/lib/cron-metrics";
 import { summarizeRuns, type CronRunRow } from "@/lib/cron-metrics.functions";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 function fakeClient(rowsByTable: Record<string, any[]>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const inserted: any[] = [];
   const make = (table: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const builder: any = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       then: (res: any, rej: any) =>
         Promise.resolve({ data: rowsByTable[table] ?? [], error: null }).then(res, rej),
     };
     for (const m of ["select", "eq", "in", "gte", "lte", "not", "order", "limit", "delete"]) {
       builder[m] = () => builder;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     builder.insert = (row: any) => {
       inserted.push({ table, row });
       return builder;
@@ -28,6 +33,7 @@ describe("cron metrics instrumentation", () => {
       profiles: [{ id: "a" }, { id: "b" }],
       reminders: [{ id: "r" }],
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const db = instrumentSupabase(client as any, metrics);
 
     await db.from("reminders").select("id").eq("enabled", true);
@@ -42,6 +48,7 @@ describe("cron metrics instrumentation", () => {
   it("does not double count chained filters", async () => {
     const metrics = createRunMetrics("send-routine-reminders");
     const { client } = fakeClient({ workout_sessions: [{ id: 1 }] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const db = instrumentSupabase(client as any, metrics);
     await db
       .from("workout_sessions")
@@ -57,6 +64,7 @@ describe("cron metrics instrumentation", () => {
     metrics.delivered({ push: 2, email: 1, inbox: 3, skipped: 1, capped: 2, errors: 0 });
     const { client, inserted } = fakeClient({});
     vi.spyOn(console, "log").mockImplementation(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const snap = await metrics.finish(client as any);
     expect(snap.push_sent).toBe(2);
     expect(snap.email_sent).toBe(1);

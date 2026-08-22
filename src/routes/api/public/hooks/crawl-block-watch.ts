@@ -54,6 +54,7 @@ async function inspect(url: string): Promise<InspectionReading> {
     if (!res.ok) {
       return { ...empty, apiError: `${res.status}: ${(await res.text()).slice(0, 200)}` };
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     const data = (await res.json()) as any;
     const idx = data?.inspectionResult?.indexStatusResult ?? {};
     return {

@@ -13,11 +13,11 @@ It launches each engine and opens a real context (a launch alone is not
 enough — protocol mismatches only appear when a context is created) and prints
 one of:
 
-| Reason | Meaning | Fix |
-| --- | --- | --- |
-| `version-mismatch` | The browser build predates this Playwright version. The classic symptom is `Found property "<root>.viewport.isMobile" ... not described in this scheme`. | `npx playwright install firefox`, or point `PLAYWRIGHT_FIREFOX_PATH` at a matching build |
-| `missing-system-libs` | Binary is there, shared libraries are not (`libgtk-3.so.0`, `libatk-1.0.so.0`, exit code 127). | `npx playwright install --with-deps <engine>` |
-| `missing` | Not installed at all. | `npx playwright install --with-deps <engine>` |
+| Reason                | Meaning                                                                                                                                                  | Fix                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `version-mismatch`    | The browser build predates this Playwright version. The classic symptom is `Found property "<root>.viewport.isMobile" ... not described in this scheme`. | `npx playwright install firefox`, or point `PLAYWRIGHT_FIREFOX_PATH` at a matching build |
+| `missing-system-libs` | Binary is there, shared libraries are not (`libgtk-3.so.0`, `libatk-1.0.so.0`, exit code 127).                                                           | `npx playwright install --with-deps <engine>`                                            |
+| `missing`             | Not installed at all.                                                                                                                                    | `npx playwright install --with-deps <engine>`                                            |
 
 Executable overrides honoured everywhere: `PLAYWRIGHT_CHROMIUM_PATH`,
 `PLAYWRIGHT_FIREFOX_PATH`, `PLAYWRIGHT_WEBKIT_PATH`. Chromium also falls back

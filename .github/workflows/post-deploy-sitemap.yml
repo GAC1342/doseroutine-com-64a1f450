@@ -1,0 +1,57 @@
+name: post-deploy-sitemap
+
+# After a deploy, tell Google Search Console to re-read the sitemap.
+#
+# The heavy lifting lives in the app: /api/public/hooks/sitemap-resubmit
+# rebuilds the sitemap, diffs it against the last stored snapshot and only
+# submits to Search Console + IndexNow when the URL set actually changed
+# (pass force=1 to submit regardless). This workflow just triggers it once
+# the new build is live.
+#
+# Required repository secret:
+#   CRON_SECRET — same value as the app's CRON_SECRET / SEO_MONITOR_SECRET
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Submit even when the sitemap is unchanged"
+        type: boolean
+        required: false
+        default: false
+  workflow_run:
+    workflows: ["deploy"]
+    types: [completed]
+
+concurrency:
+  group: post-deploy-sitemap
+  cancel-in-progress: false
+
+jobs:
+  resubmit:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Wait for the new build to be serving
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null https://doseroutine.com/sitemap.xml && exit 0
+            sleep 10
+          done
+          echo "sitemap never became reachable"; exit 1
+
+      - name: Resubmit sitemap to Search Console + IndexNow
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FORCE: ${{ github.event.inputs.force == 'true' && '1' || '0' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repository secret is not set"; exit 1
+          fi
+          code=$(curl -sS -o response.json -w '%{http_code}' \
+            -X POST "https://doseroutine.com/api/public/hooks/sitemap-resubmit?force=$FORCE" \
+            -H "x-cron-secret: $CRON_SECRET")
+          cat response.json
+          echo
+          [ "$code" = "200" ] || { echo "resubmit failed (HTTP $code)"; exit 1; }

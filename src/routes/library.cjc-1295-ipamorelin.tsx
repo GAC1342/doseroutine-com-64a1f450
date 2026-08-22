@@ -19,14 +19,15 @@ import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { InlineSignupButton } from "@/components/inline-signup-button";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/cjc-1295-ipamorelin";
+export const CANONICAL = "https://doseroutine.com/library/cjc-1295-ipamorelin";
 const OG_IMAGE = "https://doseroutine.com/og/cjc-1295-ipamorelin.jpg";
 const TITLE = "CJC-1295 with Ipamorelin: Dosing & Timing | DoseRoutine";
 const DESC = withDoseRoutineDescriptionSuffix(
-  "CJC-1295 and ipamorelin explained: DAC vs no-DAC, dosing, timing, reconstitution maths and risks",
+  "CJC-1295 and ipamorelin explained: DAC vs no-DAC, dosing, timing, reconstitution math and risks",
 );
-const REVIEWED = "2026-08-02";
+export const REVIEWED = "2026-08-02";
 
 const TOC = [
   { id: "what-it-is", label: "What the pair is" },
@@ -34,7 +35,7 @@ const TOC = [
   { id: "dac", label: "DAC vs no-DAC" },
   { id: "dosing", label: "Dosing in the literature" },
   { id: "timing", label: "Timing & the fasting rule" },
-  { id: "reconstitution", label: "Reconstitution maths" },
+  { id: "reconstitution", label: "Reconstitution math" },
   { id: "timeline", label: "What changes, and when" },
   { id: "expectations", label: "Realistic expectations" },
   { id: "side-effects", label: "Side effects & management" },
@@ -128,10 +129,10 @@ const RECON_ROWS = [
   { vial: "10 mg", bac: "5 mL", conc: "2000 mcg/mL", unit: "100 mcg = 0.05 mL = 5 units" },
 ];
 
-const RECON_STEPS = [
+export const RECON_STEPS = [
   {
     name: "Do the arithmetic before you touch the vial",
-    text: "Concentration in mcg per mL equals vial strength in micrograms divided by the millilitres of bacteriostatic water added. A 5 mg (5000 mcg) vial with 5 mL of water gives 1000 mcg/mL, which makes a 100 mcg dose exactly 10 units on a U-100 syringe.",
+    text: "Concentration in mcg per mL equals vial strength in micrograms divided by the milliliters of bacteriostatic water added. A 5 mg (5000 mcg) vial with 5 mL of water gives 1000 mcg/mL, which makes a 100 mcg dose exactly 10 units on a U-100 syringe.",
   },
   {
     name: "Choose a concentration you can actually measure",
@@ -143,7 +144,7 @@ const RECON_STEPS = [
   },
   {
     name: "Run the water down the vial wall",
-    text: "Insert the needle at an angle and let the bacteriostatic water trickle slowly down the inside glass wall. Never spray it directly onto the lyophilised cake — physical force degrades the peptide.",
+    text: "Insert the needle at an angle and let the bacteriostatic water trickle slowly down the inside glass wall. Never spray it directly onto the lyophilized cake — physical force degrades the peptide.",
   },
   {
     name: "Swirl, never shake",
@@ -155,7 +156,7 @@ const RECON_STEPS = [
   },
   {
     name: "Convert the dose to syringe units",
-    text: "Volume in mL equals dose in micrograms divided by concentration in micrograms per mL; a U-100 insulin syringe has 100 units per mL, so multiply the millilitres by 100 to get units.",
+    text: "Volume in mL equals dose in micrograms divided by concentration in micrograms per mL; a U-100 insulin syringe has 100 units per mL, so multiply the milliliters by 100 to get units.",
   },
 ];
 
@@ -174,7 +175,7 @@ const TIMELINE = [
   },
   {
     phase: "Weeks 8–12",
-    body: "Receptor desensitisation is the standard concern with continuous ghrelin-receptor stimulation, which is why cycles are typically bounded here. Fasting glucose is worth rechecking before deciding to continue.",
+    body: "Receptor desensitization is the standard concern with continuous ghrelin-receptor stimulation, which is why cycles are typically bounded here. Fasting glucose is worth rechecking before deciding to continue.",
   },
 ];
 
@@ -256,7 +257,7 @@ const ALTERNATIVES = [
   {
     name: "Hexarelin",
     detail:
-      "The most potent of the GHRPs and the fastest to desensitise, with clearer cortisol and prolactin elevation. Short cycles only.",
+      "The most potent of the GHRPs and the fastest to desensitize, with clearer cortisol and prolactin elevation. Short cycles only.",
   },
   {
     name: "Tesamorelin",
@@ -286,7 +287,7 @@ const MISTAKES = [
   "Shaking the vial, freezing reconstituted solution, or using a vial past the bacteriostatic-water window",
 ];
 
-const FAQS = [
+export const FAQS = [
   {
     q: "What is CJC-1295 with ipamorelin?",
     a: "It is a pairing of two research peptides that raise growth hormone through different receptors. CJC-1295 is a growth-hormone-releasing hormone (GHRH) analogue that increases the size of a GH pulse; ipamorelin is a selective ghrelin-receptor agonist (a GHRP) that triggers pulses and blunts somatostatin, the brake on GH release. Used together they raise GH more than either does alone. Neither is an approved medicine for this purpose.",
@@ -313,7 +314,7 @@ const FAQS = [
   },
   {
     q: "How do you reconstitute and dose CJC-1295 and ipamorelin?",
-    a: "Both arrive as lyophilised powder and are reconstituted with bacteriostatic water. Concentration in mcg/mL equals vial strength in micrograms divided by millilitres of water added, so a 5 mg vial with 5 mL gives 1000 mcg/mL and a 100 mcg dose is 0.1 mL — 10 units on a U-100 insulin syringe. Choosing a dilution that puts the dose near 10 units rather than 3 or 4 substantially reduces measurement error.",
+    a: "Both arrive as lyophilized powder and are reconstituted with bacteriostatic water. Concentration in mcg/mL equals vial strength in micrograms divided by milliliters of water added, so a 5 mg vial with 5 mL gives 1000 mcg/mL and a 100 mcg dose is 0.1 mL — 10 units on a U-100 insulin syringe. Choosing a dilution that puts the dose near 10 units rather than 3 or 4 substantially reduces measurement error.",
   },
   {
     q: "How long until you notice anything?",
@@ -333,11 +334,11 @@ const FAQS = [
   },
   {
     q: "How long should a cycle run?",
-    a: "Protocols in circulation typically run 8–12 weeks with a break afterwards, on the reasoning that continuous ghrelin-receptor stimulation risks desensitisation and that sustained GH elevation drifts toward insulin resistance. There is no controlled human data establishing an optimal cycle length, duration or long-term safety — the honest answer is that nobody has studied it properly.",
+    a: "Protocols in circulation typically run 8–12 weeks with a break afterwards, on the reasoning that continuous ghrelin-receptor stimulation risks desensitization and that sustained GH elevation drifts toward insulin resistance. There is no controlled human data establishing an optimal cycle length, duration or long-term safety — the honest answer is that nobody has studied it properly.",
   },
   {
     q: "Does it suppress your own growth hormone production?",
-    a: "Secretagogues work by stimulating the pituitary rather than replacing its output, so they do not shut down the axis the way exogenous HGH does. Feedback is still real, though: IGF-1 and somatostatin rise in response to elevated GH, which is part of why receptor desensitisation and diminishing returns are described over long uninterrupted runs.",
+    a: "Secretagogues work by stimulating the pituitary rather than replacing its output, so they do not shut down the axis the way exogenous HGH does. Feedback is still real, though: IGF-1 and somatostatin rise in response to elevated GH, which is part of why receptor desensitization and diminishing returns are described over long uninterrupted runs.",
   },
   {
     q: "What should you monitor?",
@@ -345,7 +346,7 @@ const FAQS = [
   },
   {
     q: "Is CJC-1295 with ipamorelin legal?",
-    a: "Neither is an FDA-approved drug for this use. In 2023 the FDA moved a group of peptides including ipamorelin and CJC-1295 into the category of bulk substances that compounding pharmacies may not use, citing insufficient safety evidence and immunogenicity concerns, which removed the main legitimate US supply route. Vials sold online carry 'research use only' labelling, which is a legal shield rather than a quality guarantee.",
+    a: "Neither is an FDA-approved drug for this use. In 2023 the FDA moved a group of peptides including ipamorelin and CJC-1295 into the category of bulk substances that compounding pharmacies may not use, citing insufficient safety evidence and immunogenicity concerns, which removed the main legitimate US supply route. Vials sold online carry 'research use only' labeling, which is a legal shield rather than a quality guarantee.",
   },
   {
     q: "Is it banned in sport?",
@@ -357,11 +358,11 @@ const FAQS = [
   },
   {
     q: "How should the vials be stored?",
-    a: "Lyophilised powder is stable refrigerated and should be kept cold, dark and dry. Once reconstituted with bacteriostatic water, store at 2–8 °C, never freeze, and respect the roughly 28-day beyond-use window of the bacteriostatic water. Discard any solution that turns cloudy, discoloured or shows particles.",
+    a: "Lyophilized powder is stable refrigerated and should be kept cold, dark and dry. Once reconstituted with bacteriostatic water, store at 2–8 °C, never freeze, and respect the roughly 28-day beyond-use window of the bacteriostatic water. Discard any solution that turns cloudy, discolored or shows particles.",
   },
 ];
 
-const REFS = [
+export const REFS = [
   {
     cite: "Teixeira Ionescu M, Frohman LA, et al. Sustained growth hormone (GH) and insulin-like growth factor I responses to single doses of the GH-releasing hormone analogue CJC-1295 in healthy adults. J Clin Endocrinol Metab. 2005;90(8):4792–4797.",
     url: "https://pubmed.ncbi.nlm.nih.gov/15827104/",
@@ -408,13 +409,17 @@ export const Route = createFileRoute("/library/cjc-1295-ipamorelin")({
       {
         property: "og:image:alt",
         content:
-          "Two lyophilised peptide vials, a U-100 insulin syringe, bacteriostatic water and an alcohol swab on a light surface — DoseRoutine",
+          "Two lyophilized peptide vials, a U-100 insulin syringe, bacteriostatic water and an alcohol swab on a light surface — DoseRoutine",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
       { name: "twitter:image", content: OG_IMAGE },
-      { name: "twitter:image:alt", content: "CJC-1295 and ipamorelin vials with a U-100 insulin syringe and bacteriostatic water — DoseRoutine" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "CJC-1295 and ipamorelin vials with a U-100 insulin syringe and bacteriostatic water — DoseRoutine",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [
@@ -433,7 +438,7 @@ export const Route = createFileRoute("/library/cjc-1295-ipamorelin")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/cjc-1295-ipamorelin"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -448,8 +453,15 @@ export const Route = createFileRoute("/library/cjc-1295-ipamorelin")({
           url: CANONICAL,
           image: [OG_IMAGE],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-08-02",
@@ -465,10 +477,10 @@ export const Route = createFileRoute("/library/cjc-1295-ipamorelin")({
           "@type": "HowTo",
           name: "How to reconstitute CJC-1295 and ipamorelin vials",
           description:
-            "The reconstitution arithmetic and handling steps for lyophilised CJC-1295 and ipamorelin vials, including converting a microgram dose to insulin-syringe units.",
+            "The reconstitution arithmetic and handling steps for lyophilized CJC-1295 and ipamorelin vials, including converting a microgram dose to insulin-syringe units.",
           totalTime: "PT10M",
           supply: [
-            { "@type": "HowToSupply", name: "Lyophilised peptide vial" },
+            { "@type": "HowToSupply", name: "Lyophilized peptide vial" },
             { "@type": "HowToSupply", name: "Bacteriostatic water" },
             { "@type": "HowToSupply", name: "Alcohol swabs" },
             { "@type": "HowToSupply", name: "U-100 insulin syringe" },
@@ -509,7 +521,7 @@ export const Route = createFileRoute("/library/cjc-1295-ipamorelin")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });
@@ -529,7 +541,7 @@ function Page() {
           <p className="text-lg text-muted-foreground">
             The most common growth-hormone peptide pairing, explained properly — what each half
             actually does, why DAC changes everything, the doses and timing rules in circulation,
-            the reconstitution maths people get wrong, and the risks nobody advertises.
+            the reconstitution math people get wrong, and the risks nobody advertises.
           </p>
           <p className="text-xs text-muted-foreground">
             Reviewed {REVIEWED} · {REFS.length} cited sources · Educational reference, not medical
@@ -541,7 +553,7 @@ function Page() {
             fallbackSrcSet="/og/cjc-1295-ipamorelin-640.jpg 640w, /og/cjc-1295-ipamorelin-960.jpg 960w, /og/cjc-1295-ipamorelin.jpg 1200w"
             // Article column is capped at 768px; below that the hero is full-bleed.
             sizes="(min-width: 768px) 768px, 100vw"
-            alt="Flat-lay photograph of two lyophilised peptide vials for a CJC-1295 and ipamorelin stack, a U-100 insulin syringe, a vial of bacteriostatic water and an alcohol swab on a light gray surface"
+            alt="Flat-lay photograph of two lyophilized peptide vials for a CJC-1295 and ipamorelin stack, a U-100 insulin syringe, a vial of bacteriostatic water and an alcohol swab on a light gray surface"
             width={1200}
             height={630}
             loading="eager"
@@ -746,7 +758,7 @@ function Page() {
           </div>
           <p className="text-sm text-muted-foreground">
             The pulsatility argument is the crux. Endogenous GH arrives in bursts with long troughs
-            between, and receptor signalling appears tuned to that pattern; a flat elevated level is
+            between, and receptor signaling appears tuned to that pattern; a flat elevated level is
             not physiologically equivalent, and sustained elevation is also what drives the
             insulin-resistance concern. Published work on continuous CJC-1295 stimulation found that
             pulsatile secretion did persist underneath the raised baseline, but the practical
@@ -815,13 +827,13 @@ function Page() {
         </section>
 
         <section id="reconstitution" className="scroll-mt-20 space-y-3">
-          <h2 className="text-2xl font-bold">Reconstitution maths</h2>
+          <h2 className="text-2xl font-bold">Reconstitution math</h2>
           <p className="text-sm text-muted-foreground">
-            Both peptides ship as lyophilised powder and mean nothing until they are mixed and
+            Both peptides ship as lyophilized powder and mean nothing until they are mixed and
             measured. The whole calculation is one division:{" "}
             <strong>concentration (mcg/mL) = vial strength (mcg) ÷ BAC water added (mL)</strong>.
             Then <strong>volume to draw (mL) = dose (mcg) ÷ concentration</strong>, and a U-100
-            insulin syringe carries 100 units per millilitre.
+            insulin syringe carries 100 units per milliliter.
           </p>
           <Card className="space-y-3 p-5">
             <div className="text-sm font-semibold">Worked example: 5 mg vial, 5 mL BAC water</div>
@@ -1006,7 +1018,7 @@ function Page() {
             are also prohibited at all times under the WADA Prohibited List.
           </p>
           <p className="text-sm text-muted-foreground">
-            What remains is a grey market labelled &quot;research use only&quot;, and testing of
+            What remains is a grey market labeled &quot;research use only&quot;, and testing of
             research peptides has repeatedly found:
           </p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
@@ -1029,7 +1041,7 @@ function Page() {
               <Thermometer className="h-5 w-5 text-primary" />
               <div className="text-sm font-semibold">Before reconstitution</div>
               <p className="text-xs text-muted-foreground">
-                Lyophilised powder is the stable form. Keep it cold, dark and dry, and avoid
+                Lyophilized powder is the stable form. Keep it cold, dark and dry, and avoid
                 repeated temperature swings.
               </p>
             </Card>
@@ -1100,7 +1112,7 @@ function Page() {
           <div className="text-sm">
             <p className="font-semibold">Track peptide cycles properly in DoseRoutine</p>
             <p className="text-muted-foreground">
-              Reconstitution maths, multi-dose timing reminders, vial inventory, injection-site
+              Reconstitution math, multi-dose timing reminders, vial inventory, injection-site
               rotation and IGF-1 trends in one place.
             </p>
             <Link

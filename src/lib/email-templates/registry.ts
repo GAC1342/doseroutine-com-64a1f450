@@ -25,9 +25,12 @@ import { template as trialEndingTemplate } from "./trial-ending";
 import { template as trialFinalDayTemplate } from "./trial-final-day";
 
 export interface TemplateEntry {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   component: ComponentType<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   subject: string | ((data: Record<string, any>) => string);
   displayName?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   previewData?: Record<string, any>;
   to?: string;
 }

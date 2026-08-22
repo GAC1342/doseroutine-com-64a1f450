@@ -5,7 +5,7 @@
  * ordering semantics (delete-then-add, recency bump, trim-to-cap)
  * surfaces as a precise, fast failure.
  *
- * The broader integration behaviour is covered by
+ * The broader integration behavior is covered by
  * breadcrumbs.eviction.test.tsx (component + effects) and the SSR
  * hydration suite. This file is intentionally the narrowest slice.
  */

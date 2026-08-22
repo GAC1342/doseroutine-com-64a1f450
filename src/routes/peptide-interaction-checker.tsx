@@ -6,8 +6,9 @@ import { articleScript } from "@/lib/article-schema";
 import { DisclaimerFooter } from "@/components/disclaimer-footer";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/peptide-interaction-checker";
+export const CANONICAL = "https://doseroutine.com/peptide-interaction-checker";
 const TITLE = "Peptide Stack Checker — BPC-157, TB-500 & GLP-1 Combinations";
 const DESC =
   "See which peptide combinations are commonly stacked and which are best kept apart — BPC-157, TB-500, GLP-1s and growth-hormone peptides.";
@@ -30,7 +31,7 @@ const PEPTIDES = [
   { slug: "aod-9604", name: "AOD-9604", note: "Fat-loss GH fragment" },
 ];
 
-const FAQ = [
+export const FAQ = [
   {
     q: "Can I stack BPC-157 with TB-500?",
     a: "BPC-157 and TB-500 are commonly used together in research settings for tissue repair — BPC-157 acts more locally while TB-500 acts systemically. No hard pharmacokinetic conflict is documented, but both are research peptides not FDA-approved for human use. Cycle length, amount and injection site rotation still matter. Confirm with your doctor before combining anything.",
@@ -82,7 +83,7 @@ export const Route = createFileRoute("/peptide-interaction-checker")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/peptide-interaction-checker"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       breadcrumbScript(CANONICAL, [
         { name: "Interaction Checker", path: "/interaction-checker" },
         { name: "Peptide Interaction Checker", path: "/peptide-interaction-checker" },
@@ -125,7 +126,7 @@ export const Route = createFileRoute("/peptide-interaction-checker")({
           })),
         }),
       },
-    ],
+    ]),
   }),
   component: PeptideInteractionCheckerPage,
 });
@@ -134,7 +135,7 @@ function PeptideInteractionCheckerPage() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <div className="mx-auto max-w-3xl px-4 pb-24 pt-8">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 pb-24 pt-8">
         <nav className="mb-4 text-xs text-muted-foreground">
           <Link to="/interaction-checker" className="hover:text-foreground">
             ← Interaction Checker
@@ -159,11 +160,14 @@ function PeptideInteractionCheckerPage() {
           </p>
         </header>
 
-        <aside className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-xs leading-relaxed text-foreground/90">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+        <aside
+          aria-label="Safety notice"
+          className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-xs leading-relaxed text-foreground/90"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
-            <strong>DoseRoutine is a tracking and organisation tool.</strong> This page is general
-            information for organising a routine — it is not advice and listing something is not a
+            <strong>DoseRoutine is a tracking and organization tool.</strong> This page is general
+            information for organizing a routine — it is not advice and listing something is not a
             recommendation to use it. Many peptides are research-use-only in various jurisdictions
             and are not FDA-approved for human use. Talk to your doctor before starting, stopping,
             or combining any peptide.
@@ -250,7 +254,7 @@ function PeptideInteractionCheckerPage() {
         </section>
 
         <DisclaimerFooter variant="safety" />
-      </div>
+      </main>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>
   );

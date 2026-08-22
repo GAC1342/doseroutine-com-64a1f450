@@ -285,7 +285,6 @@ try {
 
     // 1024² file check on the extracted set as a final belt-and-braces guard.
     for (const p of extractedFiles) {
-      // eslint-disable-next-line no-await-in-loop
       const meta = await sharp(p)
         .metadata()
         .catch(() => null);

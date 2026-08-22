@@ -1,3 +1,5 @@
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
@@ -19,7 +21,7 @@ import { RelatedLinks } from "@/components/related-links";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 
-const CANONICAL = "https://doseroutine.com/vs/pill-reminder";
+export const CANONICAL = "https://doseroutine.com/vs/pill-reminder";
 const TITLE = "Pill Reminder Alternative for Peptides and TRT";
 const DESC =
   "DoseRoutine upgrades pill reminders with real calendar alarms, peptide reconst… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
@@ -60,6 +62,7 @@ export const Route = createFileRoute("/vs/pill-reminder")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
           mainEntity: FAQ.map((f) => ({
             "@type": "Question",
             name: f.q,
@@ -72,7 +75,7 @@ export const Route = createFileRoute("/vs/pill-reminder")({
   component: PillReminderAlternative,
 });
 
-const FAQ = [
+export const FAQ = [
   {
     q: "What's the best pill reminder app in 2026?",
     a: "For a simple daily pill or two, apps like Medisafe, MyTherapy, Round Health and Pill Reminder are fine. But if you also track supplements, peptides, hormones, TRT/HRT, or a longevity stack, DoseRoutine is the upgrade — it handles reminders plus reconstitution, injections, interactions, and shareable summaries in one app.",
@@ -91,7 +94,7 @@ const FAQ = [
   },
   {
     q: "How much does DoseRoutine cost compared to free pill reminders?",
-    a: "There's a free tier for basic reminders. DoseRoutine Pro is $9.99/month or $59.99/year (50% off) with a 7-day free trial and unlocks the peptide calculator, interaction checker, AI stack planning, vial inventory, and shareable PDF summaries.",
+    a: "There's a free tier for basic reminders. DoseRoutine Pro is $9.99/month or $59.99/year (50% off) and unlocks the peptide calculator, interaction checker, AI stack planning, vial inventory, and shareable PDF summaries.",
   },
 ];
 
@@ -114,7 +117,7 @@ const COMPARISON = [
   { feature: "Shareable PDF summaries", us: true, them: "Basic (some apps)" },
   { feature: "Calendar (.ics) alarms for every dose", us: true, them: false },
   { feature: "Weekly / cyclical protocols", us: true, them: "Limited" },
-  { feature: "Free trial", us: "7 days", them: "Varies" },
+  { feature: "Free tier", us: "Yes", them: "Varies" },
   { feature: "Pro pricing", us: "$9.99/mo · $59.99/yr", them: "Free – $9.99/mo" },
 ];
 
@@ -128,7 +131,11 @@ function PillReminderAlternative() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
+      <section
+        id="main-content"
+        tabIndex={-1}
+        className="container max-w-4xl mx-auto px-4 py-12 md:py-20"
+      >
         <div className="text-center space-y-4 mb-12">
           <span className="inline-block text-xs uppercase tracking-widest text-muted-foreground">
             Pill reminder app — upgrade
@@ -259,7 +266,7 @@ function PillReminderAlternative() {
         <div className="text-center space-y-4 py-8 border-t">
           <h2 className="text-2xl font-bold">Ready to upgrade?</h2>
           <p className="text-muted-foreground">
-            7-day free trial. Cancel anytime. $9.99/month or $59.99/year (50% off).
+            Cancel anytime. $9.99/month or $59.99/year (50% off).
           </p>
           <Button size="lg" asChild>
             <Link to="/install">
@@ -295,6 +302,11 @@ function PillReminderAlternative() {
         </div>
       </section>
       <RelatedLinks currentPath="/vs/pill-reminder" kind="comparisons" />
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="vs-pill-reminder" />
+        </ProseContainer>
+      </ProseContainer>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>
   );

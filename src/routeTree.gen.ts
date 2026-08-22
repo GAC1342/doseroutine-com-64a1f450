@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhoDoseroutineIsForRouteImport } from './routes/who-doseroutine-is-for'
 import { Route as VsSupplementPlannerRouteImport } from './routes/vs-supplement-planner'
 import { Route as TrtSupplementInteractionsRouteImport } from './routes/trt-supplement-interactions'
 import { Route as TrtDosageCalculatorRouteImport } from './routes/trt-dosage-calculator'
@@ -20,18 +21,23 @@ import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as ReconstitutionCalculatorRouteImport } from './routes/reconstitution-calculator'
 import { Route as PromoKitRouteImport } from './routes/promo-kit'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PeptidesCalculatorRouteImport } from './routes/peptides-calculator'
+import { Route as PeptidesRouteImport } from './routes/peptides'
 import { Route as PeptideReconstitutionCalculatorRouteImport } from './routes/peptide-reconstitution-calculator'
 import { Route as PeptideInteractionCheckerRouteImport } from './routes/peptide-interaction-checker'
 import { Route as PeptideDosageCalculatorRouteImport } from './routes/peptide-dosage-calculator'
+import { Route as PeptideCalculatorRouteImport } from './routes/peptide-calculator'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MenopauseSupplementInteractionCheckerRouteImport } from './routes/menopause-supplement-interaction-checker'
 import { Route as MedicalDisclaimerRouteImport } from './routes/medical-disclaimer'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ManualRouteImport } from './routes/manual'
 import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as InteractionCheckerRouteImport } from './routes/interaction-checker'
 import { Route as InstallRouteImport } from './routes/install'
+import { Route as HealthTrackingBlogRouteImport } from './routes/health-tracking-blog'
 import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EditorialPolicyRouteImport } from './routes/editorial-policy'
@@ -47,9 +53,12 @@ import { Route as BootyWorkoutRouteImport } from './routes/booty-workout'
 import { Route as BestTrtTrackingAppRouteImport } from './routes/best-trt-tracking-app'
 import { Route as BestSupplementTrackerAppRouteImport } from './routes/best-supplement-tracker-app'
 import { Route as BestPeptideTrackingAppRouteImport } from './routes/best-peptide-tracking-app'
+import { Route as BestMedicationReminderAppRouteImport } from './routes/best-medication-reminder-app'
+import { Route as BestHrtTrackingAppForWomenRouteImport } from './routes/best-hrt-tracking-app-for-women'
 import { Route as BestHormoneTherapyAppForMenRouteImport } from './routes/best-hormone-therapy-app-for-men'
 import { Route as BestHealthStackInsightsAppRouteImport } from './routes/best-health-stack-insights-app'
 import { Route as BestGlp1TrackingAppRouteImport } from './routes/best-glp-1-tracking-app'
+import { Route as BestDoseTrackingAppsRouteImport } from './routes/best-dose-tracking-apps'
 import { Route as BestBiohackingTrackerAppRouteImport } from './routes/best-biohacking-tracker-app'
 import { Route as BestAppForTrackingPeptidesSupplementsHormonesRouteImport } from './routes/best-app-for-tracking-peptides-supplements-hormones'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -59,17 +68,39 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VsIndexRouteImport } from './routes/vs.index'
+import { Route as PeptidesIndexRouteImport } from './routes/peptides.index'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
 import { Route as InteractionsIndexRouteImport } from './routes/interactions.index'
 import { Route as HelpIndexRouteImport } from './routes/help.index'
+import { Route as GoalsIndexRouteImport } from './routes/goals.index'
 import { Route as ForIndexRouteImport } from './routes/for.index'
 import { Route as CalculatorsIndexRouteImport } from './routes/calculators.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as ArticlesIndexRouteImport } from './routes/articles.index'
+import { Route as VsSpreadsheetRouteImport } from './routes/vs.spreadsheet'
 import { Route as VsRoundHealthRouteImport } from './routes/vs.round-health'
 import { Route as VsPillReminderRouteImport } from './routes/vs.pill-reminder'
+import { Route as VsPeptideTrackerRouteImport } from './routes/vs.peptide-tracker'
+import { Route as VsOptipinRouteImport } from './routes/vs.optipin'
 import { Route as VsMytherapyRouteImport } from './routes/vs.mytherapy'
+import { Route as VsMyfitnesspalRouteImport } from './routes/vs.myfitnesspal'
 import { Route as VsMedisafeRouteImport } from './routes/vs.medisafe'
+import { Route as VsDosecastRouteImport } from './routes/vs.dosecast'
 import { Route as VsCronometerRouteImport } from './routes/vs.cronometer'
+import { Route as VsBearableRouteImport } from './routes/vs.bearable'
+import { Route as RPublicIdRouteImport } from './routes/r.$publicId'
+import { Route as PeptidesTb500RouteImport } from './routes/peptides.tb-500'
+import { Route as PeptidesSemaxRouteImport } from './routes/peptides.semax'
+import { Route as PeptidesRetatrutideDosingRouteImport } from './routes/peptides.retatrutide-dosing'
+import { Route as PeptidesPeptideDosageChartRouteImport } from './routes/peptides.peptide-dosage-chart'
+import { Route as PeptidesPeptideBondRouteImport } from './routes/peptides.peptide-bond'
+import { Route as PeptidesHowToVetAPeptideSupplierRouteImport } from './routes/peptides.how-to-vet-a-peptide-supplier'
+import { Route as PeptidesHowToReconstitutePeptidesRouteImport } from './routes/peptides.how-to-reconstitute-peptides'
+import { Route as PeptidesCollagenPeptidesRouteImport } from './routes/peptides.collagen-peptides'
+import { Route as PeptidesCjc1295IpamorelinRouteImport } from './routes/peptides.cjc-1295-ipamorelin'
+import { Route as PeptidesCellPenetratingPeptidesRouteImport } from './routes/peptides.cell-penetrating-peptides'
+import { Route as PeptidesBpc157RouteImport } from './routes/peptides.bpc-157'
+import { Route as PeptidesBacteriostaticWaterRouteImport } from './routes/peptides.bacteriostatic-water'
 import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as LibraryWomensHealthRouteImport } from './routes/library.womens-health'
 import { Route as LibraryTestosteroneSupportRouteImport } from './routes/library.testosterone-support'
@@ -92,13 +123,18 @@ import { Route as ForGlp1RouteImport } from './routes/for.glp-1'
 import { Route as ForBiohackersRouteImport } from './routes/for.biohackers'
 import { Route as DebugNoindexAuditRouteImport } from './routes/debug.noindex-audit'
 import { Route as DebugIndexCheckRouteImport } from './routes/debug.index-check'
+import { Route as DebugEnvRouteImport } from './routes/debug.env'
+import { Route as DebugDeepLinkRouteImport } from './routes/debug.deep-link'
 import { Route as CalculatorsSlugRouteImport } from './routes/calculators.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
+import { Route as ArticlesFeedDotxmlRouteImport } from './routes/articles.feed[.]xml'
+import { Route as ArticlesSlugRouteImport } from './routes/articles.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedTrialRouteImport } from './routes/_authenticated/trial'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as AuthenticatedTimerRouteImport } from './routes/_authenticated/timer'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
 import { Route as AuthenticatedStackRouteImport } from './routes/_authenticated/stack'
@@ -108,9 +144,12 @@ import { Route as AuthenticatedSafetyRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedRemindersRouteImport } from './routes/_authenticated/reminders'
 import { Route as AuthenticatedRedeemRouteImport } from './routes/_authenticated/redeem'
 import { Route as AuthenticatedProgressPhotosRouteImport } from './routes/_authenticated/progress-photos'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
+import { Route as AuthenticatedPillIdRouteImport } from './routes/_authenticated/pill-id'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMoreRouteImport } from './routes/_authenticated/more'
+import { Route as AuthenticatedMealPlanRouteImport } from './routes/_authenticated/meal-plan'
 import { Route as AuthenticatedLabsRouteImport } from './routes/_authenticated/labs'
 import { Route as AuthenticatedInjectionSitesRouteImport } from './routes/_authenticated/injection-sites'
 import { Route as AuthenticatedHealthSyncRouteImport } from './routes/_authenticated/health-sync'
@@ -124,6 +163,10 @@ import { Route as AuthenticatedCheckinsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedBodyMetricsRouteImport } from './routes/_authenticated/body-metrics'
 import { Route as AuthenticatedAdherenceRouteImport } from './routes/_authenticated/adherence'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotwellKnownChar93AppleAppSiteAssociationRouteImport } from './routes/[.well-known]/apple-app-site-association'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LibraryWomensHealthIndexRouteImport } from './routes/library.womens-health.index'
 import { Route as BlogTagIndexRouteImport } from './routes/blog.tag.index'
 import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/_authenticated/insights/index'
@@ -178,26 +221,38 @@ import { Route as ApiPublicStatusRouteImport } from './routes/api/public/status'
 import { Route as ApiPublicIndexnowPingRouteImport } from './routes/api/public/indexnow-ping'
 import { Route as ApiPublicIndexnowRouteImport } from './routes/api/public/indexnow'
 import { Route as ApiPublicHpRouteImport } from './routes/api/public/hp'
+import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as ApiPublicBuildIdRouteImport } from './routes/api/public/build-id'
 import { Route as ApiPublicAnalyticsRouteImport } from './routes/api/public/analytics'
 import { Route as AuthenticatedInsightsMetricRouteImport } from './routes/_authenticated/insights/$metric'
 import { Route as AuthenticatedDebugCrashlyticsRouteImport } from './routes/_authenticated/debug.crashlytics'
 import { Route as AuthenticatedAdminTestersRouteImport } from './routes/_authenticated/admin/testers'
+import { Route as AuthenticatedAdminSeoAnalyticsRouteImport } from './routes/_authenticated/admin/seo-analytics'
 import { Route as AuthenticatedAdminSearchConsoleRouteImport } from './routes/_authenticated/admin/search-console'
 import { Route as AuthenticatedAdminSchemaReportRouteImport } from './routes/_authenticated/admin.schema-report'
+import { Route as AuthenticatedAdminScanAnalyticsRouteImport } from './routes/_authenticated/admin/scan-analytics'
 import { Route as AuthenticatedAdminPublishImpactRouteImport } from './routes/_authenticated/admin/publish-impact'
+import { Route as AuthenticatedAdminKeywordMapRouteImport } from './routes/_authenticated/admin/keyword-map'
 import { Route as AuthenticatedAdminInstallFunnelRouteImport } from './routes/_authenticated/admin/install-funnel'
+import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin/health'
+import { Route as AuthenticatedAdminFoodCatalogRouteImport } from './routes/_authenticated/admin/food-catalog'
+import { Route as AuthenticatedAdminDeviceSmokeRouteImport } from './routes/_authenticated/admin/device-smoke'
 import { Route as AuthenticatedAdminCronMetricsRouteImport } from './routes/_authenticated/admin/cron-metrics'
+import { Route as AuthenticatedAdminContentCalendarRouteImport } from './routes/_authenticated/admin/content-calendar'
 import { Route as AuthenticatedAdminBlogSeoRouteImport } from './routes/_authenticated/admin/blog-seo'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as BlogTagKindSlugRouteImport } from './routes/blog.tag.$kind.$slug'
+import { Route as ApiPublicWebhooksOutrankRouteImport } from './routes/api/public/webhooks/outrank'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicPaymentsRevenuecatWebhookRouteImport } from './routes/api/public/payments/revenuecat-webhook'
 import { Route as ApiPublicHooksTrialEndingRemindersRouteImport } from './routes/api/public/hooks/trial-ending-reminders'
 import { Route as ApiPublicHooksTesterOnboardingSequenceRouteImport } from './routes/api/public/hooks/tester-onboarding-sequence'
+import { Route as ApiPublicHooksSitemapResubmitRouteImport } from './routes/api/public/hooks/sitemap-resubmit'
 import { Route as ApiPublicHooksSitemapHealthRouteImport } from './routes/api/public/hooks/sitemap-health'
 import { Route as ApiPublicHooksSeoMonitorRouteImport } from './routes/api/public/hooks/seo-monitor'
 import { Route as ApiPublicHooksSendWorkoutRemindersRouteImport } from './routes/api/public/hooks/send-workout-reminders'
@@ -215,6 +270,11 @@ import { Route as ApiPublicHooksCrawlBlockWatchRouteImport } from './routes/api/
 import { Route as ApiPublicHooksAttributionCrawlRouteImport } from './routes/api/public/hooks/attribution-crawl'
 import { Route as ApiPublicAdminGenerateLibraryRouteImport } from './routes/api/public/admin/generate-library'
 
+const WhoDoseroutineIsForRoute = WhoDoseroutineIsForRouteImport.update({
+  id: '/who-doseroutine-is-for',
+  path: '/who-doseroutine-is-for',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VsSupplementPlannerRoute = VsSupplementPlannerRouteImport.update({
   id: '/vs-supplement-planner',
   path: '/vs-supplement-planner',
@@ -272,6 +332,16 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PeptidesCalculatorRoute = PeptidesCalculatorRouteImport.update({
+  id: '/peptides-calculator',
+  path: '/peptides-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeptidesRoute = PeptidesRouteImport.update({
+  id: '/peptides',
+  path: '/peptides',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PeptideReconstitutionCalculatorRoute =
   PeptideReconstitutionCalculatorRouteImport.update({
     id: '/peptide-reconstitution-calculator',
@@ -289,6 +359,11 @@ const PeptideDosageCalculatorRoute = PeptideDosageCalculatorRouteImport.update({
   path: '/peptide-dosage-calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PeptideCalculatorRoute = PeptideCalculatorRouteImport.update({
+  id: '/peptide-calculator',
+  path: '/peptide-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -303,6 +378,11 @@ const MenopauseSupplementInteractionCheckerRoute =
 const MedicalDisclaimerRoute = MedicalDisclaimerRouteImport.update({
   id: '/medical-disclaimer',
   path: '/medical-disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManualRoute = ManualRouteImport.update({
@@ -333,6 +413,11 @@ const InteractionCheckerRoute = InteractionCheckerRouteImport.update({
 const InstallRoute = InstallRouteImport.update({
   id: '/install',
   path: '/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthTrackingBlogRoute = HealthTrackingBlogRouteImport.update({
+  id: '/health-tracking-blog',
+  path: '/health-tracking-blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
@@ -411,6 +496,18 @@ const BestPeptideTrackingAppRoute = BestPeptideTrackingAppRouteImport.update({
   path: '/best-peptide-tracking-app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BestMedicationReminderAppRoute =
+  BestMedicationReminderAppRouteImport.update({
+    id: '/best-medication-reminder-app',
+    path: '/best-medication-reminder-app',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const BestHrtTrackingAppForWomenRoute =
+  BestHrtTrackingAppForWomenRouteImport.update({
+    id: '/best-hrt-tracking-app-for-women',
+    path: '/best-hrt-tracking-app-for-women',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const BestHormoneTherapyAppForMenRoute =
   BestHormoneTherapyAppForMenRouteImport.update({
     id: '/best-hormone-therapy-app-for-men',
@@ -426,6 +523,11 @@ const BestHealthStackInsightsAppRoute =
 const BestGlp1TrackingAppRoute = BestGlp1TrackingAppRouteImport.update({
   id: '/best-glp-1-tracking-app',
   path: '/best-glp-1-tracking-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BestDoseTrackingAppsRoute = BestDoseTrackingAppsRouteImport.update({
+  id: '/best-dose-tracking-apps',
+  path: '/best-dose-tracking-apps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BestBiohackingTrackerAppRoute =
@@ -474,6 +576,11 @@ const VsIndexRoute = VsIndexRouteImport.update({
   path: '/vs/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PeptidesIndexRoute = PeptidesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PeptidesRoute,
+} as any)
 const LibraryIndexRoute = LibraryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -487,6 +594,11 @@ const InteractionsIndexRoute = InteractionsIndexRouteImport.update({
 const HelpIndexRoute = HelpIndexRouteImport.update({
   id: '/help/',
   path: '/help/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalsIndexRoute = GoalsIndexRouteImport.update({
+  id: '/goals/',
+  path: '/goals/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForIndexRoute = ForIndexRouteImport.update({
@@ -504,6 +616,16 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArticlesIndexRoute = ArticlesIndexRouteImport.update({
+  id: '/articles/',
+  path: '/articles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VsSpreadsheetRoute = VsSpreadsheetRouteImport.update({
+  id: '/vs/spreadsheet',
+  path: '/vs/spreadsheet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VsRoundHealthRoute = VsRoundHealthRouteImport.update({
   id: '/vs/round-health',
   path: '/vs/round-health',
@@ -514,9 +636,24 @@ const VsPillReminderRoute = VsPillReminderRouteImport.update({
   path: '/vs/pill-reminder',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VsPeptideTrackerRoute = VsPeptideTrackerRouteImport.update({
+  id: '/vs/peptide-tracker',
+  path: '/vs/peptide-tracker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VsOptipinRoute = VsOptipinRouteImport.update({
+  id: '/vs/optipin',
+  path: '/vs/optipin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VsMytherapyRoute = VsMytherapyRouteImport.update({
   id: '/vs/mytherapy',
   path: '/vs/mytherapy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VsMyfitnesspalRoute = VsMyfitnesspalRouteImport.update({
+  id: '/vs/myfitnesspal',
+  path: '/vs/myfitnesspal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VsMedisafeRoute = VsMedisafeRouteImport.update({
@@ -524,11 +661,94 @@ const VsMedisafeRoute = VsMedisafeRouteImport.update({
   path: '/vs/medisafe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VsDosecastRoute = VsDosecastRouteImport.update({
+  id: '/vs/dosecast',
+  path: '/vs/dosecast',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VsCronometerRoute = VsCronometerRouteImport.update({
   id: '/vs/cronometer',
   path: '/vs/cronometer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VsBearableRoute = VsBearableRouteImport.update({
+  id: '/vs/bearable',
+  path: '/vs/bearable',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RPublicIdRoute = RPublicIdRouteImport.update({
+  id: '/r/$publicId',
+  path: '/r/$publicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeptidesTb500Route = PeptidesTb500RouteImport.update({
+  id: '/tb-500',
+  path: '/tb-500',
+  getParentRoute: () => PeptidesRoute,
+} as any)
+const PeptidesSemaxRoute = PeptidesSemaxRouteImport.update({
+  id: '/semax',
+  path: '/semax',
+  getParentRoute: () => PeptidesRoute,
+} as any)
+const PeptidesRetatrutideDosingRoute =
+  PeptidesRetatrutideDosingRouteImport.update({
+    id: '/retatrutide-dosing',
+    path: '/retatrutide-dosing',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesPeptideDosageChartRoute =
+  PeptidesPeptideDosageChartRouteImport.update({
+    id: '/peptide-dosage-chart',
+    path: '/peptide-dosage-chart',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesPeptideBondRoute = PeptidesPeptideBondRouteImport.update({
+  id: '/peptide-bond',
+  path: '/peptide-bond',
+  getParentRoute: () => PeptidesRoute,
+} as any)
+const PeptidesHowToVetAPeptideSupplierRoute =
+  PeptidesHowToVetAPeptideSupplierRouteImport.update({
+    id: '/how-to-vet-a-peptide-supplier',
+    path: '/how-to-vet-a-peptide-supplier',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesHowToReconstitutePeptidesRoute =
+  PeptidesHowToReconstitutePeptidesRouteImport.update({
+    id: '/how-to-reconstitute-peptides',
+    path: '/how-to-reconstitute-peptides',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesCollagenPeptidesRoute =
+  PeptidesCollagenPeptidesRouteImport.update({
+    id: '/collagen-peptides',
+    path: '/collagen-peptides',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesCjc1295IpamorelinRoute =
+  PeptidesCjc1295IpamorelinRouteImport.update({
+    id: '/cjc-1295-ipamorelin',
+    path: '/cjc-1295-ipamorelin',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesCellPenetratingPeptidesRoute =
+  PeptidesCellPenetratingPeptidesRouteImport.update({
+    id: '/cell-penetrating-peptides',
+    path: '/cell-penetrating-peptides',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
+const PeptidesBpc157Route = PeptidesBpc157RouteImport.update({
+  id: '/bpc-157',
+  path: '/bpc-157',
+  getParentRoute: () => PeptidesRoute,
+} as any)
+const PeptidesBacteriostaticWaterRoute =
+  PeptidesBacteriostaticWaterRouteImport.update({
+    id: '/bacteriostatic-water',
+    path: '/bacteriostatic-water',
+    getParentRoute: () => PeptidesRoute,
+  } as any)
 const PTokenRoute = PTokenRouteImport.update({
   id: '/p/$token',
   path: '/p/$token',
@@ -643,6 +863,16 @@ const DebugIndexCheckRoute = DebugIndexCheckRouteImport.update({
   path: '/debug/index-check',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DebugEnvRoute = DebugEnvRouteImport.update({
+  id: '/debug/env',
+  path: '/debug/env',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugDeepLinkRoute = DebugDeepLinkRouteImport.update({
+  id: '/debug/deep-link',
+  path: '/debug/deep-link',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalculatorsSlugRoute = CalculatorsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -656,6 +886,16 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth_/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArticlesFeedDotxmlRoute = ArticlesFeedDotxmlRouteImport.update({
+  id: '/articles/feed.xml',
+  path: '/articles/feed.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArticlesSlugRoute = ArticlesSlugRouteImport.update({
+  id: '/articles/$slug',
+  path: '/articles/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -676,6 +916,11 @@ const AuthenticatedTrialRoute = AuthenticatedTrialRouteImport.update({
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTimerRoute = AuthenticatedTimerRouteImport.update({
+  id: '/timer',
+  path: '/timer',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
@@ -725,9 +970,19 @@ const AuthenticatedProgressPhotosRoute =
     path: '/progress-photos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
   id: '/plan',
   path: '/plan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPillIdRoute = AuthenticatedPillIdRouteImport.update({
+  id: '/pill-id',
+  path: '/pill-id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -739,6 +994,11 @@ const AuthenticatedNotificationsRoute =
 const AuthenticatedMoreRoute = AuthenticatedMoreRouteImport.update({
   id: '/more',
   path: '/more',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMealPlanRoute = AuthenticatedMealPlanRouteImport.update({
+  id: '/meal-plan',
+  path: '/meal-plan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLabsRoute = AuthenticatedLabsRouteImport.update({
@@ -809,6 +1069,29 @@ const AuthenticatedAdherenceRoute = AuthenticatedAdherenceRouteImport.update({
   path: '/adherence',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93AppleAppSiteAssociationRoute =
+  Char91DotwellKnownChar93AppleAppSiteAssociationRouteImport.update({
+    id: '/.well-known/apple-app-site-association',
+    path: '/.well-known/apple-app-site-association',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LibraryWomensHealthIndexRoute =
   LibraryWomensHealthIndexRouteImport.update({
     id: '/',
@@ -1127,6 +1410,11 @@ const ApiPublicHpRoute = ApiPublicHpRouteImport.update({
   path: '/api/public/hp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
+  id: '/api/public/csp-report',
+  path: '/api/public/csp-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBuildIdRoute = ApiPublicBuildIdRouteImport.update({
   id: '/api/public/build-id',
   path: '/api/public/build-id',
@@ -1155,6 +1443,12 @@ const AuthenticatedAdminTestersRoute =
     path: '/admin/testers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminSeoAnalyticsRoute =
+  AuthenticatedAdminSeoAnalyticsRouteImport.update({
+    id: '/admin/seo-analytics',
+    path: '/admin/seo-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminSearchConsoleRoute =
   AuthenticatedAdminSearchConsoleRouteImport.update({
     id: '/admin/search-console',
@@ -1167,10 +1461,22 @@ const AuthenticatedAdminSchemaReportRoute =
     path: '/admin/schema-report',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminScanAnalyticsRoute =
+  AuthenticatedAdminScanAnalyticsRouteImport.update({
+    id: '/admin/scan-analytics',
+    path: '/admin/scan-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPublishImpactRoute =
   AuthenticatedAdminPublishImpactRouteImport.update({
     id: '/admin/publish-impact',
     path: '/admin/publish-impact',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminKeywordMapRoute =
+  AuthenticatedAdminKeywordMapRouteImport.update({
+    id: '/admin/keyword-map',
+    path: '/admin/keyword-map',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminInstallFunnelRoute =
@@ -1179,10 +1485,34 @@ const AuthenticatedAdminInstallFunnelRoute =
     path: '/admin/install-funnel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminHealthRoute =
+  AuthenticatedAdminHealthRouteImport.update({
+    id: '/admin/health',
+    path: '/admin/health',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminFoodCatalogRoute =
+  AuthenticatedAdminFoodCatalogRouteImport.update({
+    id: '/admin/food-catalog',
+    path: '/admin/food-catalog',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminDeviceSmokeRoute =
+  AuthenticatedAdminDeviceSmokeRouteImport.update({
+    id: '/admin/device-smoke',
+    path: '/admin/device-smoke',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminCronMetricsRoute =
   AuthenticatedAdminCronMetricsRouteImport.update({
     id: '/admin/cron-metrics',
     path: '/admin/cron-metrics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminContentCalendarRoute =
+  AuthenticatedAdminContentCalendarRouteImport.update({
+    id: '/admin/content-calendar',
+    path: '/admin/content-calendar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminBlogSeoRoute =
@@ -1197,6 +1527,17 @@ const AuthenticatedAdminAnalyticsRoute =
     path: '/admin/analytics',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -1218,6 +1559,12 @@ const BlogTagKindSlugRoute = BlogTagKindSlugRouteImport.update({
   path: '/blog/tag/$kind/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksOutrankRoute =
+  ApiPublicWebhooksOutrankRouteImport.update({
+    id: '/api/public/webhooks/outrank',
+    path: '/api/public/webhooks/outrank',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -1240,6 +1587,12 @@ const ApiPublicHooksTesterOnboardingSequenceRoute =
   ApiPublicHooksTesterOnboardingSequenceRouteImport.update({
     id: '/api/public/hooks/tester-onboarding-sequence',
     path: '/api/public/hooks/tester-onboarding-sequence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksSitemapResubmitRoute =
+  ApiPublicHooksSitemapResubmitRouteImport.update({
+    id: '/api/public/hooks/sitemap-resubmit',
+    path: '/api/public/hooks/sitemap-resubmit',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksSitemapHealthRoute =
@@ -1346,9 +1699,12 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/best-app-for-tracking-peptides-supplements-hormones': typeof BestAppForTrackingPeptidesSupplementsHormonesRoute
   '/best-biohacking-tracker-app': typeof BestBiohackingTrackerAppRoute
+  '/best-dose-tracking-apps': typeof BestDoseTrackingAppsRoute
   '/best-glp-1-tracking-app': typeof BestGlp1TrackingAppRoute
   '/best-health-stack-insights-app': typeof BestHealthStackInsightsAppRoute
   '/best-hormone-therapy-app-for-men': typeof BestHormoneTherapyAppForMenRoute
+  '/best-hrt-tracking-app-for-women': typeof BestHrtTrackingAppForWomenRoute
+  '/best-medication-reminder-app': typeof BestMedicationReminderAppRoute
   '/best-peptide-tracking-app': typeof BestPeptideTrackingAppRoute
   '/best-supplement-tracker-app': typeof BestSupplementTrackerAppRoute
   '/best-trt-tracking-app': typeof BestTrtTrackingAppRoute
@@ -1364,18 +1720,23 @@ export interface FileRoutesByFullPath {
   '/editorial-policy': typeof EditorialPolicyRoute
   '/faq': typeof FaqRoute
   '/feed.xml': typeof FeedDotxmlRoute
+  '/health-tracking-blog': typeof HealthTrackingBlogRoute
   '/install': typeof InstallRoute
   '/interaction-checker': typeof InteractionCheckerRoute
   '/legal': typeof LegalRoute
   '/library': typeof LibraryRouteWithChildren
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/manual': typeof ManualRoute
+  '/mcp': typeof McpRoute
   '/medical-disclaimer': typeof MedicalDisclaimerRoute
   '/menopause-supplement-interaction-checker': typeof MenopauseSupplementInteractionCheckerRoute
   '/onboarding': typeof OnboardingRoute
+  '/peptide-calculator': typeof PeptideCalculatorRoute
   '/peptide-dosage-calculator': typeof PeptideDosageCalculatorRoute
   '/peptide-interaction-checker': typeof PeptideInteractionCheckerRoute
   '/peptide-reconstitution-calculator': typeof PeptideReconstitutionCalculatorRoute
+  '/peptides': typeof PeptidesRouteWithChildren
+  '/peptides-calculator': typeof PeptidesCalculatorRoute
   '/privacy': typeof PrivacyRoute
   '/promo-kit': typeof PromoKitRoute
   '/reconstitution-calculator': typeof ReconstitutionCalculatorRoute
@@ -1387,6 +1748,11 @@ export interface FileRoutesByFullPath {
   '/trt-dosage-calculator': typeof TrtDosageCalculatorRoute
   '/trt-supplement-interactions': typeof TrtSupplementInteractionsRoute
   '/vs-supplement-planner': typeof VsSupplementPlannerRoute
+  '/who-doseroutine-is-for': typeof WhoDoseroutineIsForRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/apple-app-site-association': typeof Char91DotwellKnownChar93AppleAppSiteAssociationRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/adherence': typeof AuthenticatedAdherenceRoute
   '/body-metrics': typeof AuthenticatedBodyMetricsRoute
   '/chat': typeof AuthenticatedChatRoute
@@ -1400,9 +1766,12 @@ export interface FileRoutesByFullPath {
   '/health-sync': typeof AuthenticatedHealthSyncRoute
   '/injection-sites': typeof AuthenticatedInjectionSitesRoute
   '/labs': typeof AuthenticatedLabsRoute
+  '/meal-plan': typeof AuthenticatedMealPlanRoute
   '/more': typeof AuthenticatedMoreRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/pill-id': typeof AuthenticatedPillIdRoute
   '/plan': typeof AuthenticatedPlanRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/progress-photos': typeof AuthenticatedProgressPhotosRoute
   '/redeem': typeof AuthenticatedRedeemRoute
   '/reminders': typeof AuthenticatedRemindersRoute
@@ -1412,13 +1781,18 @@ export interface FileRoutesByFullPath {
   '/stack': typeof AuthenticatedStackRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/timeline': typeof AuthenticatedTimelineRoute
+  '/timer': typeof AuthenticatedTimerRoute
   '/today': typeof AuthenticatedTodayRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/api/chat': typeof ApiChatRoute
+  '/articles/$slug': typeof ArticlesSlugRoute
+  '/articles/feed.xml': typeof ArticlesFeedDotxmlRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/calculators/$slug': typeof CalculatorsSlugRoute
+  '/debug/deep-link': typeof DebugDeepLinkRoute
+  '/debug/env': typeof DebugEnvRoute
   '/debug/index-check': typeof DebugIndexCheckRoute
   '/debug/noindex-audit': typeof DebugNoindexAuditRoute
   '/for/biohackers': typeof ForBiohackersRoute
@@ -1441,30 +1815,62 @@ export interface FileRoutesByFullPath {
   '/library/testosterone-support': typeof LibraryTestosteroneSupportRoute
   '/library/womens-health': typeof LibraryWomensHealthRouteWithChildren
   '/p/$token': typeof PTokenRoute
+  '/peptides/bacteriostatic-water': typeof PeptidesBacteriostaticWaterRoute
+  '/peptides/bpc-157': typeof PeptidesBpc157Route
+  '/peptides/cell-penetrating-peptides': typeof PeptidesCellPenetratingPeptidesRoute
+  '/peptides/cjc-1295-ipamorelin': typeof PeptidesCjc1295IpamorelinRoute
+  '/peptides/collagen-peptides': typeof PeptidesCollagenPeptidesRoute
+  '/peptides/how-to-reconstitute-peptides': typeof PeptidesHowToReconstitutePeptidesRoute
+  '/peptides/how-to-vet-a-peptide-supplier': typeof PeptidesHowToVetAPeptideSupplierRoute
+  '/peptides/peptide-bond': typeof PeptidesPeptideBondRoute
+  '/peptides/peptide-dosage-chart': typeof PeptidesPeptideDosageChartRoute
+  '/peptides/retatrutide-dosing': typeof PeptidesRetatrutideDosingRoute
+  '/peptides/semax': typeof PeptidesSemaxRoute
+  '/peptides/tb-500': typeof PeptidesTb500Route
+  '/r/$publicId': typeof RPublicIdRoute
+  '/vs/bearable': typeof VsBearableRoute
   '/vs/cronometer': typeof VsCronometerRoute
+  '/vs/dosecast': typeof VsDosecastRoute
   '/vs/medisafe': typeof VsMedisafeRoute
+  '/vs/myfitnesspal': typeof VsMyfitnesspalRoute
   '/vs/mytherapy': typeof VsMytherapyRoute
+  '/vs/optipin': typeof VsOptipinRoute
+  '/vs/peptide-tracker': typeof VsPeptideTrackerRoute
   '/vs/pill-reminder': typeof VsPillReminderRoute
   '/vs/round-health': typeof VsRoundHealthRoute
+  '/vs/spreadsheet': typeof VsSpreadsheetRoute
+  '/articles/': typeof ArticlesIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/calculators/': typeof CalculatorsIndexRoute
   '/for/': typeof ForIndexRoute
+  '/goals/': typeof GoalsIndexRoute
   '/help/': typeof HelpIndexRoute
   '/interactions/': typeof InteractionsIndexRoute
   '/library/': typeof LibraryIndexRoute
+  '/peptides/': typeof PeptidesIndexRoute
   '/vs/': typeof VsIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/blog-seo': typeof AuthenticatedAdminBlogSeoRoute
+  '/admin/content-calendar': typeof AuthenticatedAdminContentCalendarRoute
   '/admin/cron-metrics': typeof AuthenticatedAdminCronMetricsRoute
+  '/admin/device-smoke': typeof AuthenticatedAdminDeviceSmokeRoute
+  '/admin/food-catalog': typeof AuthenticatedAdminFoodCatalogRoute
+  '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/install-funnel': typeof AuthenticatedAdminInstallFunnelRoute
+  '/admin/keyword-map': typeof AuthenticatedAdminKeywordMapRoute
   '/admin/publish-impact': typeof AuthenticatedAdminPublishImpactRoute
+  '/admin/scan-analytics': typeof AuthenticatedAdminScanAnalyticsRoute
   '/admin/schema-report': typeof AuthenticatedAdminSchemaReportRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
+  '/admin/seo-analytics': typeof AuthenticatedAdminSeoAnalyticsRoute
   '/admin/testers': typeof AuthenticatedAdminTestersRoute
   '/debug/crashlytics': typeof AuthenticatedDebugCrashlyticsRoute
   '/insights/$metric': typeof AuthenticatedInsightsMetricRoute
   '/api/public/analytics': typeof ApiPublicAnalyticsRoute
   '/api/public/build-id': typeof ApiPublicBuildIdRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/api/public/hp': typeof ApiPublicHpRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/indexnow-ping': typeof ApiPublicIndexnowPingRoute
@@ -1535,10 +1941,12 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/send-workout-reminders': typeof ApiPublicHooksSendWorkoutRemindersRoute
   '/api/public/hooks/seo-monitor': typeof ApiPublicHooksSeoMonitorRoute
   '/api/public/hooks/sitemap-health': typeof ApiPublicHooksSitemapHealthRoute
+  '/api/public/hooks/sitemap-resubmit': typeof ApiPublicHooksSitemapResubmitRoute
   '/api/public/hooks/tester-onboarding-sequence': typeof ApiPublicHooksTesterOnboardingSequenceRoute
   '/api/public/hooks/trial-ending-reminders': typeof ApiPublicHooksTrialEndingRemindersRoute
   '/api/public/payments/revenuecat-webhook': typeof ApiPublicPaymentsRevenuecatWebhookRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/outrank': typeof ApiPublicWebhooksOutrankRoute
   '/blog/tag/$kind/$slug': typeof BlogTagKindSlugRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -1552,9 +1960,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/best-app-for-tracking-peptides-supplements-hormones': typeof BestAppForTrackingPeptidesSupplementsHormonesRoute
   '/best-biohacking-tracker-app': typeof BestBiohackingTrackerAppRoute
+  '/best-dose-tracking-apps': typeof BestDoseTrackingAppsRoute
   '/best-glp-1-tracking-app': typeof BestGlp1TrackingAppRoute
   '/best-health-stack-insights-app': typeof BestHealthStackInsightsAppRoute
   '/best-hormone-therapy-app-for-men': typeof BestHormoneTherapyAppForMenRoute
+  '/best-hrt-tracking-app-for-women': typeof BestHrtTrackingAppForWomenRoute
+  '/best-medication-reminder-app': typeof BestMedicationReminderAppRoute
   '/best-peptide-tracking-app': typeof BestPeptideTrackingAppRoute
   '/best-supplement-tracker-app': typeof BestSupplementTrackerAppRoute
   '/best-trt-tracking-app': typeof BestTrtTrackingAppRoute
@@ -1569,17 +1980,21 @@ export interface FileRoutesByTo {
   '/editorial-policy': typeof EditorialPolicyRoute
   '/faq': typeof FaqRoute
   '/feed.xml': typeof FeedDotxmlRoute
+  '/health-tracking-blog': typeof HealthTrackingBlogRoute
   '/install': typeof InstallRoute
   '/interaction-checker': typeof InteractionCheckerRoute
   '/legal': typeof LegalRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/manual': typeof ManualRoute
+  '/mcp': typeof McpRoute
   '/medical-disclaimer': typeof MedicalDisclaimerRoute
   '/menopause-supplement-interaction-checker': typeof MenopauseSupplementInteractionCheckerRoute
   '/onboarding': typeof OnboardingRoute
+  '/peptide-calculator': typeof PeptideCalculatorRoute
   '/peptide-dosage-calculator': typeof PeptideDosageCalculatorRoute
   '/peptide-interaction-checker': typeof PeptideInteractionCheckerRoute
   '/peptide-reconstitution-calculator': typeof PeptideReconstitutionCalculatorRoute
+  '/peptides-calculator': typeof PeptidesCalculatorRoute
   '/privacy': typeof PrivacyRoute
   '/promo-kit': typeof PromoKitRoute
   '/reconstitution-calculator': typeof ReconstitutionCalculatorRoute
@@ -1591,6 +2006,11 @@ export interface FileRoutesByTo {
   '/trt-dosage-calculator': typeof TrtDosageCalculatorRoute
   '/trt-supplement-interactions': typeof TrtSupplementInteractionsRoute
   '/vs-supplement-planner': typeof VsSupplementPlannerRoute
+  '/who-doseroutine-is-for': typeof WhoDoseroutineIsForRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/apple-app-site-association': typeof Char91DotwellKnownChar93AppleAppSiteAssociationRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/adherence': typeof AuthenticatedAdherenceRoute
   '/body-metrics': typeof AuthenticatedBodyMetricsRoute
   '/chat': typeof AuthenticatedChatRoute
@@ -1604,9 +2024,12 @@ export interface FileRoutesByTo {
   '/health-sync': typeof AuthenticatedHealthSyncRoute
   '/injection-sites': typeof AuthenticatedInjectionSitesRoute
   '/labs': typeof AuthenticatedLabsRoute
+  '/meal-plan': typeof AuthenticatedMealPlanRoute
   '/more': typeof AuthenticatedMoreRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/pill-id': typeof AuthenticatedPillIdRoute
   '/plan': typeof AuthenticatedPlanRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/progress-photos': typeof AuthenticatedProgressPhotosRoute
   '/redeem': typeof AuthenticatedRedeemRoute
   '/reminders': typeof AuthenticatedRemindersRoute
@@ -1616,13 +2039,18 @@ export interface FileRoutesByTo {
   '/stack': typeof AuthenticatedStackRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/timeline': typeof AuthenticatedTimelineRoute
+  '/timer': typeof AuthenticatedTimerRoute
   '/today': typeof AuthenticatedTodayRoute
   '/trial': typeof AuthenticatedTrialRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/api/chat': typeof ApiChatRoute
+  '/articles/$slug': typeof ArticlesSlugRoute
+  '/articles/feed.xml': typeof ArticlesFeedDotxmlRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/calculators/$slug': typeof CalculatorsSlugRoute
+  '/debug/deep-link': typeof DebugDeepLinkRoute
+  '/debug/env': typeof DebugEnvRoute
   '/debug/index-check': typeof DebugIndexCheckRoute
   '/debug/noindex-audit': typeof DebugNoindexAuditRoute
   '/for/biohackers': typeof ForBiohackersRoute
@@ -1644,30 +2072,62 @@ export interface FileRoutesByTo {
   '/library/testosterone': typeof LibraryTestosteroneRoute
   '/library/testosterone-support': typeof LibraryTestosteroneSupportRoute
   '/p/$token': typeof PTokenRoute
+  '/peptides/bacteriostatic-water': typeof PeptidesBacteriostaticWaterRoute
+  '/peptides/bpc-157': typeof PeptidesBpc157Route
+  '/peptides/cell-penetrating-peptides': typeof PeptidesCellPenetratingPeptidesRoute
+  '/peptides/cjc-1295-ipamorelin': typeof PeptidesCjc1295IpamorelinRoute
+  '/peptides/collagen-peptides': typeof PeptidesCollagenPeptidesRoute
+  '/peptides/how-to-reconstitute-peptides': typeof PeptidesHowToReconstitutePeptidesRoute
+  '/peptides/how-to-vet-a-peptide-supplier': typeof PeptidesHowToVetAPeptideSupplierRoute
+  '/peptides/peptide-bond': typeof PeptidesPeptideBondRoute
+  '/peptides/peptide-dosage-chart': typeof PeptidesPeptideDosageChartRoute
+  '/peptides/retatrutide-dosing': typeof PeptidesRetatrutideDosingRoute
+  '/peptides/semax': typeof PeptidesSemaxRoute
+  '/peptides/tb-500': typeof PeptidesTb500Route
+  '/r/$publicId': typeof RPublicIdRoute
+  '/vs/bearable': typeof VsBearableRoute
   '/vs/cronometer': typeof VsCronometerRoute
+  '/vs/dosecast': typeof VsDosecastRoute
   '/vs/medisafe': typeof VsMedisafeRoute
+  '/vs/myfitnesspal': typeof VsMyfitnesspalRoute
   '/vs/mytherapy': typeof VsMytherapyRoute
+  '/vs/optipin': typeof VsOptipinRoute
+  '/vs/peptide-tracker': typeof VsPeptideTrackerRoute
   '/vs/pill-reminder': typeof VsPillReminderRoute
   '/vs/round-health': typeof VsRoundHealthRoute
+  '/vs/spreadsheet': typeof VsSpreadsheetRoute
+  '/articles': typeof ArticlesIndexRoute
   '/blog': typeof BlogIndexRoute
   '/calculators': typeof CalculatorsIndexRoute
   '/for': typeof ForIndexRoute
+  '/goals': typeof GoalsIndexRoute
   '/help': typeof HelpIndexRoute
   '/interactions': typeof InteractionsIndexRoute
   '/library': typeof LibraryIndexRoute
+  '/peptides': typeof PeptidesIndexRoute
   '/vs': typeof VsIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/blog-seo': typeof AuthenticatedAdminBlogSeoRoute
+  '/admin/content-calendar': typeof AuthenticatedAdminContentCalendarRoute
   '/admin/cron-metrics': typeof AuthenticatedAdminCronMetricsRoute
+  '/admin/device-smoke': typeof AuthenticatedAdminDeviceSmokeRoute
+  '/admin/food-catalog': typeof AuthenticatedAdminFoodCatalogRoute
+  '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/admin/install-funnel': typeof AuthenticatedAdminInstallFunnelRoute
+  '/admin/keyword-map': typeof AuthenticatedAdminKeywordMapRoute
   '/admin/publish-impact': typeof AuthenticatedAdminPublishImpactRoute
+  '/admin/scan-analytics': typeof AuthenticatedAdminScanAnalyticsRoute
   '/admin/schema-report': typeof AuthenticatedAdminSchemaReportRoute
   '/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
+  '/admin/seo-analytics': typeof AuthenticatedAdminSeoAnalyticsRoute
   '/admin/testers': typeof AuthenticatedAdminTestersRoute
   '/debug/crashlytics': typeof AuthenticatedDebugCrashlyticsRoute
   '/insights/$metric': typeof AuthenticatedInsightsMetricRoute
   '/api/public/analytics': typeof ApiPublicAnalyticsRoute
   '/api/public/build-id': typeof ApiPublicBuildIdRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/api/public/hp': typeof ApiPublicHpRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/indexnow-ping': typeof ApiPublicIndexnowPingRoute
@@ -1738,10 +2198,12 @@ export interface FileRoutesByTo {
   '/api/public/hooks/send-workout-reminders': typeof ApiPublicHooksSendWorkoutRemindersRoute
   '/api/public/hooks/seo-monitor': typeof ApiPublicHooksSeoMonitorRoute
   '/api/public/hooks/sitemap-health': typeof ApiPublicHooksSitemapHealthRoute
+  '/api/public/hooks/sitemap-resubmit': typeof ApiPublicHooksSitemapResubmitRoute
   '/api/public/hooks/tester-onboarding-sequence': typeof ApiPublicHooksTesterOnboardingSequenceRoute
   '/api/public/hooks/trial-ending-reminders': typeof ApiPublicHooksTrialEndingRemindersRoute
   '/api/public/payments/revenuecat-webhook': typeof ApiPublicPaymentsRevenuecatWebhookRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/outrank': typeof ApiPublicWebhooksOutrankRoute
   '/blog/tag/$kind/$slug': typeof BlogTagKindSlugRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -1757,9 +2219,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/best-app-for-tracking-peptides-supplements-hormones': typeof BestAppForTrackingPeptidesSupplementsHormonesRoute
   '/best-biohacking-tracker-app': typeof BestBiohackingTrackerAppRoute
+  '/best-dose-tracking-apps': typeof BestDoseTrackingAppsRoute
   '/best-glp-1-tracking-app': typeof BestGlp1TrackingAppRoute
   '/best-health-stack-insights-app': typeof BestHealthStackInsightsAppRoute
   '/best-hormone-therapy-app-for-men': typeof BestHormoneTherapyAppForMenRoute
+  '/best-hrt-tracking-app-for-women': typeof BestHrtTrackingAppForWomenRoute
+  '/best-medication-reminder-app': typeof BestMedicationReminderAppRoute
   '/best-peptide-tracking-app': typeof BestPeptideTrackingAppRoute
   '/best-supplement-tracker-app': typeof BestSupplementTrackerAppRoute
   '/best-trt-tracking-app': typeof BestTrtTrackingAppRoute
@@ -1775,18 +2240,23 @@ export interface FileRoutesById {
   '/editorial-policy': typeof EditorialPolicyRoute
   '/faq': typeof FaqRoute
   '/feed.xml': typeof FeedDotxmlRoute
+  '/health-tracking-blog': typeof HealthTrackingBlogRoute
   '/install': typeof InstallRoute
   '/interaction-checker': typeof InteractionCheckerRoute
   '/legal': typeof LegalRoute
   '/library': typeof LibraryRouteWithChildren
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/manual': typeof ManualRoute
+  '/mcp': typeof McpRoute
   '/medical-disclaimer': typeof MedicalDisclaimerRoute
   '/menopause-supplement-interaction-checker': typeof MenopauseSupplementInteractionCheckerRoute
   '/onboarding': typeof OnboardingRoute
+  '/peptide-calculator': typeof PeptideCalculatorRoute
   '/peptide-dosage-calculator': typeof PeptideDosageCalculatorRoute
   '/peptide-interaction-checker': typeof PeptideInteractionCheckerRoute
   '/peptide-reconstitution-calculator': typeof PeptideReconstitutionCalculatorRoute
+  '/peptides': typeof PeptidesRouteWithChildren
+  '/peptides-calculator': typeof PeptidesCalculatorRoute
   '/privacy': typeof PrivacyRoute
   '/promo-kit': typeof PromoKitRoute
   '/reconstitution-calculator': typeof ReconstitutionCalculatorRoute
@@ -1798,6 +2268,11 @@ export interface FileRoutesById {
   '/trt-dosage-calculator': typeof TrtDosageCalculatorRoute
   '/trt-supplement-interactions': typeof TrtSupplementInteractionsRoute
   '/vs-supplement-planner': typeof VsSupplementPlannerRoute
+  '/who-doseroutine-is-for': typeof WhoDoseroutineIsForRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/apple-app-site-association': typeof Char91DotwellKnownChar93AppleAppSiteAssociationRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/adherence': typeof AuthenticatedAdherenceRoute
   '/_authenticated/body-metrics': typeof AuthenticatedBodyMetricsRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
@@ -1811,9 +2286,12 @@ export interface FileRoutesById {
   '/_authenticated/health-sync': typeof AuthenticatedHealthSyncRoute
   '/_authenticated/injection-sites': typeof AuthenticatedInjectionSitesRoute
   '/_authenticated/labs': typeof AuthenticatedLabsRoute
+  '/_authenticated/meal-plan': typeof AuthenticatedMealPlanRoute
   '/_authenticated/more': typeof AuthenticatedMoreRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/pill-id': typeof AuthenticatedPillIdRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/progress-photos': typeof AuthenticatedProgressPhotosRoute
   '/_authenticated/redeem': typeof AuthenticatedRedeemRoute
   '/_authenticated/reminders': typeof AuthenticatedRemindersRoute
@@ -1823,13 +2301,18 @@ export interface FileRoutesById {
   '/_authenticated/stack': typeof AuthenticatedStackRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
+  '/_authenticated/timer': typeof AuthenticatedTimerRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/trial': typeof AuthenticatedTrialRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/api/chat': typeof ApiChatRoute
+  '/articles/$slug': typeof ArticlesSlugRoute
+  '/articles/feed.xml': typeof ArticlesFeedDotxmlRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/calculators/$slug': typeof CalculatorsSlugRoute
+  '/debug/deep-link': typeof DebugDeepLinkRoute
+  '/debug/env': typeof DebugEnvRoute
   '/debug/index-check': typeof DebugIndexCheckRoute
   '/debug/noindex-audit': typeof DebugNoindexAuditRoute
   '/for/biohackers': typeof ForBiohackersRoute
@@ -1852,30 +2335,62 @@ export interface FileRoutesById {
   '/library/testosterone-support': typeof LibraryTestosteroneSupportRoute
   '/library/womens-health': typeof LibraryWomensHealthRouteWithChildren
   '/p/$token': typeof PTokenRoute
+  '/peptides/bacteriostatic-water': typeof PeptidesBacteriostaticWaterRoute
+  '/peptides/bpc-157': typeof PeptidesBpc157Route
+  '/peptides/cell-penetrating-peptides': typeof PeptidesCellPenetratingPeptidesRoute
+  '/peptides/cjc-1295-ipamorelin': typeof PeptidesCjc1295IpamorelinRoute
+  '/peptides/collagen-peptides': typeof PeptidesCollagenPeptidesRoute
+  '/peptides/how-to-reconstitute-peptides': typeof PeptidesHowToReconstitutePeptidesRoute
+  '/peptides/how-to-vet-a-peptide-supplier': typeof PeptidesHowToVetAPeptideSupplierRoute
+  '/peptides/peptide-bond': typeof PeptidesPeptideBondRoute
+  '/peptides/peptide-dosage-chart': typeof PeptidesPeptideDosageChartRoute
+  '/peptides/retatrutide-dosing': typeof PeptidesRetatrutideDosingRoute
+  '/peptides/semax': typeof PeptidesSemaxRoute
+  '/peptides/tb-500': typeof PeptidesTb500Route
+  '/r/$publicId': typeof RPublicIdRoute
+  '/vs/bearable': typeof VsBearableRoute
   '/vs/cronometer': typeof VsCronometerRoute
+  '/vs/dosecast': typeof VsDosecastRoute
   '/vs/medisafe': typeof VsMedisafeRoute
+  '/vs/myfitnesspal': typeof VsMyfitnesspalRoute
   '/vs/mytherapy': typeof VsMytherapyRoute
+  '/vs/optipin': typeof VsOptipinRoute
+  '/vs/peptide-tracker': typeof VsPeptideTrackerRoute
   '/vs/pill-reminder': typeof VsPillReminderRoute
   '/vs/round-health': typeof VsRoundHealthRoute
+  '/vs/spreadsheet': typeof VsSpreadsheetRoute
+  '/articles/': typeof ArticlesIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/calculators/': typeof CalculatorsIndexRoute
   '/for/': typeof ForIndexRoute
+  '/goals/': typeof GoalsIndexRoute
   '/help/': typeof HelpIndexRoute
   '/interactions/': typeof InteractionsIndexRoute
   '/library/': typeof LibraryIndexRoute
+  '/peptides/': typeof PeptidesIndexRoute
   '/vs/': typeof VsIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/blog-seo': typeof AuthenticatedAdminBlogSeoRoute
+  '/_authenticated/admin/content-calendar': typeof AuthenticatedAdminContentCalendarRoute
   '/_authenticated/admin/cron-metrics': typeof AuthenticatedAdminCronMetricsRoute
+  '/_authenticated/admin/device-smoke': typeof AuthenticatedAdminDeviceSmokeRoute
+  '/_authenticated/admin/food-catalog': typeof AuthenticatedAdminFoodCatalogRoute
+  '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/_authenticated/admin/install-funnel': typeof AuthenticatedAdminInstallFunnelRoute
+  '/_authenticated/admin/keyword-map': typeof AuthenticatedAdminKeywordMapRoute
   '/_authenticated/admin/publish-impact': typeof AuthenticatedAdminPublishImpactRoute
+  '/_authenticated/admin/scan-analytics': typeof AuthenticatedAdminScanAnalyticsRoute
   '/_authenticated/admin/schema-report': typeof AuthenticatedAdminSchemaReportRoute
   '/_authenticated/admin/search-console': typeof AuthenticatedAdminSearchConsoleRoute
+  '/_authenticated/admin/seo-analytics': typeof AuthenticatedAdminSeoAnalyticsRoute
   '/_authenticated/admin/testers': typeof AuthenticatedAdminTestersRoute
   '/_authenticated/debug/crashlytics': typeof AuthenticatedDebugCrashlyticsRoute
   '/_authenticated/insights/$metric': typeof AuthenticatedInsightsMetricRoute
   '/api/public/analytics': typeof ApiPublicAnalyticsRoute
   '/api/public/build-id': typeof ApiPublicBuildIdRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/api/public/hp': typeof ApiPublicHpRoute
   '/api/public/indexnow': typeof ApiPublicIndexnowRoute
   '/api/public/indexnow-ping': typeof ApiPublicIndexnowPingRoute
@@ -1946,10 +2461,12 @@ export interface FileRoutesById {
   '/api/public/hooks/send-workout-reminders': typeof ApiPublicHooksSendWorkoutRemindersRoute
   '/api/public/hooks/seo-monitor': typeof ApiPublicHooksSeoMonitorRoute
   '/api/public/hooks/sitemap-health': typeof ApiPublicHooksSitemapHealthRoute
+  '/api/public/hooks/sitemap-resubmit': typeof ApiPublicHooksSitemapResubmitRoute
   '/api/public/hooks/tester-onboarding-sequence': typeof ApiPublicHooksTesterOnboardingSequenceRoute
   '/api/public/hooks/trial-ending-reminders': typeof ApiPublicHooksTrialEndingRemindersRoute
   '/api/public/payments/revenuecat-webhook': typeof ApiPublicPaymentsRevenuecatWebhookRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/outrank': typeof ApiPublicWebhooksOutrankRoute
   '/blog/tag/$kind/$slug': typeof BlogTagKindSlugRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -1965,9 +2482,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/best-app-for-tracking-peptides-supplements-hormones'
     | '/best-biohacking-tracker-app'
+    | '/best-dose-tracking-apps'
     | '/best-glp-1-tracking-app'
     | '/best-health-stack-insights-app'
     | '/best-hormone-therapy-app-for-men'
+    | '/best-hrt-tracking-app-for-women'
+    | '/best-medication-reminder-app'
     | '/best-peptide-tracking-app'
     | '/best-supplement-tracker-app'
     | '/best-trt-tracking-app'
@@ -1983,18 +2503,23 @@ export interface FileRouteTypes {
     | '/editorial-policy'
     | '/faq'
     | '/feed.xml'
+    | '/health-tracking-blog'
     | '/install'
     | '/interaction-checker'
     | '/legal'
     | '/library'
     | '/llms-full.txt'
     | '/manual'
+    | '/mcp'
     | '/medical-disclaimer'
     | '/menopause-supplement-interaction-checker'
     | '/onboarding'
+    | '/peptide-calculator'
     | '/peptide-dosage-calculator'
     | '/peptide-interaction-checker'
     | '/peptide-reconstitution-calculator'
+    | '/peptides'
+    | '/peptides-calculator'
     | '/privacy'
     | '/promo-kit'
     | '/reconstitution-calculator'
@@ -2006,6 +2531,11 @@ export interface FileRouteTypes {
     | '/trt-dosage-calculator'
     | '/trt-supplement-interactions'
     | '/vs-supplement-planner'
+    | '/who-doseroutine-is-for'
+    | '/.mcp/list-tools'
+    | '/.well-known/apple-app-site-association'
+    | '/.well-known/oauth-protected-resource'
+    | '/account'
     | '/adherence'
     | '/body-metrics'
     | '/chat'
@@ -2019,9 +2549,12 @@ export interface FileRouteTypes {
     | '/health-sync'
     | '/injection-sites'
     | '/labs'
+    | '/meal-plan'
     | '/more'
     | '/notifications'
+    | '/pill-id'
     | '/plan'
+    | '/progress'
     | '/progress-photos'
     | '/redeem'
     | '/reminders'
@@ -2031,13 +2564,18 @@ export interface FileRouteTypes {
     | '/stack'
     | '/templates'
     | '/timeline'
+    | '/timer'
     | '/today'
     | '/trial'
     | '/upgrade'
     | '/api/chat'
+    | '/articles/$slug'
+    | '/articles/feed.xml'
     | '/auth/callback'
     | '/blog/$slug'
     | '/calculators/$slug'
+    | '/debug/deep-link'
+    | '/debug/env'
     | '/debug/index-check'
     | '/debug/noindex-audit'
     | '/for/biohackers'
@@ -2060,30 +2598,62 @@ export interface FileRouteTypes {
     | '/library/testosterone-support'
     | '/library/womens-health'
     | '/p/$token'
+    | '/peptides/bacteriostatic-water'
+    | '/peptides/bpc-157'
+    | '/peptides/cell-penetrating-peptides'
+    | '/peptides/cjc-1295-ipamorelin'
+    | '/peptides/collagen-peptides'
+    | '/peptides/how-to-reconstitute-peptides'
+    | '/peptides/how-to-vet-a-peptide-supplier'
+    | '/peptides/peptide-bond'
+    | '/peptides/peptide-dosage-chart'
+    | '/peptides/retatrutide-dosing'
+    | '/peptides/semax'
+    | '/peptides/tb-500'
+    | '/r/$publicId'
+    | '/vs/bearable'
     | '/vs/cronometer'
+    | '/vs/dosecast'
     | '/vs/medisafe'
+    | '/vs/myfitnesspal'
     | '/vs/mytherapy'
+    | '/vs/optipin'
+    | '/vs/peptide-tracker'
     | '/vs/pill-reminder'
     | '/vs/round-health'
+    | '/vs/spreadsheet'
+    | '/articles/'
     | '/blog/'
     | '/calculators/'
     | '/for/'
+    | '/goals/'
     | '/help/'
     | '/interactions/'
     | '/library/'
+    | '/peptides/'
     | '/vs/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/analytics'
     | '/admin/blog-seo'
+    | '/admin/content-calendar'
     | '/admin/cron-metrics'
+    | '/admin/device-smoke'
+    | '/admin/food-catalog'
+    | '/admin/health'
     | '/admin/install-funnel'
+    | '/admin/keyword-map'
     | '/admin/publish-impact'
+    | '/admin/scan-analytics'
     | '/admin/schema-report'
     | '/admin/search-console'
+    | '/admin/seo-analytics'
     | '/admin/testers'
     | '/debug/crashlytics'
     | '/insights/$metric'
     | '/api/public/analytics'
     | '/api/public/build-id'
+    | '/api/public/csp-report'
     | '/api/public/hp'
     | '/api/public/indexnow'
     | '/api/public/indexnow-ping'
@@ -2154,10 +2724,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/send-workout-reminders'
     | '/api/public/hooks/seo-monitor'
     | '/api/public/hooks/sitemap-health'
+    | '/api/public/hooks/sitemap-resubmit'
     | '/api/public/hooks/tester-onboarding-sequence'
     | '/api/public/hooks/trial-ending-reminders'
     | '/api/public/payments/revenuecat-webhook'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/outrank'
     | '/blog/tag/$kind/$slug'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -2171,9 +2743,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/best-app-for-tracking-peptides-supplements-hormones'
     | '/best-biohacking-tracker-app'
+    | '/best-dose-tracking-apps'
     | '/best-glp-1-tracking-app'
     | '/best-health-stack-insights-app'
     | '/best-hormone-therapy-app-for-men'
+    | '/best-hrt-tracking-app-for-women'
+    | '/best-medication-reminder-app'
     | '/best-peptide-tracking-app'
     | '/best-supplement-tracker-app'
     | '/best-trt-tracking-app'
@@ -2188,17 +2763,21 @@ export interface FileRouteTypes {
     | '/editorial-policy'
     | '/faq'
     | '/feed.xml'
+    | '/health-tracking-blog'
     | '/install'
     | '/interaction-checker'
     | '/legal'
     | '/llms-full.txt'
     | '/manual'
+    | '/mcp'
     | '/medical-disclaimer'
     | '/menopause-supplement-interaction-checker'
     | '/onboarding'
+    | '/peptide-calculator'
     | '/peptide-dosage-calculator'
     | '/peptide-interaction-checker'
     | '/peptide-reconstitution-calculator'
+    | '/peptides-calculator'
     | '/privacy'
     | '/promo-kit'
     | '/reconstitution-calculator'
@@ -2210,6 +2789,11 @@ export interface FileRouteTypes {
     | '/trt-dosage-calculator'
     | '/trt-supplement-interactions'
     | '/vs-supplement-planner'
+    | '/who-doseroutine-is-for'
+    | '/.mcp/list-tools'
+    | '/.well-known/apple-app-site-association'
+    | '/.well-known/oauth-protected-resource'
+    | '/account'
     | '/adherence'
     | '/body-metrics'
     | '/chat'
@@ -2223,9 +2807,12 @@ export interface FileRouteTypes {
     | '/health-sync'
     | '/injection-sites'
     | '/labs'
+    | '/meal-plan'
     | '/more'
     | '/notifications'
+    | '/pill-id'
     | '/plan'
+    | '/progress'
     | '/progress-photos'
     | '/redeem'
     | '/reminders'
@@ -2235,13 +2822,18 @@ export interface FileRouteTypes {
     | '/stack'
     | '/templates'
     | '/timeline'
+    | '/timer'
     | '/today'
     | '/trial'
     | '/upgrade'
     | '/api/chat'
+    | '/articles/$slug'
+    | '/articles/feed.xml'
     | '/auth/callback'
     | '/blog/$slug'
     | '/calculators/$slug'
+    | '/debug/deep-link'
+    | '/debug/env'
     | '/debug/index-check'
     | '/debug/noindex-audit'
     | '/for/biohackers'
@@ -2263,30 +2855,62 @@ export interface FileRouteTypes {
     | '/library/testosterone'
     | '/library/testosterone-support'
     | '/p/$token'
+    | '/peptides/bacteriostatic-water'
+    | '/peptides/bpc-157'
+    | '/peptides/cell-penetrating-peptides'
+    | '/peptides/cjc-1295-ipamorelin'
+    | '/peptides/collagen-peptides'
+    | '/peptides/how-to-reconstitute-peptides'
+    | '/peptides/how-to-vet-a-peptide-supplier'
+    | '/peptides/peptide-bond'
+    | '/peptides/peptide-dosage-chart'
+    | '/peptides/retatrutide-dosing'
+    | '/peptides/semax'
+    | '/peptides/tb-500'
+    | '/r/$publicId'
+    | '/vs/bearable'
     | '/vs/cronometer'
+    | '/vs/dosecast'
     | '/vs/medisafe'
+    | '/vs/myfitnesspal'
     | '/vs/mytherapy'
+    | '/vs/optipin'
+    | '/vs/peptide-tracker'
     | '/vs/pill-reminder'
     | '/vs/round-health'
+    | '/vs/spreadsheet'
+    | '/articles'
     | '/blog'
     | '/calculators'
     | '/for'
+    | '/goals'
     | '/help'
     | '/interactions'
     | '/library'
+    | '/peptides'
     | '/vs'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/analytics'
     | '/admin/blog-seo'
+    | '/admin/content-calendar'
     | '/admin/cron-metrics'
+    | '/admin/device-smoke'
+    | '/admin/food-catalog'
+    | '/admin/health'
     | '/admin/install-funnel'
+    | '/admin/keyword-map'
     | '/admin/publish-impact'
+    | '/admin/scan-analytics'
     | '/admin/schema-report'
     | '/admin/search-console'
+    | '/admin/seo-analytics'
     | '/admin/testers'
     | '/debug/crashlytics'
     | '/insights/$metric'
     | '/api/public/analytics'
     | '/api/public/build-id'
+    | '/api/public/csp-report'
     | '/api/public/hp'
     | '/api/public/indexnow'
     | '/api/public/indexnow-ping'
@@ -2357,10 +2981,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/send-workout-reminders'
     | '/api/public/hooks/seo-monitor'
     | '/api/public/hooks/sitemap-health'
+    | '/api/public/hooks/sitemap-resubmit'
     | '/api/public/hooks/tester-onboarding-sequence'
     | '/api/public/hooks/trial-ending-reminders'
     | '/api/public/payments/revenuecat-webhook'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/outrank'
     | '/blog/tag/$kind/$slug'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -2375,9 +3001,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/best-app-for-tracking-peptides-supplements-hormones'
     | '/best-biohacking-tracker-app'
+    | '/best-dose-tracking-apps'
     | '/best-glp-1-tracking-app'
     | '/best-health-stack-insights-app'
     | '/best-hormone-therapy-app-for-men'
+    | '/best-hrt-tracking-app-for-women'
+    | '/best-medication-reminder-app'
     | '/best-peptide-tracking-app'
     | '/best-supplement-tracker-app'
     | '/best-trt-tracking-app'
@@ -2393,18 +3022,23 @@ export interface FileRouteTypes {
     | '/editorial-policy'
     | '/faq'
     | '/feed.xml'
+    | '/health-tracking-blog'
     | '/install'
     | '/interaction-checker'
     | '/legal'
     | '/library'
     | '/llms-full.txt'
     | '/manual'
+    | '/mcp'
     | '/medical-disclaimer'
     | '/menopause-supplement-interaction-checker'
     | '/onboarding'
+    | '/peptide-calculator'
     | '/peptide-dosage-calculator'
     | '/peptide-interaction-checker'
     | '/peptide-reconstitution-calculator'
+    | '/peptides'
+    | '/peptides-calculator'
     | '/privacy'
     | '/promo-kit'
     | '/reconstitution-calculator'
@@ -2416,6 +3050,11 @@ export interface FileRouteTypes {
     | '/trt-dosage-calculator'
     | '/trt-supplement-interactions'
     | '/vs-supplement-planner'
+    | '/who-doseroutine-is-for'
+    | '/.mcp/list-tools'
+    | '/.well-known/apple-app-site-association'
+    | '/.well-known/oauth-protected-resource'
+    | '/_authenticated/account'
     | '/_authenticated/adherence'
     | '/_authenticated/body-metrics'
     | '/_authenticated/chat'
@@ -2429,9 +3068,12 @@ export interface FileRouteTypes {
     | '/_authenticated/health-sync'
     | '/_authenticated/injection-sites'
     | '/_authenticated/labs'
+    | '/_authenticated/meal-plan'
     | '/_authenticated/more'
     | '/_authenticated/notifications'
+    | '/_authenticated/pill-id'
     | '/_authenticated/plan'
+    | '/_authenticated/progress'
     | '/_authenticated/progress-photos'
     | '/_authenticated/redeem'
     | '/_authenticated/reminders'
@@ -2441,13 +3083,18 @@ export interface FileRouteTypes {
     | '/_authenticated/stack'
     | '/_authenticated/templates'
     | '/_authenticated/timeline'
+    | '/_authenticated/timer'
     | '/_authenticated/today'
     | '/_authenticated/trial'
     | '/_authenticated/upgrade'
     | '/api/chat'
+    | '/articles/$slug'
+    | '/articles/feed.xml'
     | '/auth_/callback'
     | '/blog/$slug'
     | '/calculators/$slug'
+    | '/debug/deep-link'
+    | '/debug/env'
     | '/debug/index-check'
     | '/debug/noindex-audit'
     | '/for/biohackers'
@@ -2470,30 +3117,62 @@ export interface FileRouteTypes {
     | '/library/testosterone-support'
     | '/library/womens-health'
     | '/p/$token'
+    | '/peptides/bacteriostatic-water'
+    | '/peptides/bpc-157'
+    | '/peptides/cell-penetrating-peptides'
+    | '/peptides/cjc-1295-ipamorelin'
+    | '/peptides/collagen-peptides'
+    | '/peptides/how-to-reconstitute-peptides'
+    | '/peptides/how-to-vet-a-peptide-supplier'
+    | '/peptides/peptide-bond'
+    | '/peptides/peptide-dosage-chart'
+    | '/peptides/retatrutide-dosing'
+    | '/peptides/semax'
+    | '/peptides/tb-500'
+    | '/r/$publicId'
+    | '/vs/bearable'
     | '/vs/cronometer'
+    | '/vs/dosecast'
     | '/vs/medisafe'
+    | '/vs/myfitnesspal'
     | '/vs/mytherapy'
+    | '/vs/optipin'
+    | '/vs/peptide-tracker'
     | '/vs/pill-reminder'
     | '/vs/round-health'
+    | '/vs/spreadsheet'
+    | '/articles/'
     | '/blog/'
     | '/calculators/'
     | '/for/'
+    | '/goals/'
     | '/help/'
     | '/interactions/'
     | '/library/'
+    | '/peptides/'
     | '/vs/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/blog-seo'
+    | '/_authenticated/admin/content-calendar'
     | '/_authenticated/admin/cron-metrics'
+    | '/_authenticated/admin/device-smoke'
+    | '/_authenticated/admin/food-catalog'
+    | '/_authenticated/admin/health'
     | '/_authenticated/admin/install-funnel'
+    | '/_authenticated/admin/keyword-map'
     | '/_authenticated/admin/publish-impact'
+    | '/_authenticated/admin/scan-analytics'
     | '/_authenticated/admin/schema-report'
     | '/_authenticated/admin/search-console'
+    | '/_authenticated/admin/seo-analytics'
     | '/_authenticated/admin/testers'
     | '/_authenticated/debug/crashlytics'
     | '/_authenticated/insights/$metric'
     | '/api/public/analytics'
     | '/api/public/build-id'
+    | '/api/public/csp-report'
     | '/api/public/hp'
     | '/api/public/indexnow'
     | '/api/public/indexnow-ping'
@@ -2564,10 +3243,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/send-workout-reminders'
     | '/api/public/hooks/seo-monitor'
     | '/api/public/hooks/sitemap-health'
+    | '/api/public/hooks/sitemap-resubmit'
     | '/api/public/hooks/tester-onboarding-sequence'
     | '/api/public/hooks/trial-ending-reminders'
     | '/api/public/payments/revenuecat-webhook'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/outrank'
     | '/blog/tag/$kind/$slug'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -2583,9 +3264,12 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BestAppForTrackingPeptidesSupplementsHormonesRoute: typeof BestAppForTrackingPeptidesSupplementsHormonesRoute
   BestBiohackingTrackerAppRoute: typeof BestBiohackingTrackerAppRoute
+  BestDoseTrackingAppsRoute: typeof BestDoseTrackingAppsRoute
   BestGlp1TrackingAppRoute: typeof BestGlp1TrackingAppRoute
   BestHealthStackInsightsAppRoute: typeof BestHealthStackInsightsAppRoute
   BestHormoneTherapyAppForMenRoute: typeof BestHormoneTherapyAppForMenRoute
+  BestHrtTrackingAppForWomenRoute: typeof BestHrtTrackingAppForWomenRoute
+  BestMedicationReminderAppRoute: typeof BestMedicationReminderAppRoute
   BestPeptideTrackingAppRoute: typeof BestPeptideTrackingAppRoute
   BestSupplementTrackerAppRoute: typeof BestSupplementTrackerAppRoute
   BestTrtTrackingAppRoute: typeof BestTrtTrackingAppRoute
@@ -2601,18 +3285,23 @@ export interface RootRouteChildren {
   EditorialPolicyRoute: typeof EditorialPolicyRoute
   FaqRoute: typeof FaqRoute
   FeedDotxmlRoute: typeof FeedDotxmlRoute
+  HealthTrackingBlogRoute: typeof HealthTrackingBlogRoute
   InstallRoute: typeof InstallRoute
   InteractionCheckerRoute: typeof InteractionCheckerRoute
   LegalRoute: typeof LegalRoute
   LibraryRoute: typeof LibraryRouteWithChildren
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   ManualRoute: typeof ManualRoute
+  McpRoute: typeof McpRoute
   MedicalDisclaimerRoute: typeof MedicalDisclaimerRoute
   MenopauseSupplementInteractionCheckerRoute: typeof MenopauseSupplementInteractionCheckerRoute
   OnboardingRoute: typeof OnboardingRoute
+  PeptideCalculatorRoute: typeof PeptideCalculatorRoute
   PeptideDosageCalculatorRoute: typeof PeptideDosageCalculatorRoute
   PeptideInteractionCheckerRoute: typeof PeptideInteractionCheckerRoute
   PeptideReconstitutionCalculatorRoute: typeof PeptideReconstitutionCalculatorRoute
+  PeptidesRoute: typeof PeptidesRouteWithChildren
+  PeptidesCalculatorRoute: typeof PeptidesCalculatorRoute
   PrivacyRoute: typeof PrivacyRoute
   PromoKitRoute: typeof PromoKitRoute
   ReconstitutionCalculatorRoute: typeof ReconstitutionCalculatorRoute
@@ -2624,9 +3313,17 @@ export interface RootRouteChildren {
   TrtDosageCalculatorRoute: typeof TrtDosageCalculatorRoute
   TrtSupplementInteractionsRoute: typeof TrtSupplementInteractionsRoute
   VsSupplementPlannerRoute: typeof VsSupplementPlannerRoute
+  WhoDoseroutineIsForRoute: typeof WhoDoseroutineIsForRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93AppleAppSiteAssociationRoute: typeof Char91DotwellKnownChar93AppleAppSiteAssociationRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
+  ArticlesSlugRoute: typeof ArticlesSlugRoute
+  ArticlesFeedDotxmlRoute: typeof ArticlesFeedDotxmlRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  DebugDeepLinkRoute: typeof DebugDeepLinkRoute
+  DebugEnvRoute: typeof DebugEnvRoute
   DebugIndexCheckRoute: typeof DebugIndexCheckRoute
   DebugNoindexAuditRoute: typeof DebugNoindexAuditRoute
   ForBiohackersRoute: typeof ForBiohackersRoute
@@ -2637,18 +3334,30 @@ export interface RootRouteChildren {
   HelpSlugRoute: typeof HelpSlugRoute
   InteractionsPairRoute: typeof InteractionsPairRoute
   PTokenRoute: typeof PTokenRoute
+  RPublicIdRoute: typeof RPublicIdRoute
+  VsBearableRoute: typeof VsBearableRoute
   VsCronometerRoute: typeof VsCronometerRoute
+  VsDosecastRoute: typeof VsDosecastRoute
   VsMedisafeRoute: typeof VsMedisafeRoute
+  VsMyfitnesspalRoute: typeof VsMyfitnesspalRoute
   VsMytherapyRoute: typeof VsMytherapyRoute
+  VsOptipinRoute: typeof VsOptipinRoute
+  VsPeptideTrackerRoute: typeof VsPeptideTrackerRoute
   VsPillReminderRoute: typeof VsPillReminderRoute
   VsRoundHealthRoute: typeof VsRoundHealthRoute
+  VsSpreadsheetRoute: typeof VsSpreadsheetRoute
+  ArticlesIndexRoute: typeof ArticlesIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ForIndexRoute: typeof ForIndexRoute
+  GoalsIndexRoute: typeof GoalsIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
   InteractionsIndexRoute: typeof InteractionsIndexRoute
   VsIndexRoute: typeof VsIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicAnalyticsRoute: typeof ApiPublicAnalyticsRoute
   ApiPublicBuildIdRoute: typeof ApiPublicBuildIdRoute
+  ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   ApiPublicHpRoute: typeof ApiPublicHpRoute
   ApiPublicIndexnowRoute: typeof ApiPublicIndexnowRoute
   ApiPublicIndexnowPingRoute: typeof ApiPublicIndexnowPingRoute
@@ -2671,10 +3380,12 @@ export interface RootRouteChildren {
   ApiPublicHooksSendWorkoutRemindersRoute: typeof ApiPublicHooksSendWorkoutRemindersRoute
   ApiPublicHooksSeoMonitorRoute: typeof ApiPublicHooksSeoMonitorRoute
   ApiPublicHooksSitemapHealthRoute: typeof ApiPublicHooksSitemapHealthRoute
+  ApiPublicHooksSitemapResubmitRoute: typeof ApiPublicHooksSitemapResubmitRoute
   ApiPublicHooksTesterOnboardingSequenceRoute: typeof ApiPublicHooksTesterOnboardingSequenceRoute
   ApiPublicHooksTrialEndingRemindersRoute: typeof ApiPublicHooksTrialEndingRemindersRoute
   ApiPublicPaymentsRevenuecatWebhookRoute: typeof ApiPublicPaymentsRevenuecatWebhookRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicWebhooksOutrankRoute: typeof ApiPublicWebhooksOutrankRoute
   BlogTagKindSlugRoute: typeof BlogTagKindSlugRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -2683,6 +3394,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/who-doseroutine-is-for': {
+      id: '/who-doseroutine-is-for'
+      path: '/who-doseroutine-is-for'
+      fullPath: '/who-doseroutine-is-for'
+      preLoaderRoute: typeof WhoDoseroutineIsForRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vs-supplement-planner': {
       id: '/vs-supplement-planner'
       path: '/vs-supplement-planner'
@@ -2760,6 +3478,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/peptides-calculator': {
+      id: '/peptides-calculator'
+      path: '/peptides-calculator'
+      fullPath: '/peptides-calculator'
+      preLoaderRoute: typeof PeptidesCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/peptides': {
+      id: '/peptides'
+      path: '/peptides'
+      fullPath: '/peptides'
+      preLoaderRoute: typeof PeptidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/peptide-reconstitution-calculator': {
       id: '/peptide-reconstitution-calculator'
       path: '/peptide-reconstitution-calculator'
@@ -2781,6 +3513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PeptideDosageCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/peptide-calculator': {
+      id: '/peptide-calculator'
+      path: '/peptide-calculator'
+      fullPath: '/peptide-calculator'
+      preLoaderRoute: typeof PeptideCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -2800,6 +3539,13 @@ declare module '@tanstack/react-router' {
       path: '/medical-disclaimer'
       fullPath: '/medical-disclaimer'
       preLoaderRoute: typeof MedicalDisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manual': {
@@ -2842,6 +3588,13 @@ declare module '@tanstack/react-router' {
       path: '/install'
       fullPath: '/install'
       preLoaderRoute: typeof InstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health-tracking-blog': {
+      id: '/health-tracking-blog'
+      path: '/health-tracking-blog'
+      fullPath: '/health-tracking-blog'
+      preLoaderRoute: typeof HealthTrackingBlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed.xml': {
@@ -2949,6 +3702,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BestPeptideTrackingAppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/best-medication-reminder-app': {
+      id: '/best-medication-reminder-app'
+      path: '/best-medication-reminder-app'
+      fullPath: '/best-medication-reminder-app'
+      preLoaderRoute: typeof BestMedicationReminderAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/best-hrt-tracking-app-for-women': {
+      id: '/best-hrt-tracking-app-for-women'
+      path: '/best-hrt-tracking-app-for-women'
+      fullPath: '/best-hrt-tracking-app-for-women'
+      preLoaderRoute: typeof BestHrtTrackingAppForWomenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/best-hormone-therapy-app-for-men': {
       id: '/best-hormone-therapy-app-for-men'
       path: '/best-hormone-therapy-app-for-men'
@@ -2968,6 +3735,13 @@ declare module '@tanstack/react-router' {
       path: '/best-glp-1-tracking-app'
       fullPath: '/best-glp-1-tracking-app'
       preLoaderRoute: typeof BestGlp1TrackingAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/best-dose-tracking-apps': {
+      id: '/best-dose-tracking-apps'
+      path: '/best-dose-tracking-apps'
+      fullPath: '/best-dose-tracking-apps'
+      preLoaderRoute: typeof BestDoseTrackingAppsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/best-biohacking-tracker-app': {
@@ -3033,6 +3807,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/peptides/': {
+      id: '/peptides/'
+      path: '/'
+      fullPath: '/peptides/'
+      preLoaderRoute: typeof PeptidesIndexRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
     '/library/': {
       id: '/library/'
       path: '/'
@@ -3052,6 +3833,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help/'
       preLoaderRoute: typeof HelpIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goals/': {
+      id: '/goals/'
+      path: '/goals'
+      fullPath: '/goals/'
+      preLoaderRoute: typeof GoalsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for/': {
@@ -3075,6 +3863,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/articles/': {
+      id: '/articles/'
+      path: '/articles'
+      fullPath: '/articles/'
+      preLoaderRoute: typeof ArticlesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vs/spreadsheet': {
+      id: '/vs/spreadsheet'
+      path: '/vs/spreadsheet'
+      fullPath: '/vs/spreadsheet'
+      preLoaderRoute: typeof VsSpreadsheetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vs/round-health': {
       id: '/vs/round-health'
       path: '/vs/round-health'
@@ -3089,11 +3891,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VsPillReminderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vs/peptide-tracker': {
+      id: '/vs/peptide-tracker'
+      path: '/vs/peptide-tracker'
+      fullPath: '/vs/peptide-tracker'
+      preLoaderRoute: typeof VsPeptideTrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vs/optipin': {
+      id: '/vs/optipin'
+      path: '/vs/optipin'
+      fullPath: '/vs/optipin'
+      preLoaderRoute: typeof VsOptipinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vs/mytherapy': {
       id: '/vs/mytherapy'
       path: '/vs/mytherapy'
       fullPath: '/vs/mytherapy'
       preLoaderRoute: typeof VsMytherapyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vs/myfitnesspal': {
+      id: '/vs/myfitnesspal'
+      path: '/vs/myfitnesspal'
+      fullPath: '/vs/myfitnesspal'
+      preLoaderRoute: typeof VsMyfitnesspalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vs/medisafe': {
@@ -3103,12 +3926,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VsMedisafeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vs/dosecast': {
+      id: '/vs/dosecast'
+      path: '/vs/dosecast'
+      fullPath: '/vs/dosecast'
+      preLoaderRoute: typeof VsDosecastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vs/cronometer': {
       id: '/vs/cronometer'
       path: '/vs/cronometer'
       fullPath: '/vs/cronometer'
       preLoaderRoute: typeof VsCronometerRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/vs/bearable': {
+      id: '/vs/bearable'
+      path: '/vs/bearable'
+      fullPath: '/vs/bearable'
+      preLoaderRoute: typeof VsBearableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/r/$publicId': {
+      id: '/r/$publicId'
+      path: '/r/$publicId'
+      fullPath: '/r/$publicId'
+      preLoaderRoute: typeof RPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/peptides/tb-500': {
+      id: '/peptides/tb-500'
+      path: '/tb-500'
+      fullPath: '/peptides/tb-500'
+      preLoaderRoute: typeof PeptidesTb500RouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/semax': {
+      id: '/peptides/semax'
+      path: '/semax'
+      fullPath: '/peptides/semax'
+      preLoaderRoute: typeof PeptidesSemaxRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/retatrutide-dosing': {
+      id: '/peptides/retatrutide-dosing'
+      path: '/retatrutide-dosing'
+      fullPath: '/peptides/retatrutide-dosing'
+      preLoaderRoute: typeof PeptidesRetatrutideDosingRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/peptide-dosage-chart': {
+      id: '/peptides/peptide-dosage-chart'
+      path: '/peptide-dosage-chart'
+      fullPath: '/peptides/peptide-dosage-chart'
+      preLoaderRoute: typeof PeptidesPeptideDosageChartRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/peptide-bond': {
+      id: '/peptides/peptide-bond'
+      path: '/peptide-bond'
+      fullPath: '/peptides/peptide-bond'
+      preLoaderRoute: typeof PeptidesPeptideBondRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/how-to-vet-a-peptide-supplier': {
+      id: '/peptides/how-to-vet-a-peptide-supplier'
+      path: '/how-to-vet-a-peptide-supplier'
+      fullPath: '/peptides/how-to-vet-a-peptide-supplier'
+      preLoaderRoute: typeof PeptidesHowToVetAPeptideSupplierRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/how-to-reconstitute-peptides': {
+      id: '/peptides/how-to-reconstitute-peptides'
+      path: '/how-to-reconstitute-peptides'
+      fullPath: '/peptides/how-to-reconstitute-peptides'
+      preLoaderRoute: typeof PeptidesHowToReconstitutePeptidesRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/collagen-peptides': {
+      id: '/peptides/collagen-peptides'
+      path: '/collagen-peptides'
+      fullPath: '/peptides/collagen-peptides'
+      preLoaderRoute: typeof PeptidesCollagenPeptidesRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/cjc-1295-ipamorelin': {
+      id: '/peptides/cjc-1295-ipamorelin'
+      path: '/cjc-1295-ipamorelin'
+      fullPath: '/peptides/cjc-1295-ipamorelin'
+      preLoaderRoute: typeof PeptidesCjc1295IpamorelinRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/cell-penetrating-peptides': {
+      id: '/peptides/cell-penetrating-peptides'
+      path: '/cell-penetrating-peptides'
+      fullPath: '/peptides/cell-penetrating-peptides'
+      preLoaderRoute: typeof PeptidesCellPenetratingPeptidesRouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/bpc-157': {
+      id: '/peptides/bpc-157'
+      path: '/bpc-157'
+      fullPath: '/peptides/bpc-157'
+      preLoaderRoute: typeof PeptidesBpc157RouteImport
+      parentRoute: typeof PeptidesRoute
+    }
+    '/peptides/bacteriostatic-water': {
+      id: '/peptides/bacteriostatic-water'
+      path: '/bacteriostatic-water'
+      fullPath: '/peptides/bacteriostatic-water'
+      preLoaderRoute: typeof PeptidesBacteriostaticWaterRouteImport
+      parentRoute: typeof PeptidesRoute
     }
     '/p/$token': {
       id: '/p/$token'
@@ -3264,6 +4192,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DebugIndexCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/debug/env': {
+      id: '/debug/env'
+      path: '/debug/env'
+      fullPath: '/debug/env'
+      preLoaderRoute: typeof DebugEnvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/deep-link': {
+      id: '/debug/deep-link'
+      path: '/debug/deep-link'
+      fullPath: '/debug/deep-link'
+      preLoaderRoute: typeof DebugDeepLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calculators/$slug': {
       id: '/calculators/$slug'
       path: '/$slug'
@@ -3283,6 +4225,20 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/articles/feed.xml': {
+      id: '/articles/feed.xml'
+      path: '/articles/feed.xml'
+      fullPath: '/articles/feed.xml'
+      preLoaderRoute: typeof ArticlesFeedDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/articles/$slug': {
+      id: '/articles/$slug'
+      path: '/articles/$slug'
+      fullPath: '/articles/$slug'
+      preLoaderRoute: typeof ArticlesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -3311,6 +4267,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/timer': {
+      id: '/_authenticated/timer'
+      path: '/timer'
+      fullPath: '/timer'
+      preLoaderRoute: typeof AuthenticatedTimerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/timeline': {
@@ -3376,11 +4339,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgressPhotosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/plan': {
       id: '/_authenticated/plan'
       path: '/plan'
       fullPath: '/plan'
       preLoaderRoute: typeof AuthenticatedPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pill-id': {
+      id: '/_authenticated/pill-id'
+      path: '/pill-id'
+      fullPath: '/pill-id'
+      preLoaderRoute: typeof AuthenticatedPillIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -3395,6 +4372,13 @@ declare module '@tanstack/react-router' {
       path: '/more'
       fullPath: '/more'
       preLoaderRoute: typeof AuthenticatedMoreRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meal-plan': {
+      id: '/_authenticated/meal-plan'
+      path: '/meal-plan'
+      fullPath: '/meal-plan'
+      preLoaderRoute: typeof AuthenticatedMealPlanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/labs': {
@@ -3487,6 +4471,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/adherence'
       preLoaderRoute: typeof AuthenticatedAdherenceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/apple-app-site-association': {
+      id: '/.well-known/apple-app-site-association'
+      path: '/.well-known/apple-app-site-association'
+      fullPath: '/.well-known/apple-app-site-association'
+      preLoaderRoute: typeof Char91DotwellKnownChar93AppleAppSiteAssociationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/library/womens-health/': {
       id: '/library/womens-health/'
@@ -3866,6 +4878,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/csp-report': {
+      id: '/api/public/csp-report'
+      path: '/api/public/csp-report'
+      fullPath: '/api/public/csp-report'
+      preLoaderRoute: typeof ApiPublicCspReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/build-id': {
       id: '/api/public/build-id'
       path: '/api/public/build-id'
@@ -3901,6 +4920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTestersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/seo-analytics': {
+      id: '/_authenticated/admin/seo-analytics'
+      path: '/admin/seo-analytics'
+      fullPath: '/admin/seo-analytics'
+      preLoaderRoute: typeof AuthenticatedAdminSeoAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/search-console': {
       id: '/_authenticated/admin/search-console'
       path: '/admin/search-console'
@@ -3915,11 +4941,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSchemaReportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/scan-analytics': {
+      id: '/_authenticated/admin/scan-analytics'
+      path: '/admin/scan-analytics'
+      fullPath: '/admin/scan-analytics'
+      preLoaderRoute: typeof AuthenticatedAdminScanAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/publish-impact': {
       id: '/_authenticated/admin/publish-impact'
       path: '/admin/publish-impact'
       fullPath: '/admin/publish-impact'
       preLoaderRoute: typeof AuthenticatedAdminPublishImpactRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/keyword-map': {
+      id: '/_authenticated/admin/keyword-map'
+      path: '/admin/keyword-map'
+      fullPath: '/admin/keyword-map'
+      preLoaderRoute: typeof AuthenticatedAdminKeywordMapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/install-funnel': {
@@ -3929,11 +4969,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInstallFunnelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/health': {
+      id: '/_authenticated/admin/health'
+      path: '/admin/health'
+      fullPath: '/admin/health'
+      preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/food-catalog': {
+      id: '/_authenticated/admin/food-catalog'
+      path: '/admin/food-catalog'
+      fullPath: '/admin/food-catalog'
+      preLoaderRoute: typeof AuthenticatedAdminFoodCatalogRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/device-smoke': {
+      id: '/_authenticated/admin/device-smoke'
+      path: '/admin/device-smoke'
+      fullPath: '/admin/device-smoke'
+      preLoaderRoute: typeof AuthenticatedAdminDeviceSmokeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/cron-metrics': {
       id: '/_authenticated/admin/cron-metrics'
       path: '/admin/cron-metrics'
       fullPath: '/admin/cron-metrics'
       preLoaderRoute: typeof AuthenticatedAdminCronMetricsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/content-calendar': {
+      id: '/_authenticated/admin/content-calendar'
+      path: '/admin/content-calendar'
+      fullPath: '/admin/content-calendar'
+      preLoaderRoute: typeof AuthenticatedAdminContentCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/blog-seo': {
@@ -3949,6 +5017,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
@@ -3978,6 +5060,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogTagKindSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/outrank': {
+      id: '/api/public/webhooks/outrank'
+      path: '/api/public/webhooks/outrank'
+      fullPath: '/api/public/webhooks/outrank'
+      preLoaderRoute: typeof ApiPublicWebhooksOutrankRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -4004,6 +5093,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/tester-onboarding-sequence'
       fullPath: '/api/public/hooks/tester-onboarding-sequence'
       preLoaderRoute: typeof ApiPublicHooksTesterOnboardingSequenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/sitemap-resubmit': {
+      id: '/api/public/hooks/sitemap-resubmit'
+      path: '/api/public/hooks/sitemap-resubmit'
+      fullPath: '/api/public/hooks/sitemap-resubmit'
+      preLoaderRoute: typeof ApiPublicHooksSitemapResubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/sitemap-health': {
@@ -4122,6 +5218,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdherenceRoute: typeof AuthenticatedAdherenceRoute
   AuthenticatedBodyMetricsRoute: typeof AuthenticatedBodyMetricsRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
@@ -4135,9 +5232,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHealthSyncRoute: typeof AuthenticatedHealthSyncRoute
   AuthenticatedInjectionSitesRoute: typeof AuthenticatedInjectionSitesRoute
   AuthenticatedLabsRoute: typeof AuthenticatedLabsRoute
+  AuthenticatedMealPlanRoute: typeof AuthenticatedMealPlanRoute
   AuthenticatedMoreRoute: typeof AuthenticatedMoreRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedPillIdRoute: typeof AuthenticatedPillIdRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedProgressPhotosRoute: typeof AuthenticatedProgressPhotosRoute
   AuthenticatedRedeemRoute: typeof AuthenticatedRedeemRoute
   AuthenticatedRemindersRoute: typeof AuthenticatedRemindersRoute
@@ -4147,16 +5247,24 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStackRoute: typeof AuthenticatedStackRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
+  AuthenticatedTimerRoute: typeof AuthenticatedTimerRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTrialRoute: typeof AuthenticatedTrialRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminBlogSeoRoute: typeof AuthenticatedAdminBlogSeoRoute
+  AuthenticatedAdminContentCalendarRoute: typeof AuthenticatedAdminContentCalendarRoute
   AuthenticatedAdminCronMetricsRoute: typeof AuthenticatedAdminCronMetricsRoute
+  AuthenticatedAdminDeviceSmokeRoute: typeof AuthenticatedAdminDeviceSmokeRoute
+  AuthenticatedAdminFoodCatalogRoute: typeof AuthenticatedAdminFoodCatalogRoute
+  AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
   AuthenticatedAdminInstallFunnelRoute: typeof AuthenticatedAdminInstallFunnelRoute
+  AuthenticatedAdminKeywordMapRoute: typeof AuthenticatedAdminKeywordMapRoute
   AuthenticatedAdminPublishImpactRoute: typeof AuthenticatedAdminPublishImpactRoute
+  AuthenticatedAdminScanAnalyticsRoute: typeof AuthenticatedAdminScanAnalyticsRoute
   AuthenticatedAdminSchemaReportRoute: typeof AuthenticatedAdminSchemaReportRoute
   AuthenticatedAdminSearchConsoleRoute: typeof AuthenticatedAdminSearchConsoleRoute
+  AuthenticatedAdminSeoAnalyticsRoute: typeof AuthenticatedAdminSeoAnalyticsRoute
   AuthenticatedAdminTestersRoute: typeof AuthenticatedAdminTestersRoute
   AuthenticatedDebugCrashlyticsRoute: typeof AuthenticatedDebugCrashlyticsRoute
   AuthenticatedInsightsMetricRoute: typeof AuthenticatedInsightsMetricRoute
@@ -4165,6 +5273,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdherenceRoute: AuthenticatedAdherenceRoute,
   AuthenticatedBodyMetricsRoute: AuthenticatedBodyMetricsRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
@@ -4178,9 +5287,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHealthSyncRoute: AuthenticatedHealthSyncRoute,
   AuthenticatedInjectionSitesRoute: AuthenticatedInjectionSitesRoute,
   AuthenticatedLabsRoute: AuthenticatedLabsRoute,
+  AuthenticatedMealPlanRoute: AuthenticatedMealPlanRoute,
   AuthenticatedMoreRoute: AuthenticatedMoreRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedPillIdRoute: AuthenticatedPillIdRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedProgressPhotosRoute: AuthenticatedProgressPhotosRoute,
   AuthenticatedRedeemRoute: AuthenticatedRedeemRoute,
   AuthenticatedRemindersRoute: AuthenticatedRemindersRoute,
@@ -4190,16 +5302,25 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStackRoute: AuthenticatedStackRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
+  AuthenticatedTimerRoute: AuthenticatedTimerRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTrialRoute: AuthenticatedTrialRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedAdminBlogSeoRoute: AuthenticatedAdminBlogSeoRoute,
+  AuthenticatedAdminContentCalendarRoute:
+    AuthenticatedAdminContentCalendarRoute,
   AuthenticatedAdminCronMetricsRoute: AuthenticatedAdminCronMetricsRoute,
+  AuthenticatedAdminDeviceSmokeRoute: AuthenticatedAdminDeviceSmokeRoute,
+  AuthenticatedAdminFoodCatalogRoute: AuthenticatedAdminFoodCatalogRoute,
+  AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
   AuthenticatedAdminInstallFunnelRoute: AuthenticatedAdminInstallFunnelRoute,
+  AuthenticatedAdminKeywordMapRoute: AuthenticatedAdminKeywordMapRoute,
   AuthenticatedAdminPublishImpactRoute: AuthenticatedAdminPublishImpactRoute,
+  AuthenticatedAdminScanAnalyticsRoute: AuthenticatedAdminScanAnalyticsRoute,
   AuthenticatedAdminSchemaReportRoute: AuthenticatedAdminSchemaReportRoute,
   AuthenticatedAdminSearchConsoleRoute: AuthenticatedAdminSearchConsoleRoute,
+  AuthenticatedAdminSeoAnalyticsRoute: AuthenticatedAdminSeoAnalyticsRoute,
   AuthenticatedAdminTestersRoute: AuthenticatedAdminTestersRoute,
   AuthenticatedDebugCrashlyticsRoute: AuthenticatedDebugCrashlyticsRoute,
   AuthenticatedInsightsMetricRoute: AuthenticatedInsightsMetricRoute,
@@ -4385,6 +5506,43 @@ const LibraryRouteChildren: LibraryRouteChildren = {
 const LibraryRouteWithChildren =
   LibraryRoute._addFileChildren(LibraryRouteChildren)
 
+interface PeptidesRouteChildren {
+  PeptidesBacteriostaticWaterRoute: typeof PeptidesBacteriostaticWaterRoute
+  PeptidesBpc157Route: typeof PeptidesBpc157Route
+  PeptidesCellPenetratingPeptidesRoute: typeof PeptidesCellPenetratingPeptidesRoute
+  PeptidesCjc1295IpamorelinRoute: typeof PeptidesCjc1295IpamorelinRoute
+  PeptidesCollagenPeptidesRoute: typeof PeptidesCollagenPeptidesRoute
+  PeptidesHowToReconstitutePeptidesRoute: typeof PeptidesHowToReconstitutePeptidesRoute
+  PeptidesHowToVetAPeptideSupplierRoute: typeof PeptidesHowToVetAPeptideSupplierRoute
+  PeptidesPeptideBondRoute: typeof PeptidesPeptideBondRoute
+  PeptidesPeptideDosageChartRoute: typeof PeptidesPeptideDosageChartRoute
+  PeptidesRetatrutideDosingRoute: typeof PeptidesRetatrutideDosingRoute
+  PeptidesSemaxRoute: typeof PeptidesSemaxRoute
+  PeptidesTb500Route: typeof PeptidesTb500Route
+  PeptidesIndexRoute: typeof PeptidesIndexRoute
+}
+
+const PeptidesRouteChildren: PeptidesRouteChildren = {
+  PeptidesBacteriostaticWaterRoute: PeptidesBacteriostaticWaterRoute,
+  PeptidesBpc157Route: PeptidesBpc157Route,
+  PeptidesCellPenetratingPeptidesRoute: PeptidesCellPenetratingPeptidesRoute,
+  PeptidesCjc1295IpamorelinRoute: PeptidesCjc1295IpamorelinRoute,
+  PeptidesCollagenPeptidesRoute: PeptidesCollagenPeptidesRoute,
+  PeptidesHowToReconstitutePeptidesRoute:
+    PeptidesHowToReconstitutePeptidesRoute,
+  PeptidesHowToVetAPeptideSupplierRoute: PeptidesHowToVetAPeptideSupplierRoute,
+  PeptidesPeptideBondRoute: PeptidesPeptideBondRoute,
+  PeptidesPeptideDosageChartRoute: PeptidesPeptideDosageChartRoute,
+  PeptidesRetatrutideDosingRoute: PeptidesRetatrutideDosingRoute,
+  PeptidesSemaxRoute: PeptidesSemaxRoute,
+  PeptidesTb500Route: PeptidesTb500Route,
+  PeptidesIndexRoute: PeptidesIndexRoute,
+}
+
+const PeptidesRouteWithChildren = PeptidesRoute._addFileChildren(
+  PeptidesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -4395,9 +5553,12 @@ const rootRouteChildren: RootRouteChildren = {
   BestAppForTrackingPeptidesSupplementsHormonesRoute:
     BestAppForTrackingPeptidesSupplementsHormonesRoute,
   BestBiohackingTrackerAppRoute: BestBiohackingTrackerAppRoute,
+  BestDoseTrackingAppsRoute: BestDoseTrackingAppsRoute,
   BestGlp1TrackingAppRoute: BestGlp1TrackingAppRoute,
   BestHealthStackInsightsAppRoute: BestHealthStackInsightsAppRoute,
   BestHormoneTherapyAppForMenRoute: BestHormoneTherapyAppForMenRoute,
+  BestHrtTrackingAppForWomenRoute: BestHrtTrackingAppForWomenRoute,
+  BestMedicationReminderAppRoute: BestMedicationReminderAppRoute,
   BestPeptideTrackingAppRoute: BestPeptideTrackingAppRoute,
   BestSupplementTrackerAppRoute: BestSupplementTrackerAppRoute,
   BestTrtTrackingAppRoute: BestTrtTrackingAppRoute,
@@ -4413,19 +5574,24 @@ const rootRouteChildren: RootRouteChildren = {
   EditorialPolicyRoute: EditorialPolicyRoute,
   FaqRoute: FaqRoute,
   FeedDotxmlRoute: FeedDotxmlRoute,
+  HealthTrackingBlogRoute: HealthTrackingBlogRoute,
   InstallRoute: InstallRoute,
   InteractionCheckerRoute: InteractionCheckerRoute,
   LegalRoute: LegalRoute,
   LibraryRoute: LibraryRouteWithChildren,
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   ManualRoute: ManualRoute,
+  McpRoute: McpRoute,
   MedicalDisclaimerRoute: MedicalDisclaimerRoute,
   MenopauseSupplementInteractionCheckerRoute:
     MenopauseSupplementInteractionCheckerRoute,
   OnboardingRoute: OnboardingRoute,
+  PeptideCalculatorRoute: PeptideCalculatorRoute,
   PeptideDosageCalculatorRoute: PeptideDosageCalculatorRoute,
   PeptideInteractionCheckerRoute: PeptideInteractionCheckerRoute,
   PeptideReconstitutionCalculatorRoute: PeptideReconstitutionCalculatorRoute,
+  PeptidesRoute: PeptidesRouteWithChildren,
+  PeptidesCalculatorRoute: PeptidesCalculatorRoute,
   PrivacyRoute: PrivacyRoute,
   PromoKitRoute: PromoKitRoute,
   ReconstitutionCalculatorRoute: ReconstitutionCalculatorRoute,
@@ -4437,9 +5603,19 @@ const rootRouteChildren: RootRouteChildren = {
   TrtDosageCalculatorRoute: TrtDosageCalculatorRoute,
   TrtSupplementInteractionsRoute: TrtSupplementInteractionsRoute,
   VsSupplementPlannerRoute: VsSupplementPlannerRoute,
+  WhoDoseroutineIsForRoute: WhoDoseroutineIsForRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93AppleAppSiteAssociationRoute:
+    Char91DotwellKnownChar93AppleAppSiteAssociationRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
+  ArticlesSlugRoute: ArticlesSlugRoute,
+  ArticlesFeedDotxmlRoute: ArticlesFeedDotxmlRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
+  DebugDeepLinkRoute: DebugDeepLinkRoute,
+  DebugEnvRoute: DebugEnvRoute,
   DebugIndexCheckRoute: DebugIndexCheckRoute,
   DebugNoindexAuditRoute: DebugNoindexAuditRoute,
   ForBiohackersRoute: ForBiohackersRoute,
@@ -4450,18 +5626,30 @@ const rootRouteChildren: RootRouteChildren = {
   HelpSlugRoute: HelpSlugRoute,
   InteractionsPairRoute: InteractionsPairRoute,
   PTokenRoute: PTokenRoute,
+  RPublicIdRoute: RPublicIdRoute,
+  VsBearableRoute: VsBearableRoute,
   VsCronometerRoute: VsCronometerRoute,
+  VsDosecastRoute: VsDosecastRoute,
   VsMedisafeRoute: VsMedisafeRoute,
+  VsMyfitnesspalRoute: VsMyfitnesspalRoute,
   VsMytherapyRoute: VsMytherapyRoute,
+  VsOptipinRoute: VsOptipinRoute,
+  VsPeptideTrackerRoute: VsPeptideTrackerRoute,
   VsPillReminderRoute: VsPillReminderRoute,
   VsRoundHealthRoute: VsRoundHealthRoute,
+  VsSpreadsheetRoute: VsSpreadsheetRoute,
+  ArticlesIndexRoute: ArticlesIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   ForIndexRoute: ForIndexRoute,
+  GoalsIndexRoute: GoalsIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
   InteractionsIndexRoute: InteractionsIndexRoute,
   VsIndexRoute: VsIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicAnalyticsRoute: ApiPublicAnalyticsRoute,
   ApiPublicBuildIdRoute: ApiPublicBuildIdRoute,
+  ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   ApiPublicHpRoute: ApiPublicHpRoute,
   ApiPublicIndexnowRoute: ApiPublicIndexnowRoute,
   ApiPublicIndexnowPingRoute: ApiPublicIndexnowPingRoute,
@@ -4486,6 +5674,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksSendWorkoutRemindersRoute,
   ApiPublicHooksSeoMonitorRoute: ApiPublicHooksSeoMonitorRoute,
   ApiPublicHooksSitemapHealthRoute: ApiPublicHooksSitemapHealthRoute,
+  ApiPublicHooksSitemapResubmitRoute: ApiPublicHooksSitemapResubmitRoute,
   ApiPublicHooksTesterOnboardingSequenceRoute:
     ApiPublicHooksTesterOnboardingSequenceRoute,
   ApiPublicHooksTrialEndingRemindersRoute:
@@ -4493,6 +5682,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaymentsRevenuecatWebhookRoute:
     ApiPublicPaymentsRevenuecatWebhookRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicWebhooksOutrankRoute: ApiPublicWebhooksOutrankRoute,
   BlogTagKindSlugRoute: BlogTagKindSlugRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

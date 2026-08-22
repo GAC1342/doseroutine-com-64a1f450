@@ -1,3 +1,6 @@
+import { FEATURE_VISUAL_BY_ID, featureSocialMeta } from "@/lib/feature-visuals";
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -18,14 +21,15 @@ import { AeoFaq } from "@/components/aeo-faq";
 import { aeoFaqScript, aeoPageFields } from "@/lib/aeo";
 import { CALCULATORS_FAQ, LAST_REVIEWED } from "@/lib/aeo-page-faqs";
 import { CALCULATOR_PAGES } from "@/lib/compound-calculators";
+import { CalculatorScopeNote } from "@/components/calculator-scope-note";
 
-const CANONICAL = "https://doseroutine.com/calculators";
+export const CANONICAL = "https://doseroutine.com/calculators";
 const TITLE = "All Dose Calculators — Peptide, TRT & Reconstitution";
 const DESC =
   "Every DoseRoutine calculator in one place: peptide dosage, reconstitution, TRT dosing, unit conversions and stack planning. Free, no sign-up needed.";
 
 // Every calculator-shaped URL in the sitemap. Keep in sync with sitemap.xml.ts.
-const CALCULATORS: {
+export const CALCULATORS: {
   to: string;
   label: string;
   description: string;
@@ -38,9 +42,15 @@ const CALCULATORS: {
     icon: Calculator,
   },
   {
+    to: "/peptide-calculator",
+    label: "Peptide calculator",
+    description: "Vial strength plus BAC water to concentration, syringe units and doses per vial.",
+    icon: Calculator,
+  },
+  {
     to: "/peptide-dosage-calculator",
-    label: "Peptide dosage calculator",
-    description: "Convert any peptide dose into exact insulin-syringe units.",
+    label: "Peptide dosage guide",
+    description: "How mg and mcg doses become insulin-syringe units, with worked vial examples.",
     icon: Calculator,
   },
   {
@@ -94,6 +104,7 @@ export const Route = createFileRoute("/calculators/")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
+      ...featureSocialMeta(FEATURE_VISUAL_BY_ID["reconstitution"]!),
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/calculators")],
@@ -123,7 +134,7 @@ export const Route = createFileRoute("/calculators/")({
                 dateModified: LAST_REVIEWED,
                 datePublished: "2026-02-10",
                 shortAnswer:
-                  "DoseRoutine's calculators are free unit converters. Enter your vial size, the bacteriostatic water you added, and the amount you were given, and they return the reading in syringe units and millilitres. They never recommend an amount.",
+                  "DoseRoutine's calculators are free unit converters. Enter your vial size, the bacteriostatic water you added, and the amount you were given, and they return the reading in syringe units and milliliters. They never recommend an amount.",
                 about: [
                   "Peptide reconstitution",
                   "Insulin syringe",
@@ -192,6 +203,7 @@ function CalculatorsIndex() {
             Every free calculator on DoseRoutine, listed on one page so search engines and readers
             can find them fast.
           </p>
+          <CalculatorScopeNote className="mt-8" />
         </div>
       </section>
 
@@ -240,8 +252,8 @@ function CalculatorsIndex() {
             Calculators by compound
           </h2>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Same reconstitution maths, pre-filled with the vial sizes and dose ranges people
-            actually use for each compound.
+            Same reconstitution math, pre-filled with the vial sizes and dose ranges people actually
+            use for each compound.
           </p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {CALCULATOR_PAGES.map((p) => (
@@ -270,6 +282,11 @@ function CalculatorsIndex() {
         <AeoFaq pairs={CALCULATORS_FAQ} heading="Calculator FAQ" />
       </section>
 
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="calculators-index" />
+        </ProseContainer>
+      </ProseContainer>
       <AttributionFooter sourceUrl={CANONICAL} />
     </main>
   );

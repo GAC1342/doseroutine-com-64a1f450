@@ -1,8 +1,9 @@
 import { assetUrl } from "@/lib/asset-url";
 import { BrandLogo } from "@/components/brand-logo";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { markProfileGateComplete } from "@/lib/profile-gate-cache";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Loader2 } from "lucide-react";
 import { todayInBrowserZone } from "@/lib/day-key";
@@ -12,6 +13,11 @@ import {
   watchOnboardingLanding,
 } from "@/lib/onboarding-telemetry";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
+import { withDeadline } from "@/lib/promise-timeout";
+import { AuthFlowError } from "@/components/auth-flow-error";
+
+const AUTH_TIMEOUT_MS = 8000;
+const PROFILE_TIMEOUT_MS = 6000;
 
 export const Route = createFileRoute("/onboarding")({
   ssr: false,
@@ -35,20 +41,53 @@ export const Route = createFileRoute("/onboarding")({
     links: [{ rel: "canonical", href: "https://doseroutine.com/onboarding" }],
   }),
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
+    // Bound every network wait: a hung request must not leave a new user
+    // staring at a blank first-run screen.
+    const { data, error } = await withDeadline(supabase.auth.getUser(), AUTH_TIMEOUT_MS, {
+      data: { user: null },
+      error: new Error("timeout"),
+    } as Awaited<ReturnType<typeof supabase.auth.getUser>>);
     if (error || !data.user) throw redirect({ to: "/auth" });
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_adult, consented_at")
-      .eq("id", data.user.id)
-      .maybeSingle();
-    if (profile?.is_adult && profile?.consented_at) {
-      throw redirect({ to: "/today" });
+    try {
+      const profile = await withDeadline<{
+        is_adult: boolean | null;
+        consented_at: string | null;
+      } | null>(
+        supabase
+          .from("profiles")
+          .select("is_adult, consented_at")
+          .eq("id", data.user.id)
+          .maybeSingle()
+          .then((r) => r.data),
+        PROFILE_TIMEOUT_MS,
+        null,
+      );
+      if (profile?.is_adult && profile?.consented_at) {
+        throw redirect({ to: "/today" });
+      }
+    } catch (e) {
+      // Redirects are thrown control flow — never swallow them.
+      if (e && typeof e === "object" && ("to" in e || "isRedirect" in e)) throw e;
+      // A profile read failure must not dead-end onboarding: let it render,
+      // but report it so silent backend failures on fresh installs are visible.
+      reportLovableError(e, { context: "onboarding.beforeLoad.profile" });
     }
     return { userId: data.user.id };
   },
+  errorComponent: AuthFlowError,
+  pendingComponent: OnboardingPending,
+  pendingMs: 300,
   component: OnboardingPage,
 });
+
+function OnboardingPending() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 bg-background text-muted-foreground">
+      <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+      <p className="text-sm">Getting your setup ready…</p>
+    </div>
+  );
+}
 
 type UnitPref = "metric" | "imperial";
 type Sex = "male" | "female" | "other" | "prefer_not";
@@ -114,6 +153,9 @@ function OnboardingPage() {
   // Step 5 — goals
   const [goals, setGoals] = useState<string[]>([]);
 
+  /** Set when the profile saved but the follow-up navigation failed. */
+  const pendingNavTargetRef = useRef<string | null>(null);
+
   const steps = ["Age", "Consent", "About you", "Focus", "Goals"];
   const [skippedStats, setSkippedStats] = useState(false);
   const canNext = (() => {
@@ -142,6 +184,23 @@ function OnboardingPage() {
   async function handleFinish() {
     setError(null);
     setSaving(true);
+
+    // The profile already saved and only the navigation failed: retry just the
+    // navigation instead of re-running the whole save.
+    const pendingTarget = pendingNavTargetRef.current;
+    if (pendingTarget) {
+      try {
+        await navigate({ to: pendingTarget, replace: true });
+        pendingNavTargetRef.current = null;
+      } catch {
+        setError(
+          "Still couldn't open the next screen. Check your connection and tap Finish again.",
+        );
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
 
     const startedAt = performance.now();
     const stopCapture = captureOnboardingErrors(userId);
@@ -185,25 +244,17 @@ function OnboardingPage() {
       }
       logOnboardingEvent({ userId, event: "profile_update_ok", ok: true, elapsedMs: since() });
 
-      // The authenticated layout caches this gate for 5 minutes. Without refreshing it
-      // here, it still sees the pre-onboarding profile and bounces back to /onboarding,
-      // which bounces to /today — a redirect loop that renders a blank screen.
-      try {
-        queryClient.setQueryData(["profile-gate", userId], {
-          is_adult: true,
-          consented_at: new Date().toISOString(),
-        });
-        await queryClient.invalidateQueries({ queryKey: ["profile-gate", userId] });
-        logOnboardingEvent({ userId, event: "gate_refresh_ok", ok: true, elapsedMs: since() });
-      } catch (gateErr) {
-        logOnboardingEvent({
-          userId,
-          event: "gate_refresh_error",
-          ok: false,
-          errorMessage: gateErr instanceof Error ? gateErr.message : String(gateErr),
-          elapsedMs: since(),
-        });
-      }
+      // The authenticated layout caches this gate for 5 minutes. Refreshing it
+      // here is what stops the /onboarding ⇄ /today redirect loop. The logic
+      // lives in `markProfileGateComplete` (see profile-gate-cache.ts) so it
+      // can't be lost by a future edit to this handler.
+      const gateOk = await markProfileGateComplete(queryClient, userId);
+      logOnboardingEvent({
+        userId,
+        event: gateOk ? "gate_refresh_ok" : "gate_refresh_error",
+        ok: gateOk,
+        elapsedMs: since(),
+      });
 
       // New signups (not grandfathered) hit the trial paywall before /today.
       const { data: profile } = await supabase
@@ -241,6 +292,15 @@ function OnboardingPage() {
           landingPath: typeof window !== "undefined" ? window.location.pathname : null,
         });
         reportLovableError(navErr, { source: "onboarding_finish", target });
+        pendingNavTargetRef.current = target;
+        // L1 — don't dead-end on a second tap: the profile is already saved,
+        // so hand the navigation to the browser/webview directly. The retry
+        // message only appears if even that is unavailable (SSR/tests).
+        if (typeof window !== "undefined") {
+          setError("Finishing setup…");
+          window.location.assign(target);
+          return;
+        }
         setError("We saved your profile but couldn't open the next screen. Tap Finish again.");
       } finally {
         setSaving(false);
@@ -314,7 +374,7 @@ function OnboardingPage() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg bg-[color:var(--severity-avoid-bg))] px-3 py-2 text-sm text-[color:var(--severity-avoid)]">
+          <p className="mt-4 rounded-lg bg-[color:var(--severity-avoid-bg)] px-3 py-2 text-sm text-[color:var(--severity-avoid)]">
             {error}
           </p>
         )}
@@ -546,7 +606,9 @@ function StatsStep(props: {
               aria-label={`Use ${u} units`}
               aria-pressed={unitPref === u}
               className={`rounded-md px-3 py-1.5 capitalize ${
-                unitPref === u ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                unitPref === u
+                  ? "border border-border bg-card font-semibold text-primary shadow-sm"
+                  : "border border-transparent text-foreground/75 hover:text-foreground"
               }`}
             >
               {u}

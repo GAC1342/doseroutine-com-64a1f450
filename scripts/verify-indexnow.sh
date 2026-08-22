@@ -15,7 +15,7 @@
 #   --base URL          target base URL         (env: BASE_URL,          default: https://doseroutine.com)
 #   --path PATH         endpoint path            (env: INDEXNOW_PATH,     default: /api/public/indexnow-ping)
 #   --secret VALUE      cron secret              (env: CRON_SECRET,       required)
-#   --secret-param NAME query-param name         (env: INDEXNOW_SECRET_PARAM, default: secret)
+#   --secret-header NAME header name for secret  (env: INDEXNOW_SECRET_HEADER, default: x-cron-secret)
 #   --retries N         retry count              (env: RETRIES,           default: 6)
 #   --sleep N           seconds between retries  (env: SLEEP,             default: 10)
 #   -h | --help         show this help
@@ -30,7 +30,7 @@ usage() { sed -n '2,26p' "$0"; }
 BASE="${BASE_URL:-https://doseroutine.com}"
 INDEXNOW_PATH="${INDEXNOW_PATH:-/api/public/indexnow-ping}"
 SECRET="${CRON_SECRET:-}"
-SECRET_PARAM="${INDEXNOW_SECRET_PARAM:-secret}"
+SECRET_HEADER="${INDEXNOW_SECRET_HEADER:-x-cron-secret}"
 RETRIES="${RETRIES:-6}"
 SLEEP_SECS="${SLEEP:-10}"
 
@@ -39,7 +39,9 @@ while (( "$#" )); do
     --base)          BASE="$2"; shift 2 ;;
     --path)          INDEXNOW_PATH="$2"; shift 2 ;;
     --secret)        SECRET="$2"; shift 2 ;;
-    --secret-param)  SECRET_PARAM="$2"; shift 2 ;;
+    --secret-header) SECRET_HEADER="$2"; shift 2 ;;
+    --secret-param)  # legacy flag: the secret is sent as a header now
+                     shift 2 ;;
     --retries)       RETRIES="$2"; shift 2 ;;
     --sleep)         SLEEP_SECS="$2"; shift 2 ;;
     -h|--help)       usage; exit 0 ;;
@@ -61,10 +63,9 @@ if [[ -z "$SECRET" ]]; then
   exit 2
 fi
 
-URL="${BASE}${INDEXNOW_PATH}?${SECRET_PARAM}=${SECRET}"
-SAFE_URL="${BASE}${INDEXNOW_PATH}?${SECRET_PARAM}=***"
+URL="${BASE}${INDEXNOW_PATH}"
 
-echo "▶ IndexNow post-deploy verification → $SAFE_URL"
+echo "▶ IndexNow post-deploy verification → $URL (secret sent via ${SECRET_HEADER} header)"
 echo "  retries=$RETRIES  sleep=${SLEEP_SECS}s"
 
 attempt=1
@@ -73,7 +74,8 @@ while (( attempt <= RETRIES )); do
   echo "── attempt $attempt/$RETRIES ──"
 
   tmp="$(mktemp)"
-  code="$(curl -sSL --max-time 30 -o "$tmp" -w "%{http_code}" "$URL" || echo "000")"
+  code="$(curl -sSL --max-time 30 -H "${SECRET_HEADER}: ${SECRET}" \
+    -o "$tmp" -w "%{http_code}" "$URL" || echo "000")"
   body="$(cat "$tmp")"
   rm -f "$tmp"
 

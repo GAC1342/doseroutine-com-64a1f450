@@ -47,20 +47,23 @@ export function validateBlogSocialMeta(post: BlogPost): SocialMetaResult {
 
   const ogDescription = get("og:description");
   if (!ogDescription) push("og:description", "missing og:description");
-  else if (ogDescription.length > 200) push("og:description", `${ogDescription.length} chars (max 200)`);
+  else if (ogDescription.length > 200)
+    push("og:description", `${ogDescription.length} chars (max 200)`);
 
   const ogType = get("og:type");
   if (ogType !== "article") push("og:type", `expected "article", got "${ogType || "none"}"`);
 
   const ogUrl = get("og:url");
   if (!ogUrl.startsWith("https://")) push("og:url", "missing absolute https og:url");
-  else if (!ogUrl.includes(`/blog/${slug}`)) push("og:url", `og:url does not self-reference: ${ogUrl}`);
+  else if (!ogUrl.includes(`/blog/${slug}`))
+    push("og:url", `og:url does not self-reference: ${ogUrl}`);
 
   if (!get("og:site_name")) push("og:site_name", "missing og:site_name");
 
   const ogImage = get("og:image");
   if (!ogImage.startsWith("https://")) push("og:image", "missing absolute https og:image");
-  else if (!IMAGE_EXT.test(ogImage)) push("og:image", `og:image has no image extension: ${ogImage}`);
+  else if (!IMAGE_EXT.test(ogImage))
+    push("og:image", `og:image has no image extension: ${ogImage}`);
   if (!get("og:image:alt")) push("og:image:alt", "missing og:image:alt");
 
   // ---- Twitter ----
@@ -72,7 +75,8 @@ export function validateBlogSocialMeta(post: BlogPost): SocialMetaResult {
   if (!get("twitter:description")) push("twitter:description", "missing twitter:description");
 
   const twImage = get("twitter:image");
-  if (!twImage.startsWith("https://")) push("twitter:image", "missing absolute https twitter:image");
+  if (!twImage.startsWith("https://"))
+    push("twitter:image", "missing absolute https twitter:image");
   if (!get("twitter:image:alt")) push("twitter:image:alt", "missing twitter:image:alt");
 
   if (card === "summary_large_image" && twImage && ogImage && twImage !== ogImage) {

@@ -1,0 +1,49 @@
+name: article-citations
+
+# Validates sourcing and medical-disclaimer consistency for every first-party
+# /articles draft: offline rules (content type, thin sourcing, unknown hosts,
+# duplicates, inline disclaimers) plus a live fetch of each cited URL.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/content/article-drafts/**"
+      - "src/lib/article-citation-audit.ts"
+      - "scripts/check-article-citations.mjs"
+      - "scripts/article-citations.entry.ts"
+      - ".github/workflows/article-citations.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/content/article-drafts/**"
+      - "src/lib/article-citation-audit.ts"
+      - "scripts/check-article-citations.mjs"
+      - "scripts/article-citations.entry.ts"
+      - ".github/workflows/article-citations.yml"
+
+concurrency:
+  group: article-citations-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: npm
+      - run: npm ci
+      - name: Unit tests for audit rules
+        run: npx vitest run src/lib/__tests__/article-citation-audit.test.ts
+      - name: Validate article citations (static + live)
+        run: node scripts/check-article-citations.mjs --json article-citation-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: article-citation-report
+          path: article-citation-report.json

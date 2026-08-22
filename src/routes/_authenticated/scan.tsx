@@ -21,9 +21,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HelpButton } from "@/components/help-button";
 import { ScannedProductCard } from "@/components/scanned-product-card";
+import { UniversalScanSheet } from "@/components/universal-scan-sheet";
 import { lookupProductByBarcode } from "@/lib/product-lookup.functions";
+import { isNative } from "@/lib/platform";
 import {
   describeCameraProblem,
+  openCameraSettings,
   detectCapability,
   scanBarcode,
   scanBarcodeFromImage,
@@ -32,10 +35,12 @@ import {
   type ScannerCapability,
 } from "@/lib/barcode-scanner";
 import type { Database } from "@/integrations/supabase/types";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 type Compound = Database["public"]["Tables"]["compounds"]["Row"];
 
 export const Route = createFileRoute("/_authenticated/scan")({
+  errorComponent: routeErrorComponent("scan"),
   head: () => ({
     meta: [
       { title: "Scan a bottle — DoseRoutine" },
@@ -73,6 +78,9 @@ function ScanPage() {
   const [photoMiss, setPhotoMiss] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualEntry, setManualEntry] = useState("");
+  // Visual feedback for automatic capture so users know the moment a barcode is read.
+  const [captureFlash, setCaptureFlash] = useState<string | null>(null);
+  const [universalOpen, setUniversalOpen] = useState(false);
 
   // Pick the best scanner backend for this device on mount.
   useEffect(() => {
@@ -90,21 +98,29 @@ function ScanPage() {
     setPendingCode("");
     setPendingEdit("");
     setConfirmDiscard(false);
+    setCaptureFlash(null);
     try {
       setScanning(true);
       handleRef.current = await scanBarcode({
-        video: videoRef.current,
+        // The preview video element only renders once `scanning` is true, so hand
+        // over the ref and let the scanner wait for the element to mount.
+        video: videoRef,
+
         onResult: (val) => {
           // Do NOT auto-search. Surface the decoded text for user review first.
           setPendingCode(val);
           setPendingEdit(val);
           setScanning(false);
+          setCaptureFlash(val);
           void handleRef.current?.stop();
           handleRef.current = null;
+          // The found indicator is a brief confirmation before the review card takes over.
+          setTimeout(() => setCaptureFlash((current) => (current === val ? null : current)), 1500);
         },
         onError: (e) => {
           setCameraProblem(describeCameraProblem(e));
           setScanning(false);
+          setCaptureFlash(null);
         },
       });
       // Native returns immediately after the OS UI closes.
@@ -112,6 +128,7 @@ function ScanPage() {
     } catch (e) {
       setCameraProblem(describeCameraProblem(e));
       setScanning(false);
+      setCaptureFlash(null);
     }
   }
 
@@ -162,6 +179,7 @@ function ScanPage() {
     setPendingCode("");
     setPendingEdit("");
     setConfirmDiscard(false);
+    setCaptureFlash(null);
   }
 
   function requestDiscardPending() {
@@ -178,6 +196,7 @@ function ScanPage() {
     setPendingCode("");
     setPendingEdit("");
     setConfirmDiscard(false);
+    setCaptureFlash(null);
   }
 
   async function discardAndRescan() {
@@ -187,6 +206,7 @@ function ScanPage() {
 
   async function stopScan() {
     setScanning(false);
+    setCaptureFlash(null);
     const h = handleRef.current;
     handleRef.current = null;
     if (h) await h.stop();
@@ -309,6 +329,17 @@ function ScanPage() {
         Point your camera at a barcode, then search the label name to add it.
       </p>
 
+      {/* One scan for everything: food, supplements and medications are routed
+          to the right database and the right review screen automatically. */}
+      <div className="px-4 pb-4">
+        <Button type="button" className="w-full" onClick={() => setUniversalOpen(true)}>
+          <ScanLine className="mr-2 h-4 w-4" />
+          Scan any product — food, supplement or medicine
+        </Button>
+      </div>
+
+      <UniversalScanSheet open={universalOpen} onOpenChange={setUniversalOpen} />
+
       <section className="px-4">
         <div className="relative overflow-hidden rounded-2xl border border-border bg-black aspect-[4/3]">
           <video
@@ -354,6 +385,18 @@ function ScanPage() {
           {scanning && (
             <>
               <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-24 rounded-xl border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
+              <div
+                className="absolute left-3 right-3 top-3 flex items-center justify-center"
+                aria-live="polite"
+              >
+                <div className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                  </span>
+                  Scanning…
+                </div>
+              </div>
               <button
                 onClick={stopScan}
                 className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white"
@@ -362,6 +405,22 @@ function ScanPage() {
                 <X className="h-4 w-4" />
               </button>
             </>
+          )}
+          {captureFlash && (
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 text-white animate-in fade-in zoom-in-95 duration-200"
+              aria-live="polite"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg dark:bg-green-400 dark:text-green-950">
+                <Check className="h-7 w-7" />
+              </div>
+              <div className="rounded-full bg-green-500/90 px-4 py-1.5 text-sm font-semibold text-white dark:bg-green-400/90 dark:text-green-950">
+                Barcode found
+              </div>
+              <p className="max-w-[80%] text-center text-xs opacity-90">
+                <span className="font-mono">{captureFlash}</span>
+              </p>
+            </div>
           )}
         </div>
 
@@ -474,6 +533,17 @@ function ScanPage() {
                 <Keyboard className="mr-2 h-4 w-4" aria-hidden="true" />
                 Type the numbers
               </Button>
+              {cameraProblem.canOpenSettings && isNative() && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void openCameraSettings();
+                  }}
+                >
+                  Open settings
+                </Button>
+              )}
               {cameraProblem.kind !== "no-camera" && cameraProblem.kind !== "unsupported" && (
                 <Button size="sm" variant="outline" onClick={startScan}>
                   Try camera again
@@ -551,7 +621,7 @@ function ScanPage() {
 
         {code && (
           <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2 text-sm">
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
             <span className="flex-1 truncate">
               Confirmed: <span className="font-mono">{code}</span>
             </span>

@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowLeft } from "lucide-react";
 import { breadcrumbScript } from "@/lib/breadcrumb-schema";
+import { AeoFaq } from "@/components/aeo-faq";
+import { aeoFaqScript } from "@/lib/aeo";
+import { REFUND_POLICY_FAQ } from "@/lib/aeo-faqs-legal";
 
 const pageUrl = "https://doseroutine.com/refund-policy";
 const pageTitle = "Refund & Cancellation Policy — DoseRoutine";
@@ -16,12 +20,13 @@ export const Route = createFileRoute("/refund-policy")({
       { property: "og:description", content: pageDescription },
       { property: "og:url", content: pageUrl },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: pageTitle },
       { name: "twitter:description", content: pageDescription },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [...canonicalLinks(pageUrl)],
     scripts: [
+      aeoFaqScript(pageUrl, REFUND_POLICY_FAQ),
       breadcrumbScript("https://doseroutine.com/refund-policy", [
         { name: "Legal", path: "/legal" },
         { name: "Refund Policy", path: "/refund-policy" },
@@ -48,7 +53,7 @@ export const Route = createFileRoute("/refund-policy")({
 function RefundPolicyPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-2xl px-4 pb-24 pt-8">
+      <div id="main-content" tabIndex={-1} className="mx-auto max-w-2xl px-4 pb-24 pt-8">
         <Link
           to="/"
           className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -65,7 +70,7 @@ function RefundPolicyPage() {
         <Section title="7-day free trial">
           New accounts start with a 7-day free trial of DoseRoutine Pro. You can cancel any time
           during the trial and you will not be charged. If you don't cancel before the trial ends,
-          your plan (monthly or annual) begins automatically at the price shown at signup.
+          your plan (monthly or annual) begins automatically at the price shown at sign-up.
         </Section>
 
         <Section title="Plans">
@@ -178,6 +183,7 @@ function RefundPolicyPage() {
           </Link>
           .
         </p>
+        <AeoFaq pairs={REFUND_POLICY_FAQ} />
       </div>
     </div>
   );

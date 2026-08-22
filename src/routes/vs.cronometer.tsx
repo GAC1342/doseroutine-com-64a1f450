@@ -1,3 +1,5 @@
+import { PageProse } from "@/components/page-prose";
+import { ProseContainer } from "@/components/prose-container";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
@@ -19,7 +21,7 @@ import { RelatedLinks } from "@/components/related-links";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 
-const CANONICAL = "https://doseroutine.com/vs/cronometer";
+export const CANONICAL = "https://doseroutine.com/vs/cronometer";
 const TITLE = "Cronometer Alternative for Peptides and Stacks";
 const DESC =
   "DoseRoutine is a Cronometer alternative for peptides, hormones and stacks with… Check it against your full supplement, TRT, or peptide routine with DoseRoutine.";
@@ -60,6 +62,7 @@ export const Route = createFileRoute("/vs/cronometer")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
           mainEntity: FAQ.map((f) => ({
             "@type": "Question",
             name: f.q,
@@ -72,7 +75,7 @@ export const Route = createFileRoute("/vs/cronometer")({
   component: CronometerAlternative,
 });
 
-const FAQ = [
+export const FAQ = [
   {
     q: "Is DoseRoutine a Cronometer alternative for supplements?",
     a: "Yes — for the tracking side. Cronometer is a nutrition and micronutrient food logger; DoseRoutine is a routine-and-protocol tracker for supplements, peptides, hormones and everything else you take. DoseRoutine now also tracks food: photograph a meal or scan a barcode and it estimates calories, protein, carbs and fat. If you want doses, workouts and macros in one app, DoseRoutine is the better fit; if you want exhaustive micronutrient data, Cronometer still wins.",
@@ -91,7 +94,7 @@ const FAQ = [
   },
   {
     q: "How much does DoseRoutine cost vs Cronometer Gold?",
-    a: "DoseRoutine Pro is $9.99/month or $59.99/year (50% off) with a 7-day free trial. Comparable to Cronometer Gold, and it covers dose accuracy, interactions, injection protocols, workouts and AI meal scanning in one subscription.",
+    a: "DoseRoutine Pro is $9.99/month or $59.99/year (50% off). Comparable to Cronometer Gold, and it covers dose accuracy, interactions, injection protocols, workouts and AI meal scanning in one subscription.",
   },
 ];
 
@@ -113,7 +116,7 @@ const COMPARISON = [
   { feature: "Barcode food scanner", us: true, them: true },
   { feature: "Full micronutrient database (vitamins, minerals)", us: false, them: true },
   { feature: "Food, workouts and doses on one timeline", us: true, them: false },
-  { feature: "Free trial", us: "7 days", them: "Free tier + Gold trial" },
+  { feature: "Free tier", us: "Yes", them: "Free tier + Gold trial" },
   { feature: "Pro pricing", us: "$9.99/mo · $59.99/yr", them: "~$8.99/mo · $49.99/yr" },
 ];
 
@@ -127,7 +130,11 @@ function CronometerAlternative() {
   return (
     <div className="min-h-dvh bg-background">
       <PublicBackHeader />
-      <section className="container max-w-4xl mx-auto px-4 py-12 md:py-20">
+      <section
+        id="main-content"
+        tabIndex={-1}
+        className="container max-w-4xl mx-auto px-4 py-12 md:py-20"
+      >
         <div className="text-center space-y-4 mb-12">
           <span className="inline-block text-xs uppercase tracking-widest text-muted-foreground">
             Cronometer alternative
@@ -136,10 +143,10 @@ function CronometerAlternative() {
             The Cronometer alternative for supplements, peptides & hormones
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Cronometer is excellent for deep micronutrient data. DoseRoutine covers everyday nutrition —
-            photograph a meal or scan a barcode for calories, protein and carbs — and adds the dose
-            layer Cronometer skips: scheduling, peptide reconstitution, TRT/HRT cycles and
-            interaction checks across your whole routine.
+            Cronometer is excellent for deep micronutrient data. DoseRoutine covers everyday
+            nutrition — photograph a meal or scan a barcode for calories, protein and carbs — and
+            adds the dose layer Cronometer skips: scheduling, peptide reconstitution, TRT/HRT cycles
+            and interaction checks across your whole routine.
           </p>
           <div className="flex flex-wrap gap-3 justify-center pt-2">
             <Button size="lg" asChild>
@@ -235,8 +242,8 @@ function CronometerAlternative() {
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6">When Cronometer is still the right choice</h2>
           <p className="text-muted-foreground">
-            If you need exhaustive micronutrient data — every vitamin, mineral and amino acid, weighed
-            to the gram — Cronometer is still the best in that category. DoseRoutine covers
+            If you need exhaustive micronutrient data — every vitamin, mineral and amino acid,
+            weighed to the gram — Cronometer is still the best in that category. DoseRoutine covers
             calories, protein, carbs and fat through its photo and barcode scanner, plus the
             supplement, peptide and hormone side of your protocol.
           </p>
@@ -259,7 +266,7 @@ function CronometerAlternative() {
         <div className="text-center space-y-4 py-8 border-t">
           <h2 className="text-2xl font-bold">Ready to switch?</h2>
           <p className="text-muted-foreground">
-            7-day free trial. Cancel anytime. $9.99/month or $59.99/year (50% off).
+            Cancel anytime. $9.99/month or $59.99/year (50% off).
           </p>
           <Button size="lg" asChild>
             <Link to="/install">
@@ -295,6 +302,11 @@ function CronometerAlternative() {
         </div>
       </section>
       <RelatedLinks currentPath="/vs/cronometer" kind="comparisons" />
+      <ProseContainer>
+        <ProseContainer>
+          <PageProse id="vs-cronometer" />
+        </ProseContainer>
+      </ProseContainer>
       <AttributionFooter sourceUrl={CANONICAL} />
     </div>
   );

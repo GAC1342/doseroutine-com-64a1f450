@@ -173,7 +173,12 @@ function extractJsonLdBlocks(html: string): unknown[] {
     const raw = m[1].trim();
     if (!raw) continue;
     try {
-      out.push(JSON.parse(raw));
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      // Routes ship one merged `@graph` block to keep the <head> child count
+      // under the crawler limit; flatten it so entity lookups still work.
+      const graph = parsed && Array.isArray(parsed["@graph"]) ? parsed["@graph"] : null;
+      if (graph) out.push(...graph);
+      else out.push(parsed);
     } catch {
       // Skip malformed blocks — a dedicated test below asserts parseability.
     }
@@ -181,16 +186,21 @@ function extractJsonLdBlocks(html: string): unknown[] {
   return out;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 function findAllFaqPages(blocks: unknown[]): Record<string, any>[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const out: Record<string, any>[] = [];
   for (const b of blocks) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
     if (b && typeof b === "object" && typeMatchesNormalized((b as any)["@type"], "FAQPage")) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       out.push(b as Record<string, any>);
     }
   }
   return out;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
 function findFaqPage(blocks: unknown[]): Record<string, any> | null {
   return findAllFaqPages(blocks)[0] ?? null;
 }
@@ -202,7 +212,6 @@ const { slugs: SLUGS, source: SLUG_SOURCE } = await (async () => {
   return resolveSlugs();
 })();
 
-// eslint-disable-next-line no-console
 if (!SKIP)
   console.log(`[library-faq-jsonld] ${SLUGS.length} slug(s) from ${SLUG_SOURCE} @ ${BASE_URL}`);
 
@@ -301,6 +310,7 @@ describe.skipIf(SKIP)("library.$slug FAQPage JSON-LD (rendered HTML)", () => {
           entities.length,
           `${where} $.mainEntity.length: expected >= 2, received ${entities.length}`,
         ).toBeGreaterThanOrEqual(2);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         entities.forEach((e: any, i: number) => {
           const p = `${where} $.mainEntity[${i}]`;
           expect(
@@ -327,6 +337,7 @@ describe.skipIf(SKIP)("library.$slug FAQPage JSON-LD (rendered HTML)", () => {
         const faq = findFaqPage(extractJsonLdBlocks(html));
         const where = `[${slug}] FAQPage`;
         expect(faq, `${where}: no FAQPage block to inspect acceptedAnswer on`).not.toBeNull();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         (faq!.mainEntity as any[]).forEach((e, i) => {
           const p = `${where} $.mainEntity[${i}]`;
           expect(
@@ -360,6 +371,7 @@ describe.skipIf(SKIP)("library.$slug FAQPage JSON-LD (rendered HTML)", () => {
           faq,
           `${where}: no FAQPage block to check Question.name uniqueness on`,
         ).not.toBeNull();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const entities = faq!.mainEntity as any[];
         const dupes = findDuplicateGroups(entities, (e) => e?.name);
         const dupeReport = dupes.map(
@@ -379,6 +391,7 @@ describe.skipIf(SKIP)("library.$slug FAQPage JSON-LD (rendered HTML)", () => {
           faq,
           `${where}: no FAQPage block to check acceptedAnswer.text uniqueness on`,
         ).not.toBeNull();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
         const entities = faq!.mainEntity as any[];
         const dupes = findDuplicateGroups(entities, (e) => e?.acceptedAnswer?.text);
         const dupeReport = dupes.map(

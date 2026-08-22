@@ -1,9 +1,13 @@
 import "./lib/error-capture";
 
+// eslint-disable-next-line no-duplicate-imports -- the bare side-effect import above must be evaluated first; merging it would change init order.
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { isIndexablePath } from "./lib/non-indexable";
+import { stripDuplicateParams } from "./lib/canonical-params";
 import { BUILD_STAMP_ID, BUILT_AT } from "./lib/build-stamp";
+import { secureResponse } from "./lib/security-headers";
+import { trimHead } from "@/lib/head-budget";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -49,18 +53,20 @@ function weakHash(input: string): string {
 // Validators derived from the RENDERED bytes (plus the build stamp), not from
 // any content date. A conditional request therefore revalidates against what
 // was actually served, and every deploy invalidates every validator.
-async function addHtmlValidators(request: Request, response: Response): Promise<Response> {
+export async function addHtmlValidators(request: Request, response: Response): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") return response;
   if (response.status !== 200) return response;
   if (!(response.headers.get("content-type") ?? "").includes("text/html")) return response;
   if (response.headers.has("etag")) return response;
 
-  const body = await response.text();
+  const body = trimHead(sanitizeNullCharacters(await response.text()));
   // The router serialises per-render hydration timestamps (`u:1786509766624`)
-  // into the dehydrated state. They change on every render without the page
-  // content changing, so normalise them out before hashing — otherwise the
-  // ETag would never match and conditional requests could never 304.
-  const etag = `W/"${BUILD_STAMP_ID.slice(0, 12)}-${weakHash(body.replace(/\bu:1\d{12}\b/g, "u:0"))}"`;
+  // into the dehydrated state, and every HTML response carries a fresh CSP
+  // nonce. Both change on every render without the page content changing, so
+  // normalise them out before hashing — otherwise the ETag would never match
+  // and conditional requests could never 304.
+  const stable = body.replace(/\bu:1\d{12}\b/g, "u:0").replace(/ nonce="[^"]*"/g, ' nonce=""');
+  const etag = `W/"${BUILD_STAMP_ID.slice(0, 12)}-${weakHash(stable)}"`;
   const headers = new Headers(response.headers);
   headers.set("etag", etag);
   headers.set("last-modified", new Date(BUILT_AT).toUTCString());
@@ -68,10 +74,27 @@ async function addHtmlValidators(request: Request, response: Response): Promise<
   const ifNoneMatch = request.headers.get("if-none-match");
   if (ifNoneMatch && ifNoneMatch.split(",").some((t) => t.trim() === etag)) {
     headers.delete("content-length");
+    // A 304 replaces the stored headers on the client's cached copy. The
+    // cached BODY still carries the nonce from the original 200, so sending a
+    // freshly generated CSP here would invalidate every inline startup script
+    // and render a blank page. Leave the cached policy in place instead.
+    headers.delete("Content-Security-Policy");
+    headers.delete("Content-Security-Policy-Report-Only");
+    headers.delete("Reporting-Endpoints");
     return new Response(null, { status: 304, headers });
   }
 
   return new Response(body, { status: 200, statusText: response.statusText, headers });
+}
+
+// TanStack Router serialises internal route-match ids containing a literal
+// U+0000 into the inline hydration script. Raw NULs are illegal in HTML and
+// make validators/crawlers report "NULL character replaced by repl. character".
+// Inside a JS string literal, `\u0000` is exactly equivalent, so escaping the
+// byte keeps hydration identical while producing valid HTML.
+export function sanitizeNullCharacters(html: string): string {
+  // eslint-disable-next-line no-control-regex -- matching the NULL byte is the entire point of this sanitizer.
+  return html.includes("\u0000") ? html.replace(/\u0000/g, "\\u0000") : html;
 }
 
 function isCanonicalHost(hostname: string): boolean {
@@ -131,7 +154,6 @@ function applyCacheHeaders(
   // responses keep whatever cache-control they already declared.
   if (!isHtml && response.headers.has("cache-control")) return response;
 
-
   const headers = new Headers(response.headers);
   headers.append("vary", "Cookie, Authorization, Accept-Encoding");
 
@@ -149,6 +171,10 @@ function applyCacheHeaders(
   } else if (url.pathname.startsWith("/assets/")) {
     // Vite emits content-hashed asset URLs.
     headers.set("cache-control", "public, max-age=31536000, immutable");
+  } else if (/\.(avif|webp|png|jpg|jpeg|gif|svg|ico|woff2?)$/i.test(url.pathname)) {
+    // Static images and fonts in /public are versioned by hand (?v=) and never
+    // edited in place, so give them a real cache lifetime instead of none.
+    headers.set("cache-control", "public, max-age=604800, s-maxage=2592000, immutable");
   } else if (CRAWLER_TEXT_FILES.has(url.pathname)) {
     // robots.txt / llms.txt change rarely. Let the CDN serve
     // them for a day (and stale for a week) so crawler hits don't reach the
@@ -248,6 +274,15 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+/**
+ * CSP, HSTS, nosniff, Referrer-Policy and friends on every response.
+ * Implementation lives in ./lib/security-headers so it can be unit-tested for
+ * both the dev (report-only) and production (enforced + nonce) paths.
+ */
+async function applySecurityHeaders(request: Request, response: Response): Promise<Response> {
+  return secureResponse(request, response, { dev: Boolean(import.meta.env?.DEV) });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -261,12 +296,12 @@ export default {
         url.pathname = url.pathname.replace(/\/+$/, "");
         canonicalized = true;
       }
-      // Legacy ?lang= URLs: the UI language switcher uses ?n= now, and every
-      // ?lang= copy served identical English HTML canonicalising back to the
-      // clean path. Google crawled thousands of them ("Crawled - currently not
-      // indexed"). Collapse them with a 301 so the duplicates disappear.
-      if (url.searchParams.has("lang")) {
-        url.searchParams.delete("lang");
+      // Duplicate-producing query parameters (?lang=xx, the ?n= locale
+      // switcher, utm_*/click IDs) all serve identical English HTML that
+      // canonicalises back to the clean path. Collapse them with a 301 so
+      // Google consolidates every copy onto the canonical URL, which carries a
+      // self-referencing canonical + en/x-default hreflang cluster.
+      if (stripDuplicateParams(url)) {
         canonicalized = true;
       }
 
@@ -280,7 +315,10 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);
       const withAttribution = applyAttributionHeaders(request, normalized);
-      const withValidators = await addHtmlValidators(request, withAttribution);
+      // Security headers run before the validators so the ETag hashes the
+      // exact bytes (nonces included) that leave the origin.
+      const secured = await applySecurityHeaders(request, withAttribution);
+      const withValidators = await addHtmlValidators(request, secured);
       const finalResponse = applyCacheHeaders(request, withValidators, { anonymous });
 
       return finalResponse;

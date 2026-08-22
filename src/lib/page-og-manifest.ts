@@ -6,6 +6,8 @@ export const PAGE_OG_CARD_SLUGS = new Set<string>([
   "best-glp-1-tracking-app",
   "best-health-stack-insights-app",
   "best-hormone-therapy-app-for-men",
+  "best-hrt-tracking-app-for-women",
+  "best-medication-reminder-app",
   "best-peptide-tracking-app",
   "best-supplement-tracker-app",
   "best-trt-tracking-app",

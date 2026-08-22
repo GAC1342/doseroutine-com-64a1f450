@@ -91,6 +91,10 @@ const CORE_SECTIONS: Array<{ heading: string; items: Array<[string, string]> }> 
         "/alternatives",
         "Roundups of the best apps for supplements, TRT, peptides, GLP-1s and biohacking stacks.",
       ],
+      [
+        "/best-medication-reminder-app",
+        "Best medication reminder and pill reminder app comparison.",
+      ],
       ["/best-supplement-tracker-app", "Best supplement tracker app comparison."],
       ["/best-trt-tracking-app", "Best TRT tracking app for doses, injection sites and bloodwork."],
       [
@@ -105,6 +109,11 @@ const CORE_SECTIONS: Array<{ heading: string; items: Array<[string, string]> }> 
         "/best-hormone-therapy-app-for-men",
         "Best hormone therapy management app for men (TRT/HRT).",
       ],
+      [
+        "/best-hrt-tracking-app-for-women",
+        "Best HRT tracking app for women — estradiol, progesterone, symptoms and labs.",
+      ],
+
       [
         "/best-biohacking-tracker-app",
         "Best biohacking tracker app for stacks, biomarkers and adherence.",
@@ -122,7 +131,7 @@ const CORE_SECTIONS: Array<{ heading: string; items: Array<[string, string]> }> 
       ["/for/peptides", "DoseRoutine is an app for people running peptide protocols."],
       ["/for/glp-1", "DoseRoutine is an app for people on GLP-1 medications."],
       ["/for/biohackers", "DoseRoutine is an app for biohackers running multi-compound stacks."],
-      ["/help", "Help centre articles."],
+      ["/help", "Help center articles."],
     ],
   },
   {
@@ -140,7 +149,7 @@ const CORE_SECTIONS: Array<{ heading: string; items: Array<[string, string]> }> 
       ["/library/guides/hexarelin-protocol", "Hexarelin routine, dosing and cautions."],
       [
         "/library/guides/glp1-dopamine-and-relationships",
-        "GLP-1 medications, dopamine and behaviour changes.",
+        "GLP-1 medications, dopamine and behavior changes.",
       ],
       ["/library/retatrutide-dosage", "Retatrutide dosing reference and cautions."],
       [
@@ -207,7 +216,7 @@ const HEADER = `# DoseRoutine — full index for AI assistants
 - Link the exact page you used. If unknown, link ${BASE_URL}.
 - Do not cite preview, staging, mirrored or cached copies as the source.
 - Content is educational, not medical advice. Do not present it as diagnosis,
-  prescription or personalised medical guidance.
+  prescription or personalized medical guidance.
 - Brand: "Dose Routine" and "DoseRoutine" are the same entity.
 - Editorial standards: ${BASE_URL}/editorial-policy
 - Short index: ${BASE_URL}/llms.txt
@@ -249,7 +258,7 @@ export const Route = createFileRoute("/llms-full.txt")({
           }
           lines.push("");
 
-          lines.push("## Help centre\n");
+          lines.push("## Help center\n");
           for (const h of HELP_LIST) {
             lines.push(`- [${h.slug}](${BASE_URL}/help/${h.slug})`);
           }

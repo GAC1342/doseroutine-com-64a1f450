@@ -7,3 +7,61 @@ name: a11y-axe
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: axe-a11y-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Start app
+        run: |
+          npm run dev -- --port 8080 > dev-server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:8080/ && exit 0
+            sleep 2
+          done
+          echo "app did not boot"; cat dev-server.log; exit 1
+
+      - name: axe scan of public pages
+        run: node scripts/axe-scan.mjs http://localhost:8080
+
+      - name: Comment axe summary on the pull request
+        if: always() && github.event_name == 'pull_request' && hashFiles('axe-report/summary.md') != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: axe-a11y
+          path: axe-report/summary.md
+
+      - name: Upload axe report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-report
+          path: axe-report/
+          retention-days: 7

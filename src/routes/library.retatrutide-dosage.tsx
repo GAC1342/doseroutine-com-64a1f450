@@ -19,16 +19,17 @@ import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { InlineSignupButton } from "@/components/inline-signup-button";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/retatrutide-dosage";
+export const CANONICAL = "https://doseroutine.com/library/retatrutide-dosage";
 const OG_IMAGE = "https://doseroutine.com/og/retatrutide-dosage.jpg";
 const TITLE = "Retatrutide Dosage & Titration Guide | DoseRoutine";
 const DESC = withDoseRoutineDescriptionSuffix(
-  "Retatrutide dosing, trial results, titration, side effects and reconstitution maths",
+  "Retatrutide dosing, trial results, titration, side effects and reconstitution math",
 );
-const REVIEWED = "2026-08-02";
+export const REVIEWED = "2026-08-02";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "What is retatrutide?",
     a: "Retatrutide (LY3437943) is an investigational triple agonist that activates the GLP-1, GIP and glucagon receptors. It is being studied by Eli Lilly for obesity and type 2 diabetes. It is not approved by the FDA, EMA, MHRA or TGA, and anything sold online as 'retatrutide' is an unregulated research chemical of unverified identity, purity and sterility.",
@@ -47,11 +48,11 @@ const FAQS = [
   },
   {
     q: "How do you reconstitute retatrutide?",
-    a: "Lyophilised vials are reconstituted with bacteriostatic water. Concentration in mg/mL equals the vial strength in mg divided by the millilitres of BAC water added — so a 10 mg vial with 2 mL gives 5 mg/mL, and a 1 mg dose is 0.2 mL, which is 20 units on a U-100 insulin syringe. Add the diluent slowly against the vial wall, swirl rather than shake, and refrigerate once mixed.",
+    a: "Lyophilized vials are reconstituted with bacteriostatic water. Concentration in mg/mL equals the vial strength in mg divided by the milliliters of BAC water added — so a 10 mg vial with 2 mL gives 5 mg/mL, and a 1 mg dose is 0.2 mL, which is 20 units on a U-100 insulin syringe. Add the diluent slowly against the vial wall, swirl rather than shake, and refrigerate once mixed.",
   },
   {
     q: "How long does reconstituted retatrutide last?",
-    a: "Peptides reconstituted with bacteriostatic water are generally kept refrigerated at 2–8 °C and used within about 28–30 days, the same beyond-use window that applies to the bacteriostatic water itself. Plain sterile water has no preservative and is a single-use diluent. Discard anything cloudy, discoloured or containing particles, and never freeze a reconstituted vial.",
+    a: "Peptides reconstituted with bacteriostatic water are generally kept refrigerated at 2–8 °C and used within about 28–30 days, the same beyond-use window that applies to the bacteriostatic water itself. Plain sterile water has no preservative and is a single-use diluent. Discard anything cloudy, discolored or containing particles, and never freeze a reconstituted vial.",
   },
   {
     q: "How long until you see results?",
@@ -67,7 +68,7 @@ const FAQS = [
   },
   {
     q: "What are the side effects?",
-    a: "Predominantly gastrointestinal: nausea, vomiting, diarrhoea and constipation, worst during escalation. Dose-dependent increases in heart rate were seen in trials, as were transient rises in fasting glucose at the highest doses via the glucagon arm. Muscle loss alongside fat loss is a real concern with this magnitude of weight reduction, which is why protein intake and resistance training matter.",
+    a: "Predominantly gastrointestinal: nausea, vomiting, diarrhea and constipation, worst during escalation. Dose-dependent increases in heart rate were seen in trials, as were transient rises in fasting glucose at the highest doses via the glucagon arm. Muscle loss alongside fat loss is a real concern with this magnitude of weight reduction, which is why protein intake and resistance training matter.",
   },
   {
     q: "Does retatrutide cause muscle loss?",
@@ -91,17 +92,17 @@ const FAQS = [
   },
   {
     q: "Is retatrutide legal to buy?",
-    a: "It is not approved for human use anywhere. Vendors sell it labelled 'for research use only', which is a legal shield, not a quality guarantee. Third-party testing has repeatedly found research peptides that are underdosed, misidentified or contaminated. It is also prohibited in tested sport.",
+    a: "It is not approved for human use anywhere. Vendors sell it labeled 'for research use only', which is a legal shield, not a quality guarantee. Third-party testing has repeatedly found research peptides that are underdosed, misidentified or contaminated. It is also prohibited in tested sport.",
   },
 ];
 
-const REFS = [
+export const REFS = [
   {
     cite: "Jastreboff AM, Kaplan LM, Frías JP, et al. Triple-Hormone-Receptor Agonist Retatrutide for Obesity — A Phase 2 Trial. N Engl J Med. 2023;389(6):514–526.",
     url: "https://pubmed.ncbi.nlm.nih.gov/37366315/",
   },
   {
-    cite: "Rosenstock J, Frias J, Jastreboff AM, et al. Retatrutide in people with type 2 diabetes: a randomised, double-blind, placebo- and active-controlled, phase 2 trial. Lancet. 2023;402(10401):529–544.",
+    cite: "Rosenstock J, Frias J, Jastreboff AM, et al. Retatrutide in people with type 2 diabetes: a randomized, double-blind, placebo- and active-controlled, phase 2 trial. Lancet. 2023;402(10401):529–544.",
     url: "https://pubmed.ncbi.nlm.nih.gov/37385280/",
   },
   {
@@ -153,10 +154,10 @@ const RECON_ROWS = [
   { vial: "20 mg", bac: "2 mL", conc: "10 mg/mL", unit: "8 mg = 0.8 mL = 80 units" },
 ];
 
-const RECON_STEPS = [
+export const RECON_STEPS = [
   {
     name: "Work out the concentration first",
-    text: "Divide vial strength in mg by the millilitres of bacteriostatic water you intend to add. A 10 mg vial with 2 mL gives 5 mg/mL. Decide this before the needle goes anywhere near the vial.",
+    text: "Divide vial strength in mg by the milliliters of bacteriostatic water you intend to add. A 10 mg vial with 2 mL gives 5 mg/mL. Decide this before the needle goes anywhere near the vial.",
   },
   {
     name: "Clean both stoppers",
@@ -180,7 +181,7 @@ const RECON_STEPS = [
   },
   {
     name: "Convert the dose to syringe units",
-    text: "Volume in mL equals dose in mg divided by concentration in mg/mL; a U-100 insulin syringe has 100 units per mL, so multiply the millilitres by 100 to get units.",
+    text: "Volume in mL equals dose in mg divided by concentration in mg/mL; a U-100 insulin syringe has 100 units per mL, so multiply the milliliters by 100 to get units.",
   },
 ];
 
@@ -191,7 +192,7 @@ const SIDE_EFFECTS = [
     manage: "Smaller meals, less fat, slow escalation, hold the step rather than pushing through",
   },
   {
-    effect: "Vomiting / diarrhoea",
+    effect: "Vomiting / diarrhea",
     when: "Escalation phase, dose-dependent",
     manage:
       "Aggressive hydration and electrolytes; persistent vomiting is a stop-and-call-a-doctor sign",
@@ -199,7 +200,7 @@ const SIDE_EFFECTS = [
   {
     effect: "Constipation",
     when: "Anytime, worse with low food volume",
-    manage: "Fibre, fluid, movement; low intake is usually the real cause",
+    manage: "Fiber, fluid, movement; low intake is usually the real cause",
   },
   {
     effect: "Raised heart rate",
@@ -247,7 +248,7 @@ const TOC = [
   { id: "results", label: "What the trials showed" },
   { id: "dosage", label: "Trial dosage & titration" },
   { id: "timeline", label: "Month-by-month timeline" },
-  { id: "reconstitution", label: "Reconstitution maths" },
+  { id: "reconstitution", label: "Reconstitution math" },
   { id: "comparison", label: "vs tirzepatide & semaglutide" },
   { id: "side-effects", label: "Side effects & management" },
   { id: "muscle", label: "Protecting muscle" },
@@ -267,7 +268,7 @@ const TIMELINE = [
   },
   {
     phase: "Weeks 5–12",
-    body: "First escalations. Each step up restarts the gastrointestinal adjustment for roughly a week. Fat loss becomes clearly visible on a weekly average, and food volume drops enough that protein and fibre need deliberate planning.",
+    body: "First escalations. Each step up restarts the gastrointestinal adjustment for roughly a week. Fat loss becomes clearly visible on a weekly average, and food volume drops enough that protein and fiber need deliberate planning.",
   },
   {
     phase: "Weeks 13–24",
@@ -299,13 +300,17 @@ export const Route = createFileRoute("/library/retatrutide-dosage")({
       {
         property: "og:image:alt",
         content:
-          "Lyophilised peptide vial, U-100 insulin syringe, alcohol swab and bacteriostatic water on a light surface — DoseRoutine",
+          "Lyophilized peptide vial, U-100 insulin syringe, alcohol swab and bacteriostatic water on a light surface — DoseRoutine",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
       { name: "twitter:image", content: OG_IMAGE },
-      { name: "twitter:image:alt", content: "Retatrutide dosing kit — vial, U-100 insulin syringe and bacteriostatic water — DoseRoutine" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "Retatrutide dosing kit — vial, U-100 insulin syringe and bacteriostatic water — DoseRoutine",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [
@@ -324,7 +329,7 @@ export const Route = createFileRoute("/library/retatrutide-dosage")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/retatrutide-dosage"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -339,8 +344,15 @@ export const Route = createFileRoute("/library/retatrutide-dosage")({
           url: CANONICAL,
           image: [OG_IMAGE],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-30",
@@ -354,12 +366,12 @@ export const Route = createFileRoute("/library/retatrutide-dosage")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "HowTo",
-          name: "How to reconstitute a lyophilised retatrutide vial",
+          name: "How to reconstitute a lyophilized retatrutide vial",
           description:
-            "The reconstitution arithmetic and handling steps used for lyophilised research peptide vials, including converting a milligram dose to insulin-syringe units.",
+            "The reconstitution arithmetic and handling steps used for lyophilized research peptide vials, including converting a milligram dose to insulin-syringe units.",
           totalTime: "PT10M",
           supply: [
-            { "@type": "HowToSupply", name: "Lyophilised peptide vial" },
+            { "@type": "HowToSupply", name: "Lyophilized peptide vial" },
             { "@type": "HowToSupply", name: "Bacteriostatic water" },
             { "@type": "HowToSupply", name: "Alcohol swabs" },
             { "@type": "HowToSupply", name: "U-100 insulin syringe" },
@@ -400,7 +412,7 @@ export const Route = createFileRoute("/library/retatrutide-dosage")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });
@@ -432,7 +444,7 @@ function Page() {
             fallbackSrcSet="/og/retatrutide-dosage-640.jpg 640w, /og/retatrutide-dosage-960.jpg 960w, /og/retatrutide-dosage.jpg 1200w"
             // Article column is capped at 768px; below that the hero is full-bleed.
             sizes="(min-width: 768px) 768px, 100vw"
-            alt="Flat-lay photograph of a lyophilised retatrutide vial, a U-100 insulin syringe marked in units, an alcohol swab and a vial of bacteriostatic water arranged on a light gray surface"
+            alt="Flat-lay photograph of a lyophilized retatrutide vial, a U-100 insulin syringe marked in units, an alcohol swab and a vial of bacteriostatic water arranged on a light gray surface"
             width={1200}
             height={630}
             loading="eager"
@@ -498,7 +510,7 @@ function Page() {
             <ShieldAlert className="h-4 w-4 text-warning" /> Not an approved medicine
           </div>
           <p className="text-sm text-muted-foreground">
-            Retatrutide has no marketing authorisation anywhere. Every figure on this page comes
+            Retatrutide has no marketing authorization anywhere. Every figure on this page comes
             from published clinical trials run with medical supervision, screening and monitoring.
             This is educational reference material so you can understand the research — not a
             protocol to self-administer.
@@ -549,7 +561,7 @@ function Page() {
         <section id="results" className="scroll-mt-20 space-y-3">
           <h2 className="text-2xl font-bold">What the Phase 2 trials actually showed</h2>
           <p className="text-sm text-muted-foreground">
-            338 adults with obesity were randomised to placebo or one of the retatrutide arms for 48
+            338 adults with obesity were randomized to placebo or one of the retatrutide arms for 48
             weeks. Mean weight reduction from baseline, by arm:
           </p>
           <div className="space-y-2">
@@ -583,7 +595,7 @@ function Page() {
         <section id="dosage" className="scroll-mt-20 space-y-3">
           <h2 className="text-2xl font-bold">Retatrutide dosage in the Phase 2 trials</h2>
           <p className="text-sm text-muted-foreground">
-            The obesity trial randomised participants to 1, 4, 8 or 12 mg weekly subcutaneous
+            The obesity trial randomized participants to 1, 4, 8 or 12 mg weekly subcutaneous
             injections, all reached by slow escalation. The escalation pattern below reflects the
             published schedule.
           </p>
@@ -628,9 +640,9 @@ function Page() {
         </section>
 
         <section id="reconstitution" className="scroll-mt-20 space-y-3">
-          <h2 className="text-2xl font-bold">Reconstitution maths</h2>
+          <h2 className="text-2xl font-bold">Reconstitution math</h2>
           <p className="text-sm text-muted-foreground">
-            Lyophilised vials need bacteriostatic water before anything can be measured. The whole
+            Lyophilized vials need bacteriostatic water before anything can be measured. The whole
             calculation is one division:{" "}
             <strong>concentration (mg/mL) = vial strength (mg) ÷ BAC water added (mL)</strong>. Then{" "}
             <strong>volume to draw (mL) = dose (mg) ÷ concentration</strong>, and a U-100 insulin
@@ -711,7 +723,7 @@ function Page() {
           </div>
           <p className="text-sm text-muted-foreground">
             Enter vial strength, diluent volume and your target dose and get the exact insulin
-            syringe units to draw — no mental maths at the kitchen counter.
+            syringe units to draw — no mental math at the kitchen counter.
           </p>
           <Link
             to="/peptide-dosage-calculator"
@@ -923,7 +935,7 @@ function Page() {
               <Thermometer className="h-5 w-5 text-primary" />
               <div className="text-sm font-semibold">Before reconstitution</div>
               <p className="text-xs text-muted-foreground">
-                Lyophilised powder is the stable form. Keep it cold and dark; avoid repeated
+                Lyophilized powder is the stable form. Keep it cold and dark; avoid repeated
                 temperature swings and direct light.
               </p>
             </Card>
@@ -982,7 +994,7 @@ function Page() {
           <div className="text-sm">
             <p className="font-semibold">Track GLP-1 cycles properly in DoseRoutine</p>
             <p className="text-muted-foreground">
-              Reconstitution maths, titration schedules, vial inventory, injection-site rotation and
+              Reconstitution math, titration schedules, vial inventory, injection-site rotation and
               blood-work trends in one place.
             </p>
             <Link

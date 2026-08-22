@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {UseCasePage, buildUseCaseHead} from "@/components/app-roundup-page";
+import { UseCasePage, buildUseCaseHead } from "@/components/app-roundup-page";
 
 // The roundup/use-case copy is a large static dataset shared by several
 // marketing pages. Loading it in the route loader (rather than importing it at

@@ -104,15 +104,15 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
         heading: "What is still unanswered",
         bullets: [
           "Cardiovascular outcomes: weight loss and CV event reduction are not the same endpoint, and the added benefit of the glucagon arm over tirzepatide has not been demonstrated.",
-          "Lean mass: no trial in this programme was designed around body composition, so the muscle question stays open (see our post on the myostatin and activin combinations).",
+          "Lean mass: no trial in this program was designed around body composition, so the muscle question stays open (see our post on the myostatin and activin combinations).",
           "Tolerability at 12 mg over multi-year use, including heart-rate elevation.",
-          "Discontinuation: as with every incretin, weight regain after stopping is the default unless behaviour and lean mass are preserved.",
+          "Discontinuation: as with every incretin, weight regain after stopping is the default unless behavior and lean mass are preserved.",
         ],
       },
       {
         heading: "What this means if you are tracking a stack",
         body: [
-          "Nothing about the TRIUMPH data makes grey-market retatrutide safer. Trial participants received titrated, sterile, assayed drug with clinician monitoring of A1C, heart rate, liver enzymes and lipids. Vials bought online match none of those conditions, and dose errors in the microgram-to-milligram conversion are the single most common failure we see.",
+          "Nothing about the TRIUMPH data makes gray-market retatrutide safer. Trial participants received titrated, sterile, assayed drug with clinician monitoring of A1C, heart rate, liver enzymes and lipids. Vials bought online match none of those conditions, and dose errors in the microgram-to-milligram conversion are the single most common failure we see.",
           "If you are on any incretin, the tracking that matters is boringly practical: dose and date logged, injection sites rotated, weight and waist trended alongside a lean-mass proxy, and a standing note of every interacting medicine (insulin and sulfonylureas above all, because dose reductions are usually needed as weight falls).",
         ],
       },
@@ -132,7 +132,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Why did the FDA filing get delayed to 2027?",
-        a: "Lilly moved its expected submission from late 2026 to the first quarter of 2027 as the Phase 3 programme reported out. The company framed it as completing the data package rather than a safety problem.",
+        a: "Lilly moved its expected submission from late 2026 to the first quarter of 2027 as the Phase 3 program reported out. The company framed it as completing the data package rather than a safety problem.",
       },
       {
         q: "Is research-grade retatrutide the same as the trial drug?",
@@ -181,12 +181,12 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
     published: "2026-08-10",
     updated: "2026-08-10",
     intro:
-      "In April 2026 the FDA approved orforglipron (brand name Foundayo), the first small-molecule oral GLP-1 receptor agonist for chronic weight management. Unlike oral semaglutide, it is not a peptide, so it does not require fasting or a water-only window — it is a daily tablet taken with or without food. In the ATTAIN programme it produced placebo-adjusted weight reductions of roughly 9–11 percentage points at 72 weeks, with about 12.4% mean loss in adherent participants on the highest dose.",
+      "In April 2026 the FDA approved orforglipron (brand name Foundayo), the first small-molecule oral GLP-1 receptor agonist for chronic weight management. Unlike oral semaglutide, it is not a peptide, so it does not require fasting or a water-only window — it is a daily tablet taken with or without food. In the ATTAIN program it produced placebo-adjusted weight reductions of roughly 9–11 percentage points at 72 weeks, with about 12.4% mean loss in adherent participants on the highest dose.",
     keyPoints: [
       "Approved for obesity, or overweight with at least one weight-related condition, alongside diet and activity.",
       "Daily tablet with no food or water timing restrictions — the practical difference versus oral semaglutide.",
       "Roughly 12.4% mean weight loss in adherent highest-dose participants at 72 weeks; less than top-dose injectable tirzepatide.",
-      "Same class-wide GI side effects (nausea, vomiting, diarrhoea, constipation) and the same boxed warning regarding thyroid C-cell tumours.",
+      "Same class-wide GI side effects (nausea, vomiting, diarrhea, constipation) and the same boxed warning regarding thyroid C-cell tumours.",
       "Being a small molecule, it is manufactured at chemical scale rather than peptide scale, which is why analysts expect better supply and price pressure.",
     ],
     sections: [
@@ -241,7 +241,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "What are the main side effects?",
-        a: "Nausea, vomiting, diarrhoea, constipation and abdominal pain, mostly during dose escalation. Serious risks flagged in labelling include pancreatitis, gallbladder disease, kidney injury from dehydration, and a boxed warning regarding thyroid C-cell tumours seen in rodents with this drug class.",
+        a: "Nausea, vomiting, diarrhea, constipation and abdominal pain, mostly during dose escalation. Serious risks flagged in labeling include pancreatitis, gallbladder disease, kidney injury from dehydration, and a boxed warning regarding thyroid C-cell tumours seen in rodents with this drug class.",
       },
     ],
     refs: [
@@ -291,7 +291,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
     published: "2026-08-10",
     updated: "2026-08-10",
     intro:
-      "Up to 40% of the weight lost on GLP-1 therapy can come from lean mass, not fat. Two Phase 2 programmes now show that this is partly fixable with drugs: the BELIEVE trial combined semaglutide with bimagrumab (an activin-receptor blocker) and produced greater total weight loss while preserving lean mass, and Regeneron's COURAGE trial combining semaglutide with trevogrumab (anti-myostatin) prevented roughly half of the semaglutide-induced lean-mass loss while increasing fat loss.",
+      "Up to 40% of the weight lost on GLP-1 therapy can come from lean mass, not fat. Two Phase 2 programs now show that this is partly fixable with drugs: the BELIEVE trial combined semaglutide with bimagrumab (an activin-receptor blocker) and produced greater total weight loss while preserving lean mass, and Regeneron's COURAGE trial combining semaglutide with trevogrumab (anti-myostatin) prevented roughly half of the semaglutide-induced lean-mass loss while increasing fat loss.",
     keyPoints: [
       "BELIEVE (published in Nature Medicine, March 2026): semaglutide plus bimagrumab produced more weight loss with lean mass preserved, so a much larger share of the loss was fat.",
       "COURAGE (26-week Phase 2 data): semaglutide plus trevogrumab prevented about half the lean-mass loss and increased fat-mass loss.",
@@ -310,7 +310,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
       {
         heading: "What the drug combinations did",
         bullets: [
-          "Bimagrumab blocks activin type II receptors, the signalling node that suppresses muscle growth. In BELIEVE, adding it to semaglutide shifted the composition of the loss heavily toward fat while lean mass held.",
+          "Bimagrumab blocks activin type II receptors, the signaling node that suppresses muscle growth. In BELIEVE, adding it to semaglutide shifted the composition of the loss heavily toward fat while lean mass held.",
           "Trevogrumab is an anti-GDF8 (myostatin) antibody. In COURAGE, adding it to semaglutide preserved roughly half of the lean mass that semaglutide alone would have cost, and fat loss went up. An additional arm added garetosmab (anti-activin A).",
           "Both trials also reported numeric improvements in waist circumference, blood pressure, lipids and A1C across treatment groups.",
           "Neither trial is a longevity or performance study. These are obesity-quality-of-weight-loss trials in Phase 2.",
@@ -323,7 +323,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
           "Resistance training two to three times a week. It is the only intervention with consistent evidence for retaining muscle in a deficit, and it does not need to be complicated.",
           "Slow the taper. Titrating up faster than tolerated produces the sharpest deficits and the worst intake.",
           "Measure something other than weight: waist and hip circumference, grip strength, a repeatable lift, and body-composition scans if you have access.",
-          "Be sceptical of grey-market 'myostatin inhibitor' peptides marketed off the back of these headlines. Follistatin-type products sold online are not the trial antibodies and have no human safety data.",
+          "Be skeptical of gray-market 'myostatin inhibitor' peptides marketed off the back of these headlines. Follistatin-type products sold online are not the trial antibodies and have no human safety data.",
         ],
       },
       {
@@ -401,7 +401,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
     keyPoints: [
       "ER-100 (Life Biosciences) is the first partial-reprogramming therapy cleared by the FDA for a human trial, targeting optic-nerve disease rather than aging as a whole.",
       "It delivers three of the four Yamanaka factors via AAV — deliberately omitting c-MYC, the one most associated with tumour risk.",
-      "Klothea Bio's aKL003 is a Phase 1b of alpha-klotho mRNA in lipid nanoparticles: about 21 subjects, two injections, randomised 2:1 against saline.",
+      "Klothea Bio's aKL003 is a Phase 1b of alpha-klotho mRNA in lipid nanoparticles: about 21 subjects, two injections, randomized 2:1 against saline.",
       "The klotho study runs at a clinic in a special economic zone in Honduras, outside the FDA/EMA pathway — a meaningful caveat for how the results should be read.",
       "Endpoints in both are safety, tolerability and protein expression. Neither trial can show a lifespan effect.",
     ],
@@ -417,7 +417,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
         heading: "Klotho, and why the trial design matters",
         body: [
           "Alpha-klotho is a protein whose levels fall with age and correlate with kidney function, cognition and cardiovascular health; overexpressing it extends lifespan in mice. Klothea's approach is mRNA in a lipid nanoparticle — the delivery platform proven at scale by COVID vaccines — to make the body transiently produce klotho itself.",
-          "The trial is 21 subjects, two doses, randomised against saline, measuring safety and protein expression. It is being run at the GARM Clinic in Próspera, Roatán, a jurisdiction chosen by several longevity companies to move faster than conventional regulators allow. Speed is real; so is the reduced oversight, and results from that setting will face a higher bar before mainstream adoption.",
+          "The trial is 21 subjects, two doses, randomized against saline, measuring safety and protein expression. It is being run at the GARM Clinic in Próspera, Roatán, a jurisdiction chosen by several longevity companies to move faster than conventional regulators allow. Speed is real; so is the reduced oversight, and results from that setting will face a higher bar before mainstream adoption.",
         ],
       },
       {
@@ -447,7 +447,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "What is the klotho trial?",
-        a: "Klothea Bio is running a Phase 1b randomised, double-blind, placebo-controlled study of aKL003, an alpha-klotho mRNA in lipid nanoparticles. About 21 subjects receive two injections at 0.5 mg, randomised 2:1 against saline, with safety, tolerability and protein expression as endpoints.",
+        a: "Klothea Bio is running a Phase 1b randomized, double-blind, placebo-controlled study of aKL003, an alpha-klotho mRNA in lipid nanoparticles. About 21 subjects receive two injections at 0.5 mg, randomized 2:1 against saline, with safety, tolerability and protein expression as endpoints.",
       },
       {
         q: "Can I take a supplement to increase klotho?",
@@ -455,7 +455,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
       },
       {
         q: "Why omit c-MYC from the Yamanaka factors?",
-        a: "c-MYC is a well-known oncogene, and its inclusion is the main tumour-risk driver in reprogramming. Using only OCT-4, SOX-2 and KLF-4 keeps most of the rejuvenation effect seen in animal work while lowering that risk, which is why clinical programmes use the three-factor combination.",
+        a: "c-MYC is a well-known oncogene, and its inclusion is the main tumour-risk driver in reprogramming. Using only OCT-4, SOX-2 and KLF-4 keeps most of the rejuvenation effect seen in animal work while lowering that risk, which is why clinical programs use the three-factor combination.",
       },
       {
         q: "Are longevity clinics offering these therapies now?",
@@ -480,7 +480,7 @@ const CURATED_BLOG_POSTS: BlogPost[] = [
         url: "https://pubmed.ncbi.nlm.nih.gov/33268865/",
       },
       {
-        cite: "Kuro-o M, et al. Mutation of the mouse klotho gene leads to a syndrome resembling ageing. Nature. 1997;390(6655):45–51.",
+        cite: "Kuro-o M, et al. Mutation of the mouse klotho gene leads to a syndrome resembling aging. Nature. 1997;390(6655):45–51.",
         url: "https://pubmed.ncbi.nlm.nih.gov/9363890/",
       },
     ],

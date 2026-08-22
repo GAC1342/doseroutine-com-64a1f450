@@ -1,0 +1,41 @@
+name: asset-audit
+
+# Lightweight pre-release asset audit for /articles: flags individual slow or
+# oversized assets and hero images that aren't set up to paint fast (preload,
+# fetchpriority, eager loading, modern format, pixel budget).
+# Runs without Lighthouse, so it is cheap enough for every PR touching
+# articles, images, or the audit rules themselves.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/content/article-drafts/**"
+      - "src/lib/asset-audit.ts"
+      - "e2e/asset-audit.spec.ts"
+      - "e2e/article-slugs.ts"
+      - "public/**"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Unit test the audit rules
+        run: npx vitest run src/lib/__tests__/asset-audit.test.ts
+      - run: npx playwright install --with-deps chromium
+      - name: Audit article assets
+        run: npm run perf:assets
+      - name: Publish summary
+        if: always()
+        run: cat test-results/asset-audit/report.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-audit-report
+          path: test-results/asset-audit/
+          if-no-files-found: ignore

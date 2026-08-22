@@ -2,20 +2,15 @@ import { useCallback, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { InsightCard } from "@/components/insights/insight-card";
 import {
+  NutritionProtocolChart,
   RotationChart,
   SeriesBarChart,
   SupplyBars,
   TrendAreaChart,
   TrendMultiLineChart,
 } from "@/components/insights/insight-charts";
-import {
-  deltaAcross,
-  hasData,
-  latest,
-  total,
-} from "@/lib/insights/aggregate";
+import { deltaAcross, hasData, latest, total, type InsightWindow } from "@/lib/insights/aggregate";
 import type { InsightsData } from "@/lib/insights/data";
-import type { InsightWindow } from "@/lib/insights/aggregate";
 import { insightUnits } from "@/lib/insights/units";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +48,10 @@ export function InsightsGrid({
   const adherenceDelta = useMemo(() => deltaAcross(data.adherence, "avg"), [data.adherence]);
   const dosesDelta = useMemo(() => deltaAcross(data.dosesLogged, "sum"), [data.dosesLogged]);
   const weightDelta = useMemo(() => deltaAcross(data.weight, "avg"), [data.weight]);
-  const minutesDelta = useMemo(() => deltaAcross(data.trainingMinutes, "sum"), [data.trainingMinutes]);
+  const minutesDelta = useMemo(
+    () => deltaAcross(data.trainingMinutes, "sum"),
+    [data.trainingMinutes],
+  );
   const bodyFatDelta = useMemo(() => deltaAcross(data.bodyFat, "avg"), [data.bodyFat]);
 
   const adherenceNow = latest(data.adherence);
@@ -70,6 +68,71 @@ export function InsightsGrid({
       })),
     [data.weight, data.bodyFat],
   );
+
+  const nutritionSeries = useMemo(
+    () =>
+      data.calories.map((p, i) => ({
+        label: p.label,
+        calories: p.value,
+        protein: data.protein[i]?.value ?? null,
+      })),
+    [data.calories, data.protein],
+  );
+
+  /** Meals, doses, and training on one timeline so patterns line up. */
+  const protocolSeries = useMemo(
+    () =>
+      data.calories.map((p, i) => {
+        const doses = data.dosesLogged[i]?.value ?? 0;
+        return {
+          label: p.label,
+          calories: p.value,
+          protein: data.protein[i]?.value ?? null,
+          training: data.trainingMinutes[i]?.value ?? 0,
+          doses,
+          /** Sits the dose dot just above the baseline when any dose was logged. */
+          doseMarker: doses > 0 ? 0 : null,
+        };
+      }),
+    [data.calories, data.protein, data.trainingMinutes, data.dosesLogged],
+  );
+
+  const avgProtein = useMemo(() => {
+    const values = data.protein.map((p) => p.value).filter((v): v is number => v != null);
+    if (values.length === 0) return 0;
+    return Math.round(values.reduce((s, v) => s + v, 0) / values.length);
+  }, [data.protein]);
+
+  /** Plain-English read-outs comparing dose/training days with the rest. */
+  const nutritionNotes = useMemo(() => {
+    const c = data.nutritionContext;
+    const notes: string[] = [];
+    if (c.doseDayProtein != null && c.restDayProtein != null) {
+      const diff = c.doseDayProtein - c.restDayProtein;
+      notes.push(
+        Math.abs(diff) < 5
+          ? "Protein is steady on dose days and non-dose days."
+          : `Protein runs ${Math.abs(diff)}g ${diff > 0 ? "higher" : "lower"} on dose days.`,
+      );
+    }
+    if (c.doseDayCalories != null && c.restDayCalories != null) {
+      const diff = c.doseDayCalories - c.restDayCalories;
+      if (Math.abs(diff) >= 75) {
+        notes.push(
+          `You eat about ${Math.abs(diff)} kcal ${diff > 0 ? "more" : "less"} on dose days.`,
+        );
+      }
+    }
+    if (c.trainDayCalories != null && c.offDayCalories != null) {
+      const diff = c.trainDayCalories - c.offDayCalories;
+      if (Math.abs(diff) >= 75) {
+        notes.push(
+          `Training days average ${Math.abs(diff)} kcal ${diff > 0 ? "more" : "less"} than rest days.`,
+        );
+      }
+    }
+    return notes.slice(0, 3);
+  }, [data.nutritionContext]);
 
   return (
     <div
@@ -159,6 +222,51 @@ export function InsightsGrid({
           animate={animate}
           onPointClick={drillTo("training")}
         />
+      </InsightCard>
+
+      <InsightCard
+        title="Nutrition in context"
+        headline={hasData(data.protein) ? `${avgProtein}g protein` : "No meals yet"}
+        caption={data.bucket === "day" ? "Average logged day" : "Average day across each week"}
+        hasData={hasData(data.calories) || hasData(data.protein)}
+        emptyText="Log a few meals to see how eating tracks with your protocol."
+        href={showLinks ? "/food" : undefined}
+        hrefLabel="Open food log"
+      >
+        <TrendMultiLineChart
+          data={nutritionSeries}
+          series={[
+            { key: "calories", label: "Calories" },
+            { key: "protein", label: "Protein (g)", color: "var(--chart-2)", dashed: true },
+          ]}
+          animate={animate}
+        />
+        {nutritionNotes.length > 0 ? (
+          <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+            {nutritionNotes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        ) : null}
+      </InsightCard>
+
+      <InsightCard
+        title="Nutrition vs protocol"
+        headline={`${total(data.dosesLogged)} doses · ${u.duration(total(data.trainingMinutes))}`}
+        caption="Meals, doses, and training on one timeline"
+        hasData={
+          hasData(data.calories) && (hasData(data.dosesLogged) || hasData(data.trainingMinutes))
+        }
+        emptyText="Log meals plus a dose or workout to compare them over time."
+        href={showLinks ? "/food" : undefined}
+        hrefLabel="Open food log"
+        className="sm:col-span-2"
+      >
+        <NutritionProtocolChart data={protocolSeries} animate={animate} />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Bars are calories, lines are protein and training minutes, and each dot marks a{" "}
+          {data.bucket === "day" ? "day" : "week"} with doses logged.
+        </p>
       </InsightCard>
 
       <InsightCard

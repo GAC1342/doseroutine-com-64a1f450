@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -5,7 +6,7 @@ import { useState } from "react";
 import {
   Activity,
   AlertTriangle,
-  Dumbbell,
+  Clock,
   Bell,
   ChevronRight,
   Crown,
@@ -31,9 +32,10 @@ import {
   Calculator,
   ShieldCheck,
   Library,
+  Newspaper,
   TrendingUp,
 } from "lucide-react";
-import { restorePurchases } from "@/lib/revenuecat";
+import { restorePurchases, withStoreTimeout } from "@/lib/revenuecat";
 import { useSubscription } from "@/hooks/use-subscription";
 import { createPortalSession } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -47,11 +49,104 @@ import { FunnelWidget } from "@/components/funnel-widget";
 import { AppearanceSection } from "@/components/appearance-section";
 import { VacationModeCard } from "@/components/vacation-mode-card";
 import { StandingRulesCard } from "@/components/standing-rules-card";
+import { openExternalUrl } from "@/lib/external-link";
+import { routeErrorComponent } from "@/components/route-error-panel";
+import { performSignOut } from "@/lib/sign-out";
 
 export const Route = createFileRoute("/_authenticated/more")({
+  errorComponent: routeErrorComponent("more"),
   head: () => ({ meta: [{ title: "More — DoseRoutine" }] }),
   component: MorePage,
 });
+
+/**
+ * Grouped destinations. This page used to be a flat list of ~35 links with no
+ * hierarchy, which made everything technically present but nothing findable.
+ * Nothing was removed — it is the same set, sorted into jobs-to-be-done.
+ */
+const MORE_SECTIONS = [
+  {
+    title: "Tools",
+    defaultOpen: true,
+    items: [
+      { to: "/fitness", label: "Fitness & training", icon: Activity },
+      { to: "/timer", label: "Workout timer", icon: Clock },
+      { to: "/chat", label: "AI Coach", icon: MessageCircle, note: "Ask anything" },
+      { to: "/plan", label: "AI Plan", icon: Sparkles },
+      { to: "/calculators", label: "Dose calculators", icon: Calculator },
+      { to: "/interaction-checker", label: "Interaction checker", icon: ShieldCheck },
+      { to: "/pill-id", label: "Pill identifier", icon: ScanLine },
+      { to: "/doctor-report", label: "My report", icon: FileText },
+      { to: "/export", label: "Export my data", icon: FileDown },
+    ],
+  },
+  {
+    title: "Protocol",
+    defaultOpen: true,
+    items: [
+      { to: "/safety", label: "Safety & interactions", icon: ShieldCheck },
+      { to: "/cycles", label: "Cycle tracker", icon: RotateCcw },
+      { to: "/templates", label: "Stack templates", icon: Layers },
+      { to: "/injection-sites", label: "Injection sites", icon: MapPin },
+      { to: "/costs", label: "Cost tracker", icon: DollarSign },
+      { to: "/reminders", label: "Reminders", icon: Bell },
+      { to: "/health-sync", label: "Health sync", icon: Activity, note: "Coming in app" },
+      { to: "/timeline", label: "Timeline", icon: Clock },
+    ],
+  },
+  {
+    title: "Progress",
+    defaultOpen: false,
+    items: [
+      { to: "/progress", label: "Progress overview", icon: LineChart },
+      { to: "/insights", label: "Charts", icon: LineChart },
+      { to: "/progress-photos", label: "Progress photos", icon: Camera },
+      { to: "/labs", label: "Blood work", icon: FlaskConical },
+      { to: "/checkins", label: "Check-ins", icon: LineChart },
+      { to: "/side-effects", label: "Side effect journal", icon: AlertTriangle },
+    ],
+  },
+  {
+    title: "Food",
+    defaultOpen: false,
+    items: [
+      { to: "/food", label: "Food diary", icon: LineChart },
+      { to: "/meal-plan", label: "Weekly meal planner", icon: LineChart },
+      { to: "/scan", label: "Scan a barcode or bottle", icon: ScanLine },
+    ],
+  },
+  {
+    title: "Learn",
+    defaultOpen: false,
+    items: [
+      { to: "/library", label: "Compound library", icon: Library },
+      { to: "/library/mens-health", label: "Men's health hub", icon: BookOpen },
+      { to: "/articles", label: "Articles", icon: Newspaper },
+      { to: "/blog", label: "Research & updates", icon: BookOpen },
+      { to: "/manual", label: "Instruction manual", icon: BookOpen },
+      { to: "/help", label: "Help center", icon: HelpCircle },
+    ],
+  },
+] as const;
+
+function MoreSection({
+  title,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  defaultOpen: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <details open={defaultOpen} className="mt-4 rounded-2xl bg-card p-2">
+      <summary className="tap-target cursor-pointer list-none rounded-xl px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-background">
+        {title}
+      </summary>
+      <div className="mt-1 space-y-1">{children}</div>
+    </details>
+  );
+}
 
 function MorePage() {
   const navigate = useNavigate();
@@ -65,24 +160,31 @@ function MorePage() {
   async function handleRestore() {
     setRestoreBusy(true);
     try {
-      const info = await restorePurchases();
+      // Timeout-guarded: an unreachable store must not leave the button spinning.
+      const info = await withStoreTimeout(restorePurchases(), 15_000, "Restoring purchases");
       // Refetch subscription — the server sync inside restorePurchases()
       // has already mirrored RevenueCat entitlements into our DB.
       await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       await queryClient.refetchQueries({ queryKey: ["subscription"] });
       if (info.activeEntitlements.length > 0) {
-        alert("Purchases restored. Pro is now active on this device.");
+        toast.success("Purchases restored", {
+          description: "Pro is now active on this device.",
+        });
       } else {
-        alert(
-          "No active subscriptions found on this Apple ID / Google account. If you recently subscribed, wait a minute and try again.",
-        );
+        toast.info("No purchases to restore", {
+          description:
+            "No active subscription was found on this Apple ID / Google account. If you subscribed just now, wait a minute and try again.",
+        });
       }
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Restore failed");
+      toast.error("Restore failed", {
+        description: e instanceof Error ? e.message : "Please try again in a moment.",
+      });
     } finally {
       setRestoreBusy(false);
     }
   }
+
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin"],
     queryFn: async () => {
@@ -110,9 +212,7 @@ function MorePage() {
   }
 
   async function handleSignOut() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
+    await performSignOut(queryClient);
     navigate({ to: "/auth", replace: true });
   }
 
@@ -123,9 +223,11 @@ function MorePage() {
         data: { environment: getStripeEnvironment() },
       });
       if ("error" in result) throw new Error(result.error);
-      window.open(result.url, "_blank");
+      await openExternalUrl(result.url);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Could not open billing portal");
+      toast.error("Could not open billing", {
+        description: e instanceof Error ? e.message : "Please try again in a moment.",
+      });
     } finally {
       setPortalLoading(false);
     }
@@ -161,7 +263,6 @@ function MorePage() {
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </Link>
-
 
       <div className="mt-6">
         <VacationModeCard />
@@ -213,191 +314,53 @@ function MorePage() {
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
         )}
+      </div>
 
+      {MORE_SECTIONS.map((section) => (
+        <MoreSection key={section.title} title={section.title} defaultOpen={section.defaultOpen}>
+          {section.items.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
+            >
+              <item.icon className="h-4 w-4" />
+              <span className="flex-1 text-left">{item.label}</span>
+              {"note" in item && item.note ? (
+                <span className="text-xs text-muted-foreground">{item.note}</span>
+              ) : null}
+
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          ))}
+        </MoreSection>
+      ))}
+
+      <MoreSection title="Account" defaultOpen={false}>
         <Link
-          to="/plan"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Sparkles className="h-4 w-4" />
-          <span className="flex-1 text-left">AI Plan</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/chat"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <MessageCircle className="h-4 w-4" />
-          <span className="flex-1 text-left">AI Coach</span>
-          <span className="text-xs text-muted-foreground">Ask anything</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/interaction-checker"
+          to="/account"
           className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
         >
           <ShieldCheck className="h-4 w-4" />
-          <span className="flex-1 text-left">Interaction Checker</span>
+          <span className="flex-1 text-left">Sign-in methods</span>
+          <span className="text-xs text-muted-foreground">Google, Apple, email</span>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </Link>
         <Link
-          to="/calculators"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Calculator className="h-4 w-4" />
-          <span className="flex-1 text-left">Dose Calculators</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/library"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Library className="h-4 w-4" />
-          <span className="flex-1 text-left">Compound Library</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/library/mens-health"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <BookOpen className="h-4 w-4" />
-          <span className="flex-1 text-left">Men's Health Hub</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/insights"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <LineChart className="h-4 w-4" />
-          <span className="flex-1 text-left">Insights</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/checkins"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <LineChart className="h-4 w-4" />
-          <span className="flex-1 text-left">Check-ins</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/reminders"
+          to="/notifications"
           className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
         >
           <Bell className="h-4 w-4" />
-          <span className="flex-1 text-left">Reminders</span>
+          <span className="flex-1 text-left">Notifications</span>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </Link>
+
         <Link
-          to="/health-sync"
+          to="/install"
           className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
         >
-          <Activity className="h-4 w-4" />
-          <span className="flex-1 text-left">Health Sync</span>
-          <span className="text-xs text-muted-foreground">Coming in app</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/labs"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <FlaskConical className="h-4 w-4" />
-          <span className="flex-1 text-left">Blood Work</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/templates"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Layers className="h-4 w-4" />
-          <span className="flex-1 text-left">Stack Templates</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/injection-sites"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <MapPin className="h-4 w-4" />
-          <span className="flex-1 text-left">Injection Sites</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/doctor-report"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <FileText className="h-4 w-4" />
-          <span className="flex-1 text-left">My Report</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/cycles"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <RotateCcw className="h-4 w-4" />
-          <span className="flex-1 text-left">Cycle Tracker</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/costs"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <DollarSign className="h-4 w-4" />
-          <span className="flex-1 text-left">Cost Tracker</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/side-effects"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <span className="flex-1 text-left">Side Effect Journal</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/export"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <FileDown className="h-4 w-4" />
-          <span className="flex-1 text-left">Export my data</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/scan"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <ScanLine className="h-4 w-4" />
-          <span className="flex-1 text-left">Scan a bottle</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/progress-photos"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Camera className="h-4 w-4" />
-          <span className="flex-1 text-left">Progress Photos</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/fitness"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Dumbbell className="h-4 w-4" />
-          <span className="flex-1 text-left">Fitness &amp; Body</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/manual"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <BookOpen className="h-4 w-4" />
-          <span className="flex-1 text-left">Instruction Manual</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/help"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <HelpCircle className="h-4 w-4" />
-          <span className="flex-1 text-left">Help Center</span>
+          <Download className="h-4 w-4" />
+          <span className="flex-1 text-left">Install on Home Screen</span>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </Link>
         <Link
@@ -409,19 +372,11 @@ function MorePage() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </Link>
         <Link
-          to="/install"
-          className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-        >
-          <Download className="h-4 w-4" />
-          <span className="flex-1 text-left">Install on Home Screen</span>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
-        <Link
           to="/legal"
           className="tap-target flex w-full items-center gap-3 rounded-xl px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
         >
           <ChevronRight className="h-4 w-4" />
-          Terms, privacy & disclaimer
+          Terms, privacy &amp; disclaimer
         </Link>
 
         {isNative() && (
@@ -442,7 +397,7 @@ function MorePage() {
           <LogOut className="h-4 w-4" />
           Sign out
         </button>
-      </div>
+      </MoreSection>
 
       <div className="mt-6 rounded-2xl bg-card p-2">
         <DeleteAccountButton />

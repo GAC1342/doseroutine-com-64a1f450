@@ -1,23 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link2 } from "lucide-react";
 import {
-  PeptideDosageGlossary,
-  PEPTIDE_DOSAGE_GLOSSARY_JSONLD,
-} from "@/components/peptide-dosage-glossary";
-
-function faqSlug(q: string): string {
-  return q
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .slice(0, 60);
-}
-function faqAnchorId(q: string): string {
-  return `faq-${faqSlug(q)}`;
-}
-import {
+  Link2,
   ArrowRight,
   Beaker,
   Calculator,
@@ -32,6 +16,23 @@ import {
   ShieldCheck,
   Syringe,
 } from "lucide-react";
+import {
+  PeptideDosageGlossary,
+  PEPTIDE_DOSAGE_GLOSSARY_JSONLD,
+} from "@/components/peptide-dosage-glossary";
+
+function faqSlug(q: string): string {
+  return q
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60);
+}
+export function faqAnchorId(q: string): string {
+  return `faq-${faqSlug(q)}`;
+}
+
 import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -45,13 +46,16 @@ import { FounderNotes } from "@/components/founder-notes";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { CalculatorScopeNote } from "@/components/calculator-scope-note";
 import { LAST_REVIEWED } from "@/lib/aeo-page-faqs";
+import { mergeLdScripts } from "@/lib/head-budget";
+import { PEPTIDE_CALCULATOR_ID } from "@/lib/peptide-guide-head";
+import { trackEvent } from "@/lib/analytics";
 
-const CANONICAL = "https://doseroutine.com/peptide-dosage-calculator";
-const TITLE = "Peptide Dosage Calculator — mg to Syringe Units Fast";
+export const CANONICAL = "https://doseroutine.com/peptide-dosage-calculator";
+const TITLE = "Peptide Dosage Guide — mg to Syringe Units Explained";
 const DESC =
-  "Free peptide dosage calculator: enter your mg dose and vial strength to get exact U-100 or U-40 syringe units for BPC-157, TB-500, semaglutide and more.";
+  "How to convert a peptide dose in mg or mcg to exact U-100 or U-40 syringe units, with worked examples for BPC-157, TB-500, semaglutide and more.";
 
-const FAQS: { q: string; a: string }[] = [
+export const FAQS: { q: string; a: string }[] = [
   {
     q: "What is peptide reconstitution?",
     a: "Peptide reconstitution means mixing freeze-dried peptide powder with bacteriostatic water so it becomes a liquid you can draw into a syringe. The amount of water you add changes the concentration, which is why dose calculations matter.",
@@ -110,7 +114,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Do I need to create an account to use this calculator?",
-    a: "No. The reconstitution and dose calculator on this page runs entirely in your browser and requires no signup. Enter the vial strength, BAC water volume and target dose to get the syringe units instantly.",
+    a: "No. The reconstitution and dose calculator on this page runs entirely in your browser and requires no sign-up. Enter the vial strength, BAC water volume and target dose to get the syringe units instantly.",
   },
   {
     q: "How can I track peptide injections over time?",
@@ -189,7 +193,11 @@ export const Route = createFileRoute("/peptide-dosage-calculator")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/54b2292e-1413-4a1a-a698-4830fdf1a008/og-peptide-dosage.jpg",
       },
-      { property: "og:image:alt", content: "DoseRoutine Peptide Dosage Calculator card — reconstitution maths, BAC water volume and syringe units" },
+      {
+        property: "og:image:alt",
+        content:
+          "DoseRoutine Peptide Dosage Calculator card — reconstitution math, BAC water volume and syringe units",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
@@ -204,11 +212,15 @@ export const Route = createFileRoute("/peptide-dosage-calculator")({
         content:
           "https://doseroutine.com/__l5e/assets-v1/54b2292e-1413-4a1a-a698-4830fdf1a008/og-peptide-dosage.jpg",
       },
-      { name: "twitter:image:alt", content: "DoseRoutine Peptide Dosage Calculator card — reconstitution maths, BAC water volume and syringe units" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine Peptide Dosage Calculator card — reconstitution math, BAC water volume and syringe units",
+      },
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/peptide-dosage-calculator")],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -229,8 +241,11 @@ export const Route = createFileRoute("/peptide-dosage-calculator")({
               inLanguage: "en",
               isPartOf: { "@id": "https://doseroutine.com/#website" },
               breadcrumb: { "@id": `${CANONICAL}#breadcrumb` },
+              significantLink: "https://doseroutine.com/peptide-calculator",
+              mentions: { "@id": PEPTIDE_CALCULATOR_ID },
               primaryImageOfPage: undefined,
             },
+
             {
               "@type": "BreadcrumbList",
               "@id": `${CANONICAL}#breadcrumb`,
@@ -256,15 +271,19 @@ export const Route = createFileRoute("/peptide-dosage-calculator")({
               ],
             },
             {
+              // The interactive tool lives at /peptide-calculator. This node
+              // reuses that page's stable @id and url so the calculator is
+              // attributed to one canonical URL instead of every guide.
               "@type": "WebApplication",
               dateModified: LAST_REVIEWED,
               datePublished: "2026-01-15",
-              "@id": `${CANONICAL}#app`,
-              name: "DoseRoutine Peptide Reconstitution & Dosage Calculator",
+              "@id": PEPTIDE_CALCULATOR_ID,
+              name: "DoseRoutine Peptide Calculator",
               applicationCategory: "LifestyleApplication",
               operatingSystem: "Web",
-              url: CANONICAL,
+              url: "https://doseroutine.com/peptide-calculator",
               isPartOf: { "@id": "https://doseroutine.com/#website" },
+
               offers: {
                 "@type": "Offer",
                 price: "0",
@@ -358,7 +377,7 @@ export const Route = createFileRoute("/peptide-dosage-calculator")({
           url: `${CANONICAL}#glossary`,
         }),
       },
-    ],
+    ]),
   }),
   component: PeptideDosageCalculatorPage,
 });
@@ -414,40 +433,22 @@ const FEATURES = [
   },
 ];
 
+/**
+ * Static reconstitution math for the reference table. This page is an
+ * educational guide now — the single interactive tool lives at
+ * /peptide-calculator so there is exactly one calculator to maintain.
+ */
+function presetMath(p: (typeof PRESETS)[number]) {
+  const doseMg = p.doseUnit === "mcg" ? p.doseValue / 1000 : p.doseValue;
+  const mgPerMl = p.vialMg / p.bacMl;
+  const mlPerDose = doseMg / mgPerMl;
+  return { mgPerMl, mlPerDose, units: mlPerDose * 100, dosesPerVial: p.vialMg / doseMg };
+}
+
 function PeptideDosageCalculatorPage() {
-  const [vialMg, setVialMg] = useState<number>(5);
-  const [bacMl, setBacMl] = useState<number>(2);
-  const [doseValue, setDoseValue] = useState<number>(250);
-  const [doseUnit, setDoseUnit] = useState<DoseUnit>("mcg");
-  const [syringe, setSyringe] = useState<SyringeType>("U-100");
-
-  const result = useMemo(() => {
-    if (!vialMg || !bacMl || !doseValue) return null;
-    const doseMg = doseUnit === "mcg" ? doseValue / 1000 : doseValue;
-    const mgPerMl = vialMg / bacMl;
-    const mlPerDose = doseMg / mgPerMl;
-    const unitsPerMl = syringe === "U-100" ? 100 : 40;
-    const units = mlPerDose * unitsPerMl;
-    const dosesPerVial = vialMg / doseMg;
-    return {
-      mgPerMl,
-      mlPerDose,
-      units,
-      dosesPerVial,
-      warn: units > unitsPerMl,
-    };
-  }, [vialMg, bacMl, doseValue, doseUnit, syringe]);
-
-  const applyPreset = (p: (typeof PRESETS)[number]) => {
-    setVialMg(p.vialMg);
-    setBacMl(p.bacMl);
-    setDoseValue(p.doseValue);
-    setDoseUnit(p.doseUnit);
-  };
-
   return (
     <div className="min-h-dvh bg-background">
-      <PublicBackHeader hideSignup />
+      <PublicBackHeader hideSignup backTo="/calculators" backLabel="All calculators" />
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
@@ -481,10 +482,10 @@ function PeptideDosageCalculatorPage() {
           <div className="mx-auto max-w-5xl text-center">
             <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground sm:text-sm">
               <Beaker className="h-3.5 w-3.5 text-primary" />
-              Free peptide calculator
+              Peptide dosing guide
             </div>
             <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-foreground sm:text-5xl">
-              Peptide reconstitution &amp; dosage calculator
+              Peptide reconstitution &amp; dosage guide
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
               Convert BAC water volume, mg/mL concentration and insulin syringe units for any
@@ -493,25 +494,34 @@ function PeptideDosageCalculatorPage() {
             </p>
             <CalculatorScopeNote className="mt-6" />
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link to="/auth">
+              <Link
+                to="/peptide-calculator"
+                hash="calculator"
+                onClick={() =>
+                  trackEvent("guide_calculator_cta_click", {
+                    guide: "/peptide-dosage-calculator",
+                    destination: "/peptide-calculator",
+                  })
+                }
+              >
                 <Button size="lg" className="gap-2 px-7 text-base">
+                  Open the peptide calculator <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button size="lg" variant="outline" className="gap-2 px-7 text-base">
                   <Download className="h-4 w-4" />
                   Download DoseRoutine
                 </Button>
               </Link>
-              <Link to="/reconstitution-calculator">
-                <Button size="lg" variant="outline" className="gap-2 px-7 text-base">
-                  Open full calculator <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              7-day free trial. Cancel anytime. No credit card required to start.
+              Free to start. No credit card required.
             </p>
           </div>
         </section>
 
-        {/* Calculator */}
+        {/* Worked reference table + pointer to the one canonical calculator */}
         <section className="px-5 pb-16 pt-4" aria-labelledby="calculator-heading">
           <div className="mx-auto max-w-4xl">
             <Card className="overflow-hidden border-border shadow-lg">
@@ -521,136 +531,112 @@ function PeptideDosageCalculatorPage() {
                   className="flex items-center gap-2 font-display text-xl font-semibold leading-none tracking-tight"
                 >
                   <Calculator className="h-5 w-5 text-primary" aria-hidden="true" />
-                  Peptide dose calculator
+                  Common vial setups, worked out
                 </h2>
               </CardHeader>
               <CardContent className="space-y-6 p-6">
-                {/* Presets */}
-                <div>
-                  <Label className="mb-2 block text-sm font-medium">Common peptide presets</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {PRESETS.map((p) => (
-                      <button
-                        key={p.label}
-                        type="button"
-                        onClick={() => applyPreset(p)}
-                        className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary hover:text-primary"
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
+                <p className="text-sm leading-relaxed text-foreground/90">
+                  Every peptide dose comes from three numbers: vial strength in milligrams, the
+                  bacteriostatic water you add in milliliters, and the dose you want. Strength ÷
+                  water gives the concentration in mg/mL. Dose ÷ concentration gives the volume in
+                  mL. Volume × 100 gives the units on a U-100 insulin syringe. The table below runs
+                  that arithmetic for the setups people ask about most.
+                </p>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[34rem] border-collapse text-sm">
+                    <caption className="sr-only">
+                      Concentration and U-100 syringe units for common peptide vial setups
+                    </caption>
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <th scope="col" className="py-2 pr-3 font-medium">
+                          Setup
+                        </th>
+                        <th scope="col" className="py-2 pr-3 font-medium">
+                          Concentration
+                        </th>
+                        <th scope="col" className="py-2 pr-3 font-medium">
+                          Dose
+                        </th>
+                        <th scope="col" className="py-2 pr-3 font-medium">
+                          U-100 units
+                        </th>
+                        <th scope="col" className="py-2 font-medium">
+                          Doses per vial
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {PRESETS.map((p) => {
+                        const row = presetMath(p);
+                        return (
+                          <tr key={p.label} className="border-b border-border/60 last:border-0">
+                            <th
+                              scope="row"
+                              className="py-2 pr-3 text-left font-medium text-foreground"
+                            >
+                              {p.label} in {p.bacMl} mL
+                            </th>
+                            <td className="py-2 pr-3 text-muted-foreground">
+                              {row.mgPerMl.toFixed(2)} mg/mL
+                            </td>
+                            <td className="py-2 pr-3 text-muted-foreground">
+                              {p.doseValue} {p.doseUnit}
+                            </td>
+                            <td className="py-2 pr-3 font-semibold text-foreground">
+                              {row.units.toFixed(1)}
+                            </td>
+                            <td className="py-2 text-muted-foreground">
+                              {row.dosesPerVial.toFixed(1)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="vial-mg">Vial size (mg)</Label>
-                    <Input
-                      id="vial-mg"
-                      type="number"
-                      min={0}
-                      step={0.1}
-                      value={vialMg}
-                      onChange={(e) => setVialMg(parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bac-ml">BAC water (mL)</Label>
-                    <Input
-                      id="bac-ml"
-                      type="number"
-                      min={0}
-                      step={0.1}
-                      value={bacMl}
-                      onChange={(e) => setBacMl(parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dose">Target dose</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="dose"
-                        type="number"
-                        min={0}
-                        step={doseUnit === "mcg" ? 1 : 0.01}
-                        value={doseValue}
-                        onChange={(e) => setDoseValue(parseFloat(e.target.value) || 0)}
-                        className="flex-1"
-                      />
-                      <select
-                        aria-label="Dose unit"
-                        value={doseUnit}
-                        onChange={(e) => setDoseUnit(e.target.value as DoseUnit)}
-                        className="rounded-md border border-input bg-background px-3 text-sm"
-                      >
-                        <option value="mcg">mcg</option>
-                        <option value="mg">mg</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="syringe">Syringe type</Label>
-                    <select
-                      id="syringe"
-                      value={syringe}
-                      onChange={(e) => setSyringe(e.target.value as SyringeType)}
-                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      <option value="U-100">U-100 (100 units/mL)</option>
-                      <option value="U-40">U-40 (40 units/mL)</option>
-                    </select>
-                  </div>
-                </div>
+                <p className="text-sm leading-relaxed text-foreground/90">
+                  Your vial almost certainly differs from every row above, and that is the point:
+                  halving the water doubles the concentration and halves the units for the same
+                  milligram dose. Run your own numbers in the calculator rather than copying a row
+                  that looks close.
+                </p>
 
-                {result && (
-                  <div className="grid gap-4 rounded-xl bg-muted/50 p-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Concentration</p>
-                      <p className="font-display text-xl font-semibold text-foreground">
-                        {result.mgPerMl.toFixed(3)} mg/mL
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Volume per dose</p>
-                      <p className="font-display text-xl font-semibold text-foreground">
-                        {result.mlPerDose.toFixed(3)} mL
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Syringe units</p>
-                      <p className="font-display text-xl font-semibold text-foreground">
-                        {result.units.toFixed(1)} units
-                      </p>
-                      {result.warn && (
-                        <p className="mt-1 flex items-center gap-1 text-xs text-warning">
-                          <Info className="h-3 w-3" /> Exceeds one full syringe
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Doses per vial</p>
-                      <p className="font-display text-xl font-semibold text-foreground">
-                        {result.dosesPerVial.toFixed(1)}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <div className="rounded-xl border border-primary/30 bg-primary/5 p-5">
+                  <h3 className="font-display text-lg font-semibold text-foreground">
+                    Run your own numbers
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    DoseRoutine has one peptide calculator now, so there is no guessing about which
+                    tool is current. It handles mixing, dose-to-units conversion on U-100 and U-40
+                    syringes, and how long a vial lasts on your schedule.
+                  </p>
+                  <Link
+                    to="/peptide-calculator"
+                    hash="calculator"
+                    onClick={() =>
+                      trackEvent("guide_calculator_cta_click", {
+                        guide: "/peptide-dosage-calculator",
+                        destination: "/peptide-calculator",
+                      })
+                    }
+                    className="mt-4 inline-block"
+                  >
+                    <Button size="lg" className="gap-2">
+                      Run my numbers in the peptide calculator <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
 
                 <p className="flex items-start gap-2 text-xs text-muted-foreground">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  This calculator is for educational purposes only. Always verify doses with your
+                  This guide is for educational purposes only. Always verify doses with your
                   prescribing clinician and follow sterile reconstitution practices.
                 </p>
               </CardContent>
             </Card>
-
-            <SaveResultCta
-              tool="peptide_dosage_calculator"
-              hasResult={Boolean(result)}
-              title="Save this calculation"
-              body="Keep this vial and dose setup in your account — DoseRoutine counts doses remaining, reminds you when to inject, and checks interactions across your whole stack."
-              action="Save this calculation"
-            />
 
             <TrustSafety variant="safety-only" id="peptide-dosage-safety" className="mt-6" />
           </div>
@@ -793,7 +779,7 @@ function PeptideDosageCalculatorPage() {
               <Link to="/auth">
                 <Button size="lg" className="gap-2 px-8 text-base">
                   <Download className="h-4 w-4" />
-                  Start free 7-day trial
+                  Start free
                 </Button>
               </Link>
             </div>
@@ -816,10 +802,10 @@ function PeptideDosageCalculatorPage() {
             <h2 className="mb-4 text-xl font-semibold">Related calculators & guides</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Link
-                to="/calculator"
+                to="/calculators"
                 className="rounded-lg border border-border p-4 hover:border-primary"
               >
-                <div className="font-semibold">All Calculators</div>
+                <div className="font-semibold">All DoseRoutine calculators</div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Browse every free dosing calculator in one place.
                 </p>
@@ -859,18 +845,15 @@ function PeptideDosageCalculatorPage() {
           notes={[
             {
               title: "Titration schedules fall apart without a reminder",
-              body:
-                "Every protocol I have tried assumes you remember which week of the ramp you are in. I did not. Tracking the planned step alongside the actual logged dose is how I found out I had spent an extra three weeks at a starting dose because I never actioned the increase.",
+              body: "Every protocol I have tried assumes you remember which week of the ramp you are in. I did not. Tracking the planned step alongside the actual logged dose is how I found out I had spent an extra three weeks at a starting dose because I never actioned the increase.",
             },
             {
               title: "Round to something the syringe can show",
-              body:
-                "Calculators happily return 137.5 mcg. My syringe cannot. I now round to the nearest half unit and record the rounded number as the real dose, because otherwise my logged history slowly drifts away from what I actually injected.",
+              body: "Calculators happily return 137.5 mcg. My syringe cannot. I now round to the nearest half unit and record the rounded number as the real dose, because otherwise my logged history slowly drifts away from what I actually injected.",
             },
             {
               title: "Body weight inputs age faster than you expect",
-              body:
-                "For weight-based dosing I re-check the input monthly. After a 14 lb change my calculated dose was noticeably off from what I was still injecting out of habit — the number in the calculator had been right on the day I typed it and wrong ever since.",
+              body: "For weight-based dosing I re-check the input monthly. After a 14 lb change my calculated dose was noticeably off from what I was still injecting out of habit — the number in the calculator had been right on the day I typed it and wrong ever since.",
             },
           ]}
         />
@@ -978,7 +961,6 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
         {copied ? "Link copied" : "Copy link"}
       </a>
-
     </details>
   );
 }

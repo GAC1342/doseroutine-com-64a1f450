@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
+import { canonicalLinks } from "@/lib/hreflang";
 import { ArrowRight, HelpCircle, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
 import { RelatedCompounds, type RelatedCompound } from "@/components/related-compounds";
 import { breadcrumbSchema } from "@/lib/breadcrumb-schema";
-
+import { mergeLdScripts } from "@/lib/head-budget";
 
 export type WomensHubContent = {
   slug: "womens-health" | "menopause-hormones" | "longevity" | "sexual-health" | "fertility-cycle";
@@ -50,7 +51,6 @@ export function womensHubHead(c: WomensHubContent) {
           { name: "Women's Health", path: "/library/womens-health" },
           { name: c.title, path: `/library/womens-health/${c.slug}` },
         ];
-
 
   const medicalLD = {
     "@context": "https://schema.org",
@@ -117,12 +117,12 @@ export function womensHubHead(c: WomensHubContent) {
       { name: "twitter:image", content: ogImage },
       { name: "twitter:image:alt", content: `${c.title} — DoseRoutine` },
     ],
-    links: [{ rel: "canonical", href: url }],
-    scripts: [
+    links: [...canonicalLinks(url)],
+    scripts: mergeLdScripts([
       { type: "application/ld+json" as const, children: JSON.stringify(medicalLD) },
       { type: "application/ld+json" as const, children: JSON.stringify(breadcrumbLD) },
       { type: "application/ld+json" as const, children: JSON.stringify(faqLD) },
-    ],
+    ]),
   };
 }
 

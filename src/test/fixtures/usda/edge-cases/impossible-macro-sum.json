@@ -1,0 +1,31 @@
+{
+  "fdcId": 7000009,
+  "description": "Corrupt record, macros sum past 100 g per 100 g",
+  "dataType": "SR Legacy",
+  "foodNutrients": [
+    {
+      "nutrient": {
+        "id": 1008
+      },
+      "amount": 690
+    },
+    {
+      "nutrient": {
+        "id": 1003
+      },
+      "amount": 60
+    },
+    {
+      "nutrient": {
+        "id": 1005
+      },
+      "amount": 60
+    },
+    {
+      "nutrient": {
+        "id": 1004
+      },
+      "amount": 30
+    }
+  ]
+}

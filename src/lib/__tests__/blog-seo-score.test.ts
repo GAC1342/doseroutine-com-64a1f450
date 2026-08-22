@@ -9,7 +9,13 @@
 
 import { describe, expect, it } from "vitest";
 import { BLOG_POSTS } from "@/lib/blog-posts";
-import { failingPosts, formatScore, keywordsFor, scoreAllBlogPosts, scoreBlogPost } from "@/lib/blog-seo-score";
+import {
+  failingPosts,
+  formatScore,
+  keywordsFor,
+  scoreAllBlogPosts,
+  scoreBlogPost,
+} from "@/lib/blog-seo-score";
 import { loadSeoScoreConfig } from "@/lib/seo-score-config.load";
 import { applyEnvOverrides, mergeSeoScoreConfig } from "@/lib/seo-score-config";
 
@@ -79,7 +85,10 @@ describe("seo-score config", () => {
       rules: { title_brand: { enabled: false } },
       blockingChecks: ["title_length"],
     });
-    const scored = scoreBlogPost({ ...BLOG_POSTS[0], title: "No brand suffix here at all now" }, cfg);
+    const scored = scoreBlogPost(
+      { ...BLOG_POSTS[0], title: "No brand suffix here at all now" },
+      cfg,
+    );
     expect(scored.checks.some((c) => c.id === "title_brand")).toBe(false);
   });
 
@@ -87,7 +96,10 @@ describe("seo-score config", () => {
     expect(() => mergeSeoScoreConfig({ rules: { nope: {} } })).toThrow(/unknown rule id/);
     expect(() => mergeSeoScoreConfig({ passingScore: 140 })).toThrow(/between 0 and 100/);
     expect(() =>
-      mergeSeoScoreConfig({ rules: { h2_unique: { enabled: false } }, blockingChecks: ["h2_unique"] }),
+      mergeSeoScoreConfig({
+        rules: { h2_unique: { enabled: false } },
+        blockingChecks: ["h2_unique"],
+      }),
     ).toThrow(/disabled/);
   });
 

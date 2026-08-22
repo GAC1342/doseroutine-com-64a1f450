@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 
 type Row = SharedProtocolRow;
 
-const sharedQuery = (token: string) =>
+export const sharedQuery = (token: string) =>
   queryOptions({
     queryKey: ["shared-protocol", token],
     queryFn: async (): Promise<Row | null> => {
@@ -47,9 +47,13 @@ export const Route = createFileRoute("/p/$token")({
   component: SharedProtocolPage,
 });
 
-function NotAvailable() {
+export function NotAvailable() {
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center px-6 text-center">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center px-6 text-center"
+    >
       <h1 className="font-display text-2xl font-semibold">Link not available</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         This shared stack may have been removed by its owner, or the link is incorrect.
@@ -60,7 +64,7 @@ function NotAvailable() {
       >
         <ArrowLeft className="h-4 w-4" /> Go to DoseRoutine
       </Link>
-    </div>
+    </main>
   );
 }
 
@@ -74,7 +78,7 @@ function SharedProtocolPage() {
   const created = new Date(data.created_at).toLocaleDateString();
 
   return (
-    <div className="min-h-dvh bg-background">
+    <main id="main-content" tabIndex={-1} className="min-h-dvh bg-background">
       <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <Link to="/" className="text-xs font-semibold text-primary hover:underline">
@@ -98,7 +102,10 @@ function SharedProtocolPage() {
           role="note"
           className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-foreground/90"
         >
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+          <ShieldCheck
+            className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden
+          />
           <div>
             <p className="font-medium text-amber-900 dark:text-amber-200">
               For information only — not medical advice.
@@ -166,6 +173,6 @@ function SharedProtocolPage() {
           </Link>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }

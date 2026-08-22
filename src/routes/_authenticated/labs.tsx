@@ -18,8 +18,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { toast } from "sonner";
 import { todayInBrowserZone } from "@/lib/day-key";
 import { Card } from "@/components/ui/card";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/labs")({
+  errorComponent: routeErrorComponent("labs"),
   head: () => ({
     meta: [
       { title: "Blood Work — DoseRoutine" },

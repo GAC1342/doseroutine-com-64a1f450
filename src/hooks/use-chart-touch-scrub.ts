@@ -69,7 +69,8 @@ export function useChartTouchScrub<T extends HTMLElement>() {
       if (!t) return;
       if (!active) {
         const moved =
-          Math.abs(t.clientX - start.x) > CANCEL_SLOP || Math.abs(t.clientY - start.y) > CANCEL_SLOP;
+          Math.abs(t.clientX - start.x) > CANCEL_SLOP ||
+          Math.abs(t.clientY - start.y) > CANCEL_SLOP;
         if (moved) clearHold();
         return;
       }

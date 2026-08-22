@@ -5,8 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
 import { ArrowLeft, Camera, Trash2, Upload, ImageOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useConfirm } from "@/components/confirm-dialog";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/progress-photos")({
+  errorComponent: routeErrorComponent("progress-photos"),
   head: () => ({
     meta: [
       { title: "Progress Photos — DoseRoutine" },
@@ -55,6 +58,7 @@ function ProgressPhotosPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { data: subscription } = useSubscription();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const quota = quotaBytes(subscription as any);
 
   const { data: photos, isLoading } = useQuery({
@@ -76,6 +80,7 @@ function ProgressPhotosPage() {
       const uid = userRes.user?.id;
       if (!uid) return 0;
       const { data } = await supabase.storage.from("progress-photos").list(uid, { limit: 1000 });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
       return (data ?? []).reduce((s, f) => s + ((f.metadata as any)?.size ?? 0), 0);
     },
   });
@@ -256,6 +261,7 @@ function ProgressPhotosPage() {
 }
 
 function PhotoCard({ photo, onDelete }: { photo: PhotoRow; onDelete: () => void }) {
+  const [confirmAction, confirmUi] = useConfirm();
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -276,6 +282,7 @@ function PhotoCard({ photo, onDelete }: { photo: PhotoRow; onDelete: () => void 
           <img
             src={url}
             alt={`${photo.category} progress photo`}
+            title={`${photo.category} progress photo`}
             width={600}
             height={600}
             className="h-full w-full object-cover"
@@ -289,16 +296,19 @@ function PhotoCard({ photo, onDelete }: { photo: PhotoRow; onDelete: () => void 
         )}
       </div>
       <div className="p-3">
+        {confirmUi}
         <div className="flex items-center justify-between">
           <div className="text-xs font-semibold uppercase tracking-wide text-primary">
             {photo.category}
           </div>
           <button
             onClick={() => {
-              const ok =
-                typeof window !== "undefined" &&
-                window.confirm("Delete this photo? This cannot be undone.");
-              if (ok) onDelete();
+              void confirmAction({
+                title: "Delete this photo?",
+                description: "This cannot be undone.",
+              }).then((ok) => {
+                if (ok) onDelete();
+              });
             }}
             className="rounded-md p-2 -m-2 text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
             aria-label="Delete photo"

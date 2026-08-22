@@ -2,7 +2,7 @@
  * Offline SEO scoring for /blog posts.
  *
  * Deterministic, network-free rules that can run on every build so an
- * unoptimised post fails CI on the commit that introduced it. Scores four
+ * unoptimized post fails CI on the commit that introduced it. Scores four
  * things that measurably move blog rankings:
  *
  *   1. <title>        — length, uniqueness, brand suffix, keyword presence
@@ -56,11 +56,65 @@ export type BlogSeoScore = {
 };
 
 const STOPWORDS = new Set([
-  "the","a","an","and","or","for","to","of","in","on","is","it","its","your","you",
-  "what","how","why","when","does","do","with","without","that","this","are","be",
-  "will","can","from","my","at","as","much","long","take","really","actually","guide",
-  "best","before","after","more","than","into","about","should","has","have","gone",
-  "bad","not","but","out","per","use","using","need","know",
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "for",
+  "to",
+  "of",
+  "in",
+  "on",
+  "is",
+  "it",
+  "its",
+  "your",
+  "you",
+  "what",
+  "how",
+  "why",
+  "when",
+  "does",
+  "do",
+  "with",
+  "without",
+  "that",
+  "this",
+  "are",
+  "be",
+  "will",
+  "can",
+  "from",
+  "my",
+  "at",
+  "as",
+  "much",
+  "long",
+  "take",
+  "really",
+  "actually",
+  "guide",
+  "best",
+  "before",
+  "after",
+  "more",
+  "than",
+  "into",
+  "about",
+  "should",
+  "has",
+  "have",
+  "gone",
+  "bad",
+  "not",
+  "but",
+  "out",
+  "per",
+  "use",
+  "using",
+  "need",
+  "know",
 ]);
 
 function normalise(value: string): string {
@@ -222,8 +276,7 @@ export function failingPosts(
 ): BlogSeoScore[] {
   return results.filter(
     (r) =>
-      r.score < config.passingScore ||
-      r.failed.some((f) => config.blockingChecks.includes(f.id)),
+      r.score < config.passingScore || r.failed.some((f) => config.blockingChecks.includes(f.id)),
   );
 }
 

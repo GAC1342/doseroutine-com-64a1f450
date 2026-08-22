@@ -24,6 +24,11 @@ export const NON_COMPOUND_SEGMENTS = [
   "peptide-stacks-for-muscle-growth",
   "cjc-1295-ipamorelin",
   "retatrutide-dosage",
+  // Compounds that ship as their own static route rather than the dynamic
+  // /library/$slug page — audited separately.
+  "clomiphene",
+  "melanotan-2",
+  "testosterone",
 ];
 
 /** True when the URL is a single-slug compound page such as /library/bpc-157. */

@@ -4,8 +4,9 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/prostate-health";
+export const CANONICAL = "https://doseroutine.com/library/prostate-health";
 const TITLE = "Prostate Supplements: BPH & Urinary Support | DoseRoutine";
 const DESC =
   "Evidence-based prostate health supplements for BPH and lower urinary tract symptoms: saw palmetto, beta-sitosterol, pygeum, stinging nettle root and more.";
@@ -34,7 +35,7 @@ const COMPOUNDS = [
   },
 ];
 
-const FAQS = [
+export const FAQS = [
   {
     q: "What's the difference between BPH and prostatitis?",
     a: "BPH is age-related enlargement of the prostate causing urinary symptoms. Prostatitis is inflammation, often from infection, and needs different treatment. Only a doctor can tell them apart.",
@@ -125,7 +126,7 @@ export const Route = createFileRoute("/library/prostate-health")({
       ...ogLocaleMeta("en"),
     ],
     links: [{ rel: "canonical", href: CANONICAL }, ...hreflangLinks("/library/prostate-health")],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -140,8 +141,15 @@ export const Route = createFileRoute("/library/prostate-health")({
           url: CANONICAL,
           image: ["https://doseroutine.com/og/hub-prostate.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -183,7 +191,7 @@ export const Route = createFileRoute("/library/prostate-health")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: ProstateHub,
 });

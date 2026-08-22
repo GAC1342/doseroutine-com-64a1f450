@@ -1,0 +1,30 @@
+{
+  "fdcId": 7000012,
+  "description": "Cheddar cheese (null-heavy record)",
+  "dataType": "SR Legacy",
+  "brandOwner": null,
+  "brandName": null,
+  "gtinUpc": null,
+  "servingSize": null,
+  "servingSizeUnit": null,
+  "householdServingFullText": null,
+  "foodNutrients": [
+    {
+      "nutrientId": 1008,
+      "value": 403
+    },
+    {
+      "nutrientId": 1003,
+      "value": 22.9
+    },
+    {
+      "nutrientId": 1005,
+      "value": 3.1
+    },
+    {
+      "nutrientId": 1004,
+      "value": 33.1
+    }
+  ],
+  "foodPortions": null
+}

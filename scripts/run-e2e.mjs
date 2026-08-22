@@ -18,7 +18,12 @@ import { spawnSync } from "node:child_process";
 
 const DEFAULT_PROJECTS = ["chromium", "firefox", "webkit"];
 /** Playwright projects that are not their own engine. */
-const ENGINE_OF = { "mobile-safari": "webkit", chromium: "chromium", firefox: "firefox", webkit: "webkit" };
+const ENGINE_OF = {
+  "mobile-safari": "webkit",
+  chromium: "chromium",
+  firefox: "firefox",
+  webkit: "webkit",
+};
 
 const argv = process.argv.slice(2);
 const specs = argv.filter((a) => !a.startsWith("-"));
@@ -47,7 +52,9 @@ try {
   const parsed = JSON.parse(probe.stdout);
   usable = new Set(parsed.results.filter((r) => r.ok).map((r) => r.engine));
   for (const r of parsed.results.filter((x) => !x.ok)) {
-    console.warn(`[run-e2e] ${r.engine} unusable — ${r.reason}\n           fix: ${r.hint ?? "n/a"}`);
+    console.warn(
+      `[run-e2e] ${r.engine} unusable — ${r.reason}\n           fix: ${r.hint ?? "n/a"}`,
+    );
   }
 } catch {
   console.warn("[run-e2e] browser probe failed to report; running every requested project");

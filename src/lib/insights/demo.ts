@@ -46,10 +46,25 @@ export function buildDemoInsights(): InsightsData {
     7,
   );
   const dosesLogged = weekly(start, (i, rand) => Math.round(9 + i * 0.7 + rand() * 3), 11);
-  const weight = weekly(start, (i, rand) => Math.round((92.4 - i * 0.62 + rand() * 0.5) * 10) / 10, 3);
-  const bodyFat = weekly(start, (i, rand) => Math.round((26.8 - i * 0.32 + rand() * 0.3) * 10) / 10, 5);
+  const weight = weekly(
+    start,
+    (i, rand) => Math.round((92.4 - i * 0.62 + rand() * 0.5) * 10) / 10,
+    3,
+  );
+  const bodyFat = weekly(
+    start,
+    (i, rand) => Math.round((26.8 - i * 0.32 + rand() * 0.3) * 10) / 10,
+    5,
+  );
   const trainingMinutes = weekly(start, (i, rand) => Math.round(110 + i * 9 + rand() * 40), 13);
-  const sessions = weekly(start, (i, rand) => Math.round(2 + Math.min(3, i * 0.25 + rand() * 1.2)), 17);
+  const sessions = weekly(
+    start,
+    (i, rand) => Math.round(2 + Math.min(3, i * 0.25 + rand() * 1.2)),
+    17,
+  );
+
+  const calories = weekly(start, (i, rand) => Math.round(2380 - i * 14 + rand() * 180), 29);
+  const protein = weekly(start, (i, rand) => Math.round(126 + i * 2.6 + rand() * 14), 31);
 
   const sites = ["Left abdomen", "Right abdomen", "Left thigh", "Right thigh"];
   const rotRand = rng(23);
@@ -85,6 +100,19 @@ export function buildDemoInsights(): InsightsData {
     bodyFat,
     trainingMinutes,
     sessions,
+    calories,
+    protein,
+    nutritionContext: {
+      doseDayCalories: 2180,
+      restDayCalories: 2395,
+      doseDayProtein: 158,
+      restDayProtein: 132,
+      trainDayCalories: 2410,
+      offDayCalories: 2105,
+      trainDayProtein: 162,
+      offDayProtein: 129,
+      loggedDays: 74,
+    },
     rotation,
     vials,
     spend,

@@ -1,0 +1,88 @@
+name: crawl-smoke
+
+# Crawler's-eye smoke test of the whole route surface.
+#
+#   1. crawl-smoke.mjs      — every route plus its ?lang=xx duplicates must
+#                             answer 200/3xx (no 404, 5xx or redirect loops)
+#                             and the final HTML must carry a self-referencing
+#                             canonical + a valid hreflang cluster.
+#   2. sitemap-crawlable.mjs — every URL the generated sitemap lists must be
+#                             crawlable, indexable and self-canonical, and any
+#                             redirect must land on another sitemap URL.
+#
+# The rule engines are unit-tested on every push (fast, no network); the live
+# sweeps build this commit, serve it locally and crawl that build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "30 5 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override target (blank = build and check locally)"
+        required: false
+        default: ""
+      sample:
+        description: "URLs to crawl (0 = every sitemap URL)"
+        required: false
+        default: "60"
+
+jobs:
+  rules:
+    name: Crawl rules (unit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+      - run: npx vitest run src/lib/__tests__/crawl-smoke.test.ts
+
+  live:
+    name: Live crawl + sitemap sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: rules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --no-audit --no-fund
+
+      - name: Build
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: npm run build
+
+      - name: Start server
+        if: ${{ github.event.inputs.base_url == '' }}
+        run: |
+          node dist/server/index.mjs &
+          echo $! > server.pid
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3000/robots.txt && exit 0
+            sleep 2
+          done
+          echo "server never became ready"; exit 1
+
+      - name: Crawl smoke test (routes + ?lang= variants)
+        env:
+          CRAWL_SMOKE_BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}
+          CRAWL_SMOKE_SAMPLE: ${{ github.event.inputs.sample || '60' }}
+          CRAWL_SMOKE_LANGS: "ar,es,zh"
+        run: node scripts/crawl-smoke.mjs
+
+      - name: Sitemap crawlability gate
+        env:
+          SITEMAP_CRAWL_BASE_URL: ${{ github.event.inputs.base_url || 'http://localhost:3000' }}
+          SITEMAP_CRAWL_SAMPLE: ${{ github.event.inputs.sample || '60' }}
+        run: node scripts/sitemap-crawlable.mjs
+
+      - name: Stop server
+        if: always()
+        run: '[ -f server.pid ] && kill "$(cat server.pid)" || true'

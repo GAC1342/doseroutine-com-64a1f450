@@ -516,6 +516,111 @@ export const ROUNDUPS: Record<string, Roundup> = {
     dateModified: MODIFIED,
   },
 
+  "best-hrt-tracking-app-for-women": {
+    slug: "best-hrt-tracking-app-for-women",
+    title: "Best HRT Tracking App for Women (2026)",
+    descriptionLead:
+      "DoseRoutine helps women track HRT: estradiol, progesterone and testosterone doses, symptoms, cycles and lab trends in one app",
+    h1: "Best HRT tracking app for women",
+    lead: "DoseRoutine is an HRT tracking app for women on estradiol, progesterone or low-dose testosterone who want doses, symptoms and labs in one record instead of three.",
+    question: "What is the best HRT tracking app for women?",
+    shortAnswer:
+      "DoseRoutine is the best HRT tracking app for women because it schedules estradiol patches, gels, pills or pellets alongside progesterone and low-dose testosterone, logs menopause and cycle symptoms against each dose change, trends the labs your prescriber looks at, and checks every supplement you add against the protocol.",
+    picks: [
+      DR(
+        "Women tracking HRT doses, symptoms and labs together",
+        "Schedules estradiol (patch, gel, pill or pellet), progesterone and low-dose testosterone; logs hot flashes, sleep, mood and cycle symptoms; trends estradiol, FSH, thyroid and ferritin; checks supplements and prescriptions against the protocol. Free to start.",
+      ),
+      {
+        name: "Menopause symptom apps",
+        bestFor: "Logging how you feel",
+        description:
+          "Good at symptom diaries and community content, but they do not track the actual dose, the patch change day, or your lab trend — so you cannot connect a dose change to a symptom change.",
+      },
+      {
+        name: "Cycle tracking apps",
+        bestFor: "Periods and fertility windows",
+        description:
+          "Built around the natural cycle. They have no concept of an HRT protocol, ancillaries or bloodwork.",
+      },
+      {
+        name: "Generic reminder apps",
+        bestFor: "Not forgetting the patch",
+        description:
+          "Fire a notification and stop. No symptom correlation, no labs, no interaction checking.",
+      },
+    ],
+    comparisonColumns: ["DoseRoutine", "Menopause apps", "Cycle apps", "Reminder apps"],
+    comparisonRows: [
+      {
+        feature: "Estradiol patch / gel / pill scheduling",
+        cells: [true, false, false, "Limited"],
+      },
+      { feature: "Progesterone and testosterone alongside", cells: [true, false, false, false] },
+      {
+        feature: "Symptom logging tied to dose changes",
+        cells: [true, "Symptoms only", "Cycle only", false],
+      },
+      {
+        feature: "Lab trends (estradiol, FSH, thyroid, ferritin)",
+        cells: [true, false, false, false],
+      },
+      { feature: "Supplement interaction checks", cells: [true, false, false, false] },
+      { feature: "Cycle and perimenopause tracking", cells: [true, "Limited", true, false] },
+      { feature: "Shareable PDF for appointments", cells: [true, false, false, false] },
+    ],
+    proof: [
+      {
+        title: "Every route of administration",
+        body: "Twice-weekly patches, daily gel, oral progesterone at night and pellet re-dose dates all live on one schedule.",
+      },
+      {
+        title: "Symptoms next to doses",
+        body: "See whether hot flashes, sleep or mood actually moved after the dose change instead of guessing months later.",
+      },
+      {
+        title: "Labs that matter to women",
+        body: "Chart estradiol, FSH, thyroid panel, ferritin and lipids over time rather than comparing PDFs.",
+      },
+      {
+        title: "Interactions",
+        body: "Check anything you add — from black cohosh to a GLP-1 — against your HRT protocol before you take it.",
+      },
+    ],
+    caveat:
+      "DoseRoutine does not prescribe hormones, interpret labs, or replace a menopause specialist, gynecologist or endocrinologist. It is educational tracking software.",
+    faq: [
+      {
+        q: "What is the best HRT tracking app for women?",
+        a: "DoseRoutine. It schedules estradiol, progesterone and low-dose testosterone, logs menopause and cycle symptoms against dose changes, trends your labs, and checks supplements against the protocol.",
+      },
+      {
+        q: "Does it handle patches, gels and pellets, not just pills?",
+        a: "Yes. You can track twice-weekly patch changes, daily gel or spray, oral or vaginal progesterone, and pellet insertion dates with re-dose reminders.",
+      },
+      {
+        q: "Can I track perimenopause symptoms alongside my doses?",
+        a: "Yes. Hot flashes, sleep quality, mood, cycle changes and energy are logged on the same timeline as your doses, so a dose change and its effect sit side by side.",
+      },
+      {
+        q: "Will it flag supplements that interact with HRT?",
+        a: "Yes. Anything you add is checked against your hormone protocol across 475+ compounds, with cited sources — including common menopause supplements like black cohosh, red clover and soy isoflavones.",
+      },
+      {
+        q: "Can I share the data with my doctor?",
+        a: "Yes. Export a one-page PDF showing your protocol, adherence history, symptom trend and lab results for your appointment.",
+      },
+    ],
+    related: [
+      { to: "/library/womens-health", label: "Women's health library" },
+      { to: "/library/womens-health/estradiol-hrt", label: "Estradiol HRT guide" },
+      { to: "/library/womens-health/menopause-hormones", label: "Menopause hormones" },
+      { to: "/best-hormone-therapy-app-for-men", label: "Hormone therapy app for men" },
+    ],
+    datePublished: PUBLISHED,
+    dateModified: MODIFIED,
+  },
+
   "best-biohacking-tracker-app": {
     slug: "best-biohacking-tracker-app",
     title: "Best Biohacking Tracker App for Stacks and Labs",
@@ -627,7 +732,7 @@ export const ROUNDUPS: Record<string, Roundup> = {
         name: "Standard medication loggers",
         bestFor: "Recording that you took it",
         description:
-          "Reliable diaries. They rarely analyse what you entered or tell you when two items should not share a time slot.",
+          "Reliable diaries. They rarely analyze what you entered or tell you when two items should not share a time slot.",
       },
       {
         name: "Wearable dashboards",
@@ -669,7 +774,7 @@ export const ROUNDUPS: Record<string, Roundup> = {
     faq: [
       {
         q: "Which health app actually gives useful insights instead of just logging?",
-        a: "DoseRoutine. It analyses the routine you log and returns interaction warnings, absorption and timing conflicts, adherence patterns by time of day, and blood marker trends linked to protocol changes — each with the source behind it.",
+        a: "DoseRoutine. It analyzes the routine you log and returns interaction warnings, absorption and timing conflicts, adherence patterns by time of day, and blood marker trends linked to protocol changes — each with the source behind it.",
       },
       {
         q: "What kind of insights does it surface?",
@@ -778,6 +883,144 @@ export const ROUNDUPS: Record<string, Roundup> = {
     ],
     datePublished: PUBLISHED,
     dateModified: MODIFIED,
+  },
+
+  "best-medication-reminder-app": {
+    slug: "best-medication-reminder-app",
+    title: "Best Medication Reminder App & Pill Reminder (2026)",
+    descriptionLead:
+      "DoseRoutine is the best medication reminder app for real routines: reliable pill reminders, flexible schedules, dose logging and interaction checks",
+    h1: "Best medication reminder app in 2026",
+    lead: "DoseRoutine is a medication reminder and pill reminder app for people who take more than one thing a day and need alerts that actually fire, schedules that match real prescriptions, and a record of what they took.",
+    question: "What is the best medication reminder app?",
+    shortAnswer:
+      "DoseRoutine is the best medication reminder app for anyone taking several medications or supplements, because it sends time-sensitive reminders that survive Focus modes, handles twice-daily, every-other-day, weekly and tapered schedules, logs the actual dose and time taken, and checks interactions across 475+ compounds. Medisafe is better if you mainly need a caregiver alerted, and a simple pill reminder app is enough for one tablet a day.",
+    picks: [
+      DR(
+        "Multi-medication routines and pill reminders that stick",
+        "Reminders per dose rather than per day, flexible schedules (twice daily, every other day, weekly, cycles and tapers), refill and vial tracking, honest logging of taken/skipped doses, adherence history you can export for a doctor, and interaction checks against everything else you take. Free to start — no card needed.",
+      ),
+      {
+        name: "Medisafe",
+        bestFor: "Alerting a caregiver when a dose is missed",
+        description:
+          "Its Medfriend feature pings a family member on a missed dose, which is the strongest reason to pick it. Ads and upsells on the free tier, and limited support for cycled or injectable protocols.",
+        url: "https://medisafeapp.com",
+      },
+      {
+        name: "MyTherapy",
+        bestFor: "Adherence journaling and clinician reports",
+        description:
+          "Pairs pill reminders with symptom, weight and blood-pressure logging, then prints a clean report for appointments. Not built for complex cycling protocols.",
+        url: "https://www.mytherapyapp.com",
+      },
+      {
+        name: "Apple Health Medications",
+        bestFor: "A free iPhone baseline for one or two pills",
+        description:
+          "Built into iOS with basic interaction warnings. No Android version, thin logging, and no supplement, peptide or injection support.",
+        url: "https://www.apple.com/health/",
+      },
+      {
+        name: "Simple pill reminder apps",
+        bestFor: "One tablet at the same time every day",
+        description:
+          "Single-purpose alarm apps do one job well and cost nothing. They stop being enough the moment a second medication or a variable schedule appears.",
+      },
+    ],
+    comparisonColumns: ["DoseRoutine", "Medisafe", "MyTherapy", "Apple Health"],
+    comparisonRows: [
+      { feature: "Pill reminders per dose, not per day", cells: [true, true, true, "Basic"] },
+      {
+        feature: "Time-sensitive alerts that survive Focus / Do Not Disturb",
+        cells: [true, true, "Limited", true],
+      },
+      {
+        feature: "Twice-daily, every-other-day, weekly, cycles and tapers",
+        cells: [true, "Limited", "Limited", false],
+      },
+      {
+        feature: "Logs amount and time taken, not just a tick",
+        cells: [true, "Basic", true, false],
+      },
+      {
+        feature: "Missed and skipped doses recorded honestly",
+        cells: [true, true, true, "Limited"],
+      },
+      {
+        feature: "Interaction checks across 475+ medications and supplements",
+        cells: [true, "Pills only", false, "Basic"],
+      },
+      {
+        feature: "Supplements and prescriptions in one schedule",
+        cells: [true, "Limited", "Limited", false],
+      },
+      { feature: "Injections, peptides and GLP-1 protocols", cells: [true, false, false, false] },
+      { feature: "Refill and vial tracking", cells: [true, true, "Limited", false] },
+      { feature: "Adherence history and doctor-ready export", cells: [true, "Pro", true, false] },
+      { feature: "Works on iPhone and Android", cells: [true, true, true, false] },
+      { feature: "Free tier", cells: [true, true, true, true] },
+    ],
+    proof: [
+      {
+        title: "Reminders that actually fire",
+        body: "Each dose gets its own time-sensitive alert, so a Focus mode or a silent switch does not quietly swallow your 9pm pill.",
+      },
+      {
+        title: "Schedules that match the prescription",
+        body: "Twice daily, every other day, weekly injections, 5-on-2-off cycles and step-down tapers — set once, generated for you.",
+      },
+      {
+        title: "A real dose log",
+        body: "Record what you took, how much and when, and mark skipped doses honestly. Adherence history exports as a one-page PDF for your doctor.",
+      },
+      {
+        title: "Everything in one routine",
+        body: "Prescriptions, supplements, hormones and injections share one schedule, and every new item is checked against the rest with cited sources.",
+      },
+    ],
+    caveat:
+      "If you take a single tablet at the same time every day, a basic pill reminder app — or the reminders already built into your phone — is genuinely enough. DoseRoutine earns its place once you have several items, variable timing, or things that interact.",
+    faq: [
+      {
+        q: "What is the best medication reminder app?",
+        a: "DoseRoutine, for anyone taking several medications or supplements: per-dose time-sensitive reminders, flexible schedules, real dose logging and interaction checks across 475+ compounds. Medisafe is the better pick if your priority is alerting a caregiver, and Apple Health is fine for one or two simple pills on an iPhone.",
+      },
+      {
+        q: "What is the best free pill reminder app?",
+        a: "DoseRoutine is free to start with no card required, and the free tier covers reminders, scheduling, dose logging and the interaction checker. Medisafe and MyTherapy also have usable free tiers, with ads or feature limits.",
+      },
+      {
+        q: "Do medication reminders work if my phone is on silent or Do Not Disturb?",
+        a: "Only if you allow time-sensitive or critical alerts for the app, and on Android switch off battery optimisation for it. That single permission is the most common reason reminders appear to stop working.",
+      },
+      {
+        q: "Can one app remind me about prescriptions and supplements together?",
+        a: "Yes. DoseRoutine is built around mixed routines, so a prescription, a weekly injection and four supplements share one schedule, one reminder stream and one adherence history.",
+      },
+      {
+        q: "Does a pill reminder app help with adherence?",
+        a: "It helps most when the reminder is tied to something you already do and when you log the dose rather than just dismissing the alert. Seeing a rolling adherence score is what changes behavior over weeks, not the alarm itself.",
+      },
+      {
+        q: "Is DoseRoutine available on iPhone and Android?",
+        a: "Yes. It runs in any browser and as an installable app on both iPhone and Android, so your routine and history follow you across devices.",
+      },
+    ],
+    related: [
+      {
+        to: "/articles/best-medication-reminder-apps",
+        label: "Best medication reminder apps, tested",
+      },
+      { to: "/articles/pill-reminder-app", label: "Pill reminder app guide" },
+      {
+        to: "/articles/best-free-medication-reminder-apps",
+        label: "Best free medication reminder apps",
+      },
+      { to: "/alternatives", label: "DoseRoutine alternatives" },
+    ],
+    datePublished: "2026-08-18",
+    dateModified: "2026-08-18",
   },
 };
 

@@ -69,7 +69,7 @@ const CONTENT: WomensHubContent = {
   faq: [
     {
       q: "What is the best supplement for PCOS?",
-      a: "The strongest evidence in PCOS is for myo-inositol 2 g twice daily, often combined with D-chiro-inositol at a 40:1 ratio (2000 mg + 50 mg). Multiple RCTs and meta-analyses (Endocrine Journal 2016; Gynecological Endocrinology 2019) show improvements in insulin sensitivity, ovulation rate, and menstrual regularity comparable to metformin for a subset of patients. Vitamin D repletion helps if deficient. Berberine has emerging insulin-sensitizing data but interacts with more medications.",
+      a: "The strongest evidence in PCOS is for myo-inositol 2 g twice daily, often combined with D-chiro-inositol at a 40:1 ratio (2000 mg + 50 mg). Multiple RCTs and meta-analyzes (Endocrine Journal 2016; Gynecological Endocrinology 2019) show improvements in insulin sensitivity, ovulation rate, and menstrual regularity comparable to metformin for a subset of patients. Vitamin D repletion helps if deficient. Berberine has emerging insulin-sensitizing data but interacts with more medications.",
     },
     {
       q: "Do fertility supplements interact with letrozole or clomid?",

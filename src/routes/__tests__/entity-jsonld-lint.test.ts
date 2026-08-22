@@ -107,9 +107,7 @@ describe("Organization / Person JSON-LD lint (routes)", () => {
         LINT_OPTIONS,
       );
 
-      expect(formatEntityIssues(issues), `${file} has incomplete entity structured data`).toBe(
-        "",
-      );
+      expect(formatEntityIssues(issues), `${file} has incomplete entity structured data`).toBe("");
     });
   }
 

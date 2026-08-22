@@ -1,29 +1,24 @@
 {
   "base": "https://doseroutine.com",
-  "generatedAt": "2026-08-16T06:54:04.036Z",
-  "sitemapUrls": 944,
+  "generatedAt": "2026-08-19T06:28:46.914Z",
+  "sitemapUrls": 972,
   "pagesAudited": 60,
   "linksChecked": 400,
   "failures": [
     {
-      "url": "https://doseroutine.com/status",
+      "url": "https://doseroutine.com/interactions/duloxetine-and-st-john-s-wort",
       "kind": "metadata",
-      "problem": "No <h1> on page"
-    },
-    {
-      "url": "https://doseroutine.com/trt-supplement-interactions.",
-      "kind": "link",
-      "problem": "Broken link (HTTP 404)"
-    },
-    {
-      "url": "https://doseroutine.com/interaction-checker.",
-      "kind": "link",
-      "problem": "Broken link (HTTP 404)"
+      "problem": "Meta description too long (170 > 165)"
     },
     {
       "url": "https://doseroutine.com/library/peptide-stacks",
       "kind": "link",
       "problem": "Unexpected redirect HTTP 301 -> /library/peptide-stacks-for-muscle-growth"
+    },
+    {
+      "url": "https://doseroutine.com/trt-supplement-interactions.",
+      "kind": "link",
+      "problem": "Broken link (HTTP 404)"
     }
   ],
   "warnings": []

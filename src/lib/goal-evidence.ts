@@ -118,14 +118,7 @@ export const GOAL_EVIDENCE_PHRASES: Record<string, string[]> = {
     "exercise capacity",
     "exercise performance",
   ],
-  prostate: [
-    "prostate",
-    "benign prostatic",
-    "bph",
-    "urinary flow",
-    "lower urinary tract",
-    "psa",
-  ],
+  prostate: ["prostate", "benign prostatic", "bph", "urinary flow", "lower urinary tract", "psa"],
   testosterone: [
     "testosterone",
     "luteinizing hormone",
@@ -240,7 +233,6 @@ export const GOAL_SCORE_THRESHOLD = 6;
  */
 export const GOAL_DISTINCT_PHRASE_MINIMUM = 2;
 
-
 function countPhrase(haystack: string, phrase: string): number {
   if (!haystack) return 0;
   let from = 0;
@@ -277,14 +269,14 @@ export function scoreGoalEvidence(sources: GoalEvidenceSources): GoalEvidenceSco
       matches.push(phrase);
       if (inPrimary > 0) primaryMatches.push(phrase);
       // Cap per-phrase contribution so one repeated word cannot carry a tag.
-      score += Math.min(inPrimary, 3) * WEIGHT_PRIMARY + Math.min(inSecondary, 2) * WEIGHT_SECONDARY;
+      score +=
+        Math.min(inPrimary, 3) * WEIGHT_PRIMARY + Math.min(inSecondary, 2) * WEIGHT_SECONDARY;
     }
     if (score > 0)
       out.push({ goal, score, matches, primaryMatches, primary: primaryMatches.length > 0 });
   }
   return out.sort((a, b) => b.score - a.score || a.goal.localeCompare(b.goal));
 }
-
 
 export interface DerivedGoalTags {
   /** Final tag list: curated demographic tags + evidence-backed tags. */
@@ -333,8 +325,7 @@ export function deriveGoalTags(
   const qualified = scores
     .filter(
       (s) =>
-        s.score >= GOAL_SCORE_THRESHOLD &&
-        s.primaryMatches.length >= GOAL_DISTINCT_PHRASE_MINIMUM,
+        s.score >= GOAL_SCORE_THRESHOLD && s.primaryMatches.length >= GOAL_DISTINCT_PHRASE_MINIMUM,
     )
     .slice(0, max)
     .map((s) => s.goal);
@@ -342,7 +333,6 @@ export function deriveGoalTags(
   if (qualified.length === 0) {
     return { tags: current, removed: [], added: [], scores };
   }
-
 
   const curated = current.filter((t) => CURATED_GOAL_TAGS.includes(t));
   const tags = Array.from(new Set([...qualified, ...curated]));

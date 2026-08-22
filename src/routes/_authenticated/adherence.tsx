@@ -14,8 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AdherenceRing } from "@/components/adherence-ring";
 import { buildMonthlyReport, fetchLabeledAdherenceEvents } from "@/lib/adherence";
 import { cn } from "@/lib/utils";
+import { LoadingStatus } from "@/components/skeletons";
+import { routeErrorComponent } from "@/components/route-error-panel";
 
 export const Route = createFileRoute("/_authenticated/adherence")({
+  errorComponent: routeErrorComponent("adherence"),
   head: () => ({
     meta: [
       { title: "Adherence Report — DoseRoutine" },
@@ -108,9 +111,10 @@ function AdherencePage() {
       </div>
 
       {isLoading || !report ? (
-        <div className="mt-6 space-y-3">
-          <Skeleton className="h-36 w-full rounded-2xl" />
-          <Skeleton className="h-40 w-full rounded-2xl" />
+        <div className="mt-6 space-y-3" aria-busy="true">
+          <LoadingStatus label="Loading your adherence report…" />
+          <Skeleton aria-hidden="true" className="h-36 w-full rounded-2xl" />
+          <Skeleton aria-hidden="true" className="h-40 w-full rounded-2xl" />
         </div>
       ) : (
         <>
@@ -126,9 +130,9 @@ function AdherencePage() {
                     className={cn(
                       "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold",
                       report.delta > 0
-                        ? "bg-[color:var(--severity-synergy-bg))] text-[color:var(--severity-synergy)]"
+                        ? "bg-[color:var(--severity-synergy-bg)] text-[color:var(--severity-synergy)]"
                         : report.delta < 0
-                          ? "bg-[color:var(--severity-avoid-bg))] text-[color:var(--severity-avoid)]"
+                          ? "bg-[color:var(--severity-avoid-bg)] text-[color:var(--severity-avoid)]"
                           : "bg-muted text-muted-foreground",
                     )}
                   >

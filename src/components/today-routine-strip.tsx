@@ -10,6 +10,7 @@ import {
   type MealTimeRow,
   type WorkoutSessionRow,
 } from "@/lib/routine-schedule";
+import { trackCalendarDayAction } from "@/lib/calendar-usage";
 
 /** Loads every recurring workout slot and meal time for the signed-in user. */
 export function useRoutineRows() {
@@ -48,7 +49,7 @@ export function TodayRoutineStrip({ tz }: { tz: string }) {
         </h2>
         <Link
           to="/fitness"
-          search={{ view: "workouts" }}
+          search={{ view: "workout" }}
           className="text-xs font-semibold text-primary"
         >
           Edit
@@ -72,13 +73,23 @@ export function TodayRoutineStrip({ tz }: { tz: string }) {
               </p>
             </div>
             {row.kind === "workout" && (
-              <Link
-                to="/fitness"
-                search={{ day: dayKey, view: "workouts" }}
-                className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-              >
-                Log
-              </Link>
+              <span className="flex items-center gap-1.5">
+                <Link
+                  to="/fitness"
+                  search={{ day: dayKey, view: "routine", routine: row.id }}
+                  onClick={() => trackCalendarDayAction("edit_workout_occurrence", "workouts")}
+                  className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+                >
+                  Edit plan
+                </Link>
+                <Link
+                  to="/fitness"
+                  search={{ day: dayKey, view: "workout" }}
+                  className="rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
+                >
+                  Log
+                </Link>
+              </span>
             )}
           </div>
         ))}

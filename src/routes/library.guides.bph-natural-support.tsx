@@ -4,13 +4,14 @@ import { hreflangLinks, ogLocaleMeta } from "@/lib/hreflang";
 import { Card } from "@/components/ui/card";
 import { PublicBackHeader } from "@/components/public-back-header";
 import { AttributionFooter } from "@/components/attribution-footer";
+import { mergeLdScripts } from "@/lib/head-budget";
 
-const CANONICAL = "https://doseroutine.com/library/guides/bph-natural-support";
+export const CANONICAL = "https://doseroutine.com/library/guides/bph-natural-support";
 const TITLE = "BPH Natural Support: Supplements & Lifestyle | DoseRoutine";
 const DESC =
   "A plain-English guide to natural support for benign prostatic hyperplasia (BPH): evidence-based supplements, lifestyle changes and when to see a doctor.";
 
-const FAQS = [
+export const FAQS = [
   {
     q: "What is BPH?",
     a: "Benign prostatic hyperplasia — non-cancerous prostate enlargement that starts around age 40 and causes urinary symptoms in most men by 70. BPH does not cause prostate cancer, but the symptoms overlap.",
@@ -100,7 +101,7 @@ export const Route = createFileRoute("/library/guides/bph-natural-support")({
       { rel: "canonical", href: CANONICAL },
       ...hreflangLinks("/library/guides/bph-natural-support"),
     ],
-    scripts: [
+    scripts: mergeLdScripts([
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -115,8 +116,15 @@ export const Route = createFileRoute("/library/guides/bph-natural-support")({
           url: CANONICAL,
           image: ["https://doseroutine.com/og/guide-bph.jpg"],
           inLanguage: "en",
-          author: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine" },
-          publisher: { "@type": "Organization", "@id": "https://doseroutine.com/#organization", name: "DoseRoutine",
+          author: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
+          },
+          publisher: {
+            "@type": "Organization",
+            "@id": "https://doseroutine.com/#organization",
+            name: "DoseRoutine",
             logo: { "@type": "ImageObject", url: "https://doseroutine.com/icon-512.png" },
           },
           datePublished: "2026-07-27",
@@ -158,7 +166,7 @@ export const Route = createFileRoute("/library/guides/bph-natural-support")({
           ],
         }),
       },
-    ],
+    ]),
   }),
   component: Page,
 });

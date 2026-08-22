@@ -78,7 +78,7 @@ export function WorkoutBreakdown({
             className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
               mode === m.key
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground hover:bg-muted"
+                : "border-border bg-card text-foreground/80 hover:border-foreground/30 hover:bg-muted hover:text-foreground"
             }`}
           >
             {m.label}

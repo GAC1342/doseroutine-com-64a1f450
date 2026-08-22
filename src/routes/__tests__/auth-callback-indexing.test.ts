@@ -33,6 +33,7 @@ let sitemapXml = "";
 
 beforeAll(async () => {
   const mod = await import("../sitemap[.]xml");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lint-baseline: pre-existing; do not add new ones.
   const handler = (mod.Route as any).options.server.handlers.GET;
   const res: Response = await handler({
     request: new Request("https://doseroutine.com/sitemap.xml"),

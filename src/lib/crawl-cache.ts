@@ -72,7 +72,6 @@ function ttlMs(): number {
   return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_TTL_MS;
 }
 
-
 function cacheDir(): string {
   return (
     process.env["CRAWL_CACHE_DIR"] ??
@@ -164,10 +163,10 @@ export function crawlCacheStats(): CrawlCacheStats {
 /** Clear the in-process layer (tests). */
 export function resetCrawlCache(): void {
   memory.clear();
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- lint-baseline: pre-existing; do not add new ones.
   crawls.clear();
   for (const key of Object.keys(stats) as Array<keyof CrawlCacheStats>) stats[key] = 0;
 }
-
 
 const defaultFetcher: Fetcher = (url, init) =>
   fetch(url, { headers: { accept: "text/html", ...(init?.headers ?? {}) } });
@@ -324,7 +323,10 @@ export async function fetchResource(
   const { accept, ...rest } = options;
   return fetchHtml(url, {
     ...rest,
-    headers: { accept: accept ?? "text/html,application/xml;q=0.9,*/*;q=0.8", ...(rest.headers ?? {}) },
+    headers: {
+      accept: accept ?? "text/html,application/xml;q=0.9,*/*;q=0.8",
+      ...(rest.headers ?? {}),
+    },
   });
 }
 
@@ -347,10 +349,18 @@ export async function cachedFetchText(
   const { accept, ...rest } = options;
   const page = await fetchPage(url, {
     ...rest,
-    headers: { accept: accept ?? "text/html,application/xml;q=0.9,*/*;q=0.8", ...(rest.headers ?? {}) },
+    headers: {
+      accept: accept ?? "text/html,application/xml;q=0.9,*/*;q=0.8",
+      ...(rest.headers ?? {}),
+    },
   });
   if (!page) return { ok: false, status: 0, text: "", finalUrl: url };
-  return { ok: page.status >= 200 && page.status < 400, status: page.status, text: page.html, finalUrl: page.url };
+  return {
+    ok: page.status >= 200 && page.status < 400,
+    status: page.status,
+    text: page.html,
+    finalUrl: page.url,
+  };
 }
 
 /** Fetch the sitemap and return unique absolute URLs, capped at `max`. */
@@ -415,7 +425,9 @@ export function crawlSitemap(options: CrawlOptions): Promise<CrawlResult> {
     const fetched = await mapWithConcurrency(paths, options.concurrency ?? 6, async (path) => {
       const page = await fetchPage(`${baseUrl}${path}`, options.fetchOptions);
       // Object.create keeps the lazy jsonLd getter on the shared CachedPage.
-      return page ? (Object.assign(Object.create(page) as CachedPage, { path }) as CrawledPage) : null;
+      return page
+        ? (Object.assign(Object.create(page) as CachedPage, { path }) as CrawledPage)
+        : null;
     });
     return {
       baseUrl,

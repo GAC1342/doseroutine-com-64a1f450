@@ -50,7 +50,7 @@ export function ZeroResultAnalyzerCard({ enabled }: { enabled: boolean }) {
         </div>
         <div
           role="tablist"
-          className="inline-flex rounded-full border border-border bg-muted/40 p-0.5 text-xs"
+          className="inline-flex rounded-full border border-border bg-surface-track p-1 text-xs"
         >
           {(["7d", "30d", "90d"] as const).map((w) => (
             <button
@@ -60,7 +60,9 @@ export function ZeroResultAnalyzerCard({ enabled }: { enabled: boolean }) {
               aria-selected={win === w}
               onClick={() => setWin(w)}
               className={`rounded-full px-3 py-1 font-medium transition ${
-                win === w ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                win === w
+                  ? "border border-border bg-card font-semibold text-primary shadow-sm"
+                  : "border border-transparent text-foreground/75 hover:text-foreground"
               }`}
             >
               {w.replace("d", " days")}

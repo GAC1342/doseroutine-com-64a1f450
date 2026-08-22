@@ -1,9 +1,10 @@
 import { assetUrl } from "@/lib/asset-url";
+import { DiscordLink } from "@/components/discord-link";
 import { BrandLogo, brandLogoPreload } from "@/components/brand-logo";
 import { Testimonials } from "@/components/testimonials";
-import { AppScreenshots } from "@/components/app-screenshots";
 import { TrustSafety } from "@/components/trust-safety";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
@@ -29,20 +30,36 @@ import {
   Camera,
   ScanLine,
   Flame,
+  Dumbbell,
 } from "lucide-react";
 import { useT } from "@/lib/i18n-provider";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { withDoseRoutineDescriptionSuffix } from "@/lib/seo-description";
 import { Card } from "@/components/ui/card";
 import { TrustBadges } from "@/components/trust-badges";
-import { HomeFitnessPreview } from "@/components/home-fitness-preview";
 import { HomeSiteNav } from "@/components/home-site-nav";
+import { DeferUntilVisible } from "@/components/defer-until-visible";
+import { authPrewarmProps } from "@/lib/auth-prewarm";
+
+// Below-the-fold sections: split out of the entry bundle so the hero renders
+// first. They still stream into the SSR HTML through <Suspense>, so search
+// engines and AI crawlers see the same markup as before.
+const AppScreenshots = lazy(() =>
+  import("@/components/app-screenshots").then((m) => ({ default: m.AppScreenshots })),
+);
+const FeatureShowcase = lazy(() =>
+  import("@/components/feature-showcase").then((m) => ({ default: m.FeatureShowcase })),
+);
+const HomeFitnessPreview = lazy(() =>
+  import("@/components/home-fitness-preview").then((m) => ({ default: m.HomeFitnessPreview })),
+);
 
 // Modal only renders on user intent — keep it out of the first-load bundle.
 const AppInstallModal = lazy(() =>
   import("@/components/app-install-modal").then((m) => ({ default: m.AppInstallModal })),
 );
 import { useSessionState } from "@/hooks/use-session";
+import { readStoredSession } from "@/lib/auth-session";
 
 const ShareDoseRoutine = lazy(() =>
   import("@/components/share-doseroutine").then((m) => ({ default: m.ShareDoseRoutine })),
@@ -53,22 +70,6 @@ const HomeInsightsShowcase = lazy(() =>
     default: m.HomeInsightsShowcase,
   })),
 );
-
-function AppleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M17.05 20.28c-.83.97-1.75 1.82-3.13 1.85-1.35.03-1.78-.8-3.33-.8-1.56 0-2.05.8-3.34.83-1.4.03-2.47-1.4-3.32-2.38-1.8-2.08-3.18-5.9-1.33-8.47 1.1-1.55 3.05-2.53 5.18-2.55 1.35 0 2.63.91 3.45.91.82 0 2.35-1.13 3.96-.96.67.03 2.57.27 3.78 2.04-.1.06-2.25 1.32-2.23 3.93.02 3.12 2.72 4.17 2.74 4.18-.02.1-.43 1.45-1.58 2.86-1.02 1.23-2.08 2.46-3.38 2.46zm-3.15-17.2c.72-.87 1.2-2.08 1.07-3.28-1.04.04-2.3.7-3.04 1.56-.66.76-1.24 1.98-1.09 3.17 1.15.09 2.33-.58 3.06-1.45z" />
-    </svg>
-  );
-}
-
-function GooglePlayIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M4 2.5v19c0 .28.15.53.39.67l.04.02 16.5-9.5a.75.75 0 0 0 0-1.3L4.43 1.81A.75.75 0 0 0 4 2.5zm2 3.4 13.2 7.6L6 21.1V5.9z" />
-    </svg>
-  );
-}
 
 const HOME_TITLE = "DoseRoutine — Peptide, TRT & Supplement Tracker App";
 // Bump when the landing page content is reviewed or materially changed.
@@ -85,9 +86,11 @@ function hreflangLinks(pathname = "/") {
   // No ?lang= alternates: server HTML is English everywhere and the language
   // switcher is client-side only. Self-referential cluster keeps Google from
   // crawling duplicate parameterised copies.
+  // Lowercase `hreflang` on purpose — React's camelCase prop name ships
+  // literally in the SSR HTML and case-sensitive audit crawlers miss it.
   return [
-    { rel: "alternate", hrefLang: DEFAULT_LOCALE, href: `${base}${pathname}` },
-    { rel: "alternate", hrefLang: "x-default", href: `${base}${pathname}` },
+    { rel: "alternate", hreflang: DEFAULT_LOCALE, href: `${base}${pathname}` },
+    { rel: "alternate", hreflang: "x-default", href: `${base}${pathname}` },
   ];
 }
 
@@ -102,8 +105,6 @@ export const Route = createFileRoute("/")({
       { title: HOME_TITLE },
       { name: "description", content: HOME_DESCRIPTION },
       { name: "author", content: "DoseRoutine" },
-      { name: "publisher", content: "DoseRoutine" },
-      { name: "copyright", content: "© DoseRoutine — doseroutine.com" },
 
       { property: "og:title", content: HOME_TITLE },
       { property: "og:description", content: HOME_DESCRIPTION },
@@ -112,11 +113,6 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://doseroutine.com/" },
       {
         property: "og:image",
-        content:
-          "https://doseroutine.com/__l5e/assets-v1/d3ac315d-df91-4605-b11c-e100c4cddd77/og-home.jpg",
-      },
-      {
-        property: "og:image:secure_url",
         content:
           "https://doseroutine.com/__l5e/assets-v1/d3ac315d-df91-4605-b11c-e100c4cddd77/og-home.jpg",
       },
@@ -129,6 +125,11 @@ export const Route = createFileRoute("/")({
           "DoseRoutine — track supplements, peptides and TRT with AI dose plans and safety checks",
       },
       { property: "og:locale", content: "en_US" },
+      {
+        name: "twitter:image:alt",
+        content:
+          "DoseRoutine — track supplements, peptides and TRT with AI dose plans and safety checks",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@doseroutine" },
       { name: "twitter:title", content: HOME_TITLE },
@@ -137,11 +138,6 @@ export const Route = createFileRoute("/")({
         name: "twitter:image",
         content:
           "https://doseroutine.com/__l5e/assets-v1/d3ac315d-df91-4605-b11c-e100c4cddd77/og-home.jpg",
-      },
-      {
-        name: "twitter:image:alt",
-        content:
-          "DoseRoutine — track supplements, peptides and TRT with AI dose plans and safety checks",
       },
     ],
     // Dated, speakable WebPage node. Without it the homepage carries no
@@ -234,7 +230,7 @@ function LandingPage() {
   const firedDepths = useRef<Set<number>>(new Set());
   const utmRef = useRef<Record<string, string>>({});
   const exitShown = useRef(false);
-  // When a real (non-sticky) signup button is on screen, the sticky bar stands
+  // When a real (non-sticky) sign-up button is on screen, the sticky bar stands
   // down so the visitor never sees two identical "Sign up free" buttons.
   const primaryCtaRef = useRef<HTMLDivElement | null>(null);
   const [primaryCtaVisible, setPrimaryCtaVisible] = useState(false);
@@ -243,6 +239,29 @@ function LandingPage() {
   // The cookie notice owns the bottom of the screen while it is open; the
   // sticky CTA waits its turn so the two fixed layers never overlap.
   const [cookieNoticeOpen, setCookieNoticeOpen] = useState(false);
+
+  // Below-the-fold chunks are fetched together once the browser is idle, so
+  // they never queue behind each other as the user scrolls (a Suspense
+  // boundary that starts its import on reveal is a visible waterfall).
+  useEffect(() => {
+    let cancelled = false;
+    const prefetch = () => {
+      if (cancelled) return;
+      void Promise.all([
+        import("@/components/insights/home-insights-showcase"),
+        import("@/components/app-screenshots"),
+        import("@/components/feature-showcase"),
+        import("@/components/home-fitness-preview"),
+      ]).catch(() => {});
+    };
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => number })
+      .requestIdleCallback;
+    const id = ric ? ric(prefetch) : window.setTimeout(prefetch, 1200);
+    return () => {
+      cancelled = true;
+      if (!ric) window.clearTimeout(id as number);
+    };
+  }, []);
 
   useEffect(() => {
     const sync = (event: Event) => {
@@ -257,9 +276,12 @@ function LandingPage() {
   useEffect(() => {
     const el = primaryCtaRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver((entries) => setPrimaryCtaVisible(entries[0].isIntersecting), {
-      threshold: 0.2,
-    });
+    const io = new IntersectionObserver(
+      (entries) => setPrimaryCtaVisible(entries[0].isIntersecting),
+      {
+        threshold: 0.2,
+      },
+    );
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -282,6 +304,9 @@ function LandingPage() {
 
   const _t = useT();
   const sessionState = useSessionState();
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
   useEffect(() => {
     utmRef.current = readUtm();
@@ -292,16 +317,35 @@ function LandingPage() {
       ...utmRef.current,
     });
 
-    // Redirect signed-in users (and OAuth returners) to the app.
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
+    // Redirect signed-in users (and OAuth returners) to the app. The persisted
+    // session is checked first so a returning visitor leaves on the same tick
+    // instead of waiting on the auth SDK.
+    // Client-side navigation, not location.replace: a full document load here
+    // would re-download the app for a user who already has it running.
+    const goToApp = () => {
+      void navigateRef.current({ to: "/today", replace: true }).catch(() => {
         window.location.replace("/today");
-      }
-    });
+      });
+    };
+    if (readStoredSession()) {
+      goToApp();
+    } else {
+      void supabase.auth
+        .getSession()
+        .then(({ data }) => {
+          if (data.session) goToApp();
+        })
+        .catch(() => {
+          /* offline: stay on the marketing page */
+        });
+    }
 
     // If OAuth is still finishing parsing the URL hash, catch SIGNED_IN.
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") window.location.replace("/today");
+      if (event === "SIGNED_IN")
+        void navigateRef.current({ to: "/today", replace: true }).catch(() => {
+          window.location.replace("/today");
+        });
     });
 
     const onScroll = () => {
@@ -325,7 +369,6 @@ function LandingPage() {
         const dismissed = sessionStorage.getItem("doseroutine_install_sticky_dismissed") === "1";
         if (!dismissed) setShowInstallSticky(true);
       }
-
 
       for (const milestone of [50, 90]) {
         if (pct >= milestone && !firedDepths.current.has(milestone)) {
@@ -361,7 +404,11 @@ function LandingPage() {
   // marketing page from flashing before the redirect to /today.
   if (authReturning) {
     return (
-      <main id="main-content" tabIndex={-1} className="grid min-h-dvh place-items-center bg-background px-6 text-foreground">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="grid min-h-dvh place-items-center bg-background px-6 text-foreground"
+      >
         <div className="flex flex-col items-center gap-3 text-center">
           <BrandLogo size={56} alt="DoseRoutine logo and app icon" className="h-14 w-14" priority />
           <p className="text-sm text-muted-foreground">
@@ -377,7 +424,7 @@ function LandingPage() {
       cta_position: position,
       device_type: getDeviceType(),
       variant,
-      // Copy variant so the admin funnel can compare signup rate before/after
+      // Copy variant so the admin funnel can compare sign-up rate before/after
       // the switch from trial-first wording to free-account wording.
       cta_variant: "signup_free_v2",
       ...utmRef.current,
@@ -402,18 +449,54 @@ function LandingPage() {
       />
 
       {/* HERO */}
-      <section className="mx-auto max-w-5xl px-6 pb-8 pt-10 sm:pt-16">
+      {/* Microdata mirror of the sitewide SoftwareApplication node. Audit
+       * crawlers that only count inline itemscope/itemtype markup need it on
+       * visible content, so the attributes hang off copy that already renders.
+       * Lowercase attribute names are intentional (some crawlers regex the raw
+       * HTML case-sensitively). */}
+      <section
+        className="mx-auto max-w-5xl px-6 pb-8 pt-10 sm:pt-16"
+        {...{ itemscope: "", itemtype: "https://schema.org/SoftwareApplication" }}
+      >
         <div className="grid gap-10 sm:grid-cols-2 sm:items-center">
           <div className="text-center sm:text-left">
             <div className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
               <Lock className="h-3.5 w-3.5 text-primary" />
               {_t("privacyNote")}
             </div>
-            <h1 className="mt-5 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            <h1
+              className="mt-5 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+              {...{ itemprop: "name" }}
+            >
               {_t("heroTitle")}
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:mx-0 sm:text-lg">
+            <p
+              className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:mx-0 sm:text-lg"
+              {...{ itemprop: "description" }}
+            >
               {_t("heroBody")}
+            </p>
+            {/* React 19 hoists <meta> to <head>, which would pull these values
+                out of the SoftwareApplication itemscope. Use visually hidden
+                spans so the microdata values stay inside the scope. */}
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:mx-0">
+              <span className="sr-only" {...{ itemprop: "applicationCategory" }}>
+                HealthApplication
+              </span>
+              <span className="sr-only" {...{ itemprop: "operatingSystem" }}>
+                iOS, Android, Web
+              </span>
+              A health tracking app for iPhone, Android and the web — free to start, no card needed.
+              <span
+                {...{ itemprop: "offers", itemscope: "", itemtype: "https://schema.org/Offer" }}
+              >
+                <span className="sr-only" {...{ itemprop: "price" }}>
+                  0
+                </span>
+                <span className="sr-only" {...{ itemprop: "priceCurrency" }}>
+                  USD
+                </span>
+              </span>
             </p>
 
             <ul className="mx-auto mt-6 grid max-w-md gap-2 text-left text-sm text-foreground sm:mx-0">
@@ -441,6 +524,7 @@ function LandingPage() {
 
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
               <Link
+                {...authPrewarmProps}
                 to="/auth"
                 onClick={() => handleCta("hero_primary")}
                 className="tap-target inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cta px-6 py-3 text-base font-semibold text-cta-foreground shadow-sm transition-colors hover:bg-cta-hover sm:w-auto"
@@ -458,61 +542,10 @@ function LandingPage() {
             </div>
 
             <p className="mt-3 text-xs text-muted-foreground">
-              No card needed. The 7-day Pro trial is optional after signup.
+              No card needed. The 7-day Pro trial is optional after sign-up.
             </p>
 
             <TrustBadges variant="trial" className="mt-4 justify-center sm:justify-start" />
-
-            {/* App launch strip — conversion-focused, no official badges yet */}
-            <div className="mt-6 rounded-2xl border border-border bg-card p-4 shadow-sm sm:max-w-md">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-                  <Smartphone className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">Get the DoseRoutine app</p>
-                  <p className="text-xs text-muted-foreground">
-                    Install it on your phone in seconds — iPhone, Android and web.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    trackEvent("app_launch_strip_click", { source: "hero", platform: "ios" });
-                    setInstallModalOpen(true);
-                  }}
-                  className="tap-target flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-                >
-                  <AppleIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">App Store</span>
-                  <span className="sm:hidden">App Store</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    trackEvent("app_launch_strip_click", { source: "hero", platform: "android" });
-                    setInstallModalOpen(true);
-                  }}
-                  className="tap-target flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-                >
-                  <GooglePlayIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">Google Play</span>
-                  <span className="sm:hidden">Google Play</span>
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  trackEvent("app_launch_strip_pwa_click", { source: "hero" });
-                  setInstallModalOpen(true);
-                }}
-                className="tap-target mt-2 w-full text-center text-xs font-medium text-primary hover:text-[color:var(--primary-hover)]"
-              >
-                Or add to home screen now →
-              </button>
-            </div>
 
             {/* Closed testing recruitment */}
             <Link
@@ -935,8 +968,16 @@ function LandingPage() {
 
       {/* Real screens from the app */}
       <section className="mx-auto max-w-5xl px-6 pb-12">
-        <AppScreenshots />
+        <Suspense fallback={<div className="min-h-[420px]" aria-hidden="true" />}>
+          <AppScreenshots />
+        </Suspense>
       </section>
+
+      {/* Illustrated feature tour — labeled as illustration so the strip
+          above keeps its "real screens, not mock-ups" claim. */}
+      <Suspense fallback={<div className="min-h-[480px]" aria-hidden="true" />}>
+        <FeatureShowcase />
+      </Suspense>
 
       {/* Value props */}
       <section className="mx-auto grid max-w-5xl gap-4 px-6 py-14 sm:grid-cols-3">
@@ -1090,7 +1131,11 @@ function LandingPage() {
             </div>
             <TrustBadges variant="trial" className="mt-4" />
           </div>
-          <HomeFitnessPreview />
+          <Suspense fallback={<div className="min-h-[360px]" aria-hidden="true" />}>
+            <DeferUntilVisible minHeight={420}>
+              <HomeFitnessPreview />
+            </DeferUntilVisible>
+          </Suspense>
         </div>
       </section>
 
@@ -1104,7 +1149,7 @@ function LandingPage() {
             What shipped this week
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            The newest additions to daily tracking — food, timeline and help built in.
+            The newest additions to daily tracking — food, training, timeline and help built in.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {[
@@ -1128,21 +1173,54 @@ function LandingPage() {
                 title: "Instruction manual with saved bookmarks",
                 body: "A searchable, 11-chapter manual for every feature — bookmark the steps you use and they sync across your devices.",
               },
-            ].map((item) => (
-              <Card key={item.title} className="rounded-2xl border-border p-4">
+              {
+                icon: <Dumbbell className="h-5 w-5" />,
+                title: "10-minute booty workout",
+                body: "A guided timer walks you through six illustrated moves, then logs the session so you can watch your completion streak build.",
+                to: "/booty-workout" as const,
+                wide: true,
+              },
+            ].map((item) => {
+              const inner = (
                 <div className="flex items-start gap-3">
                   <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
                     {item.icon}
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-foreground">{item.title}</div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {item.title}
+                      {"to" in item ? (
+                        <ArrowRight className="ml-1 inline h-3.5 w-3.5 align-[-2px]" />
+                      ) : null}
+                    </div>
                     <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {item.body}
                     </div>
                   </div>
                 </div>
-              </Card>
-            ))}
+              );
+              const className = `rounded-2xl border-border p-4${
+                "wide" in item ? " sm:col-span-2" : ""
+              }`;
+              return "to" in item && item.to ? (
+                <Card
+                  key={item.title}
+                  className={`${className} transition-colors hover:border-primary/40`}
+                >
+                  <Link
+                    to={item.to}
+                    onClick={() => handleCta("shipped_booty_workout")}
+                    className="block"
+                  >
+                    {inner}
+                  </Link>
+                </Card>
+              ) : (
+                <Card key={item.title} className={className}>
+                  {inner}
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -1190,8 +1268,58 @@ function LandingPage() {
         <TrustSafety variant="full" />
       </section>
 
-      {/* Long-tail SEO: visible FAQ */}
+      {/* Plain-language explainer. Written for readers first: the landing page
+       * is mostly UI chrome, and search engines need real prose about what the
+       * product is and who it serves. */}
       <section className="mx-auto max-w-3xl px-6 pb-14">
+        <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+          What DoseRoutine does, and who it is for
+        </h2>
+        <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            DoseRoutine is a dose tracker and interaction checker for people whose daily routine is
+            more complicated than a single pill. If you take a prescription in the morning, a
+            handful of supplements with food, a weekly injection, and something new your clinic just
+            added, the hard part is not remembering that you take things — it is remembering{" "}
+            <em>what, how much, when</em>, and whether any two of them should be spaced apart. That
+            is the problem this app was built to solve.
+          </p>
+          <p>
+            Everything starts with your stack. You add each compound once — the dose, the form, and
+            the schedule — and DoseRoutine turns that into a day view you can log from in a couple
+            of taps. Injectable compounds get a reconstitution calculator that converts your vial
+            strength and target dose into the exact number of units to draw on a U-100 syringe, so
+            you are not doing arithmetic with a needle in your hand. Vials track their own remaining
+            volume, and the app tells you how many doses are left before you need another.
+          </p>
+          <p>
+            The interaction checker covers 475+ compounds: prescriptions, hormones and TRT,
+            peptides, GLP-1 medications, vitamins, minerals and common herbal extracts. Each result
+            explains what the interaction actually is, how confident the evidence behind it is, and
+            links the source it came from — regulatory drug labeling, MedlinePlus, PubChem or the
+            published literature. Timing conflicts get called out too, because plenty of real-world
+            interactions are not "never take these together" but "leave four hours between them."
+          </p>
+          <p>
+            It is used most by people on TRT or hormone therapy, people running peptide protocols,
+            people starting a GLP-1 and tracking food alongside it, and caregivers managing someone
+            else's medication schedule. It is equally useful if you simply take three supplements
+            and want to stop guessing. DoseRoutine is a tracking and reference tool, not medical
+            advice: it is designed to help you have a better conversation with your prescriber, and
+            every safety claim it shows is sourced so you can check it yourself.
+          </p>
+          <p>
+            You can start free with no card. Add your compounds, run an interaction check, and see
+            your first day view in a few minutes.
+          </p>
+        </div>
+      </section>
+
+      {/* Long-tail SEO: visible FAQ */}
+      <section
+        className="mx-auto max-w-3xl px-6 pb-14"
+        {...{ itemscope: "", itemtype: "https://schema.org/FAQPage" }}
+      >
         <h2 className="text-center font-display text-2xl font-semibold tracking-tight sm:text-3xl">
           Questions people ask about DoseRoutine
         </h2>
@@ -1212,12 +1340,29 @@ function LandingPage() {
             <details
               key={i}
               className="group rounded-2xl border border-border bg-card px-4 py-3 open:ring-1 open:ring-primary/20"
+              {...{
+                itemprop: "mainEntity",
+                itemscope: "",
+                itemtype: "https://schema.org/Question",
+              }}
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-foreground">
+              <summary
+                className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-foreground"
+                {...{ itemprop: "name" }}
+              >
                 {faq.q}
                 <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+              <p
+                className="mt-2 text-sm leading-relaxed text-muted-foreground"
+                {...{
+                  itemprop: "acceptedAnswer",
+                  itemscope: "",
+                  itemtype: "https://schema.org/Answer",
+                }}
+              >
+                <span {...{ itemprop: "text" }}>{faq.a}</span>
+              </p>
             </details>
           ))}
         </div>
@@ -1235,7 +1380,6 @@ function LandingPage() {
           className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
           <Link
-
             to="/auth"
             onClick={() => handleCta("final")}
             className="tap-target inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-[color:var(--primary-hover)] sm:w-auto"
@@ -1327,6 +1471,10 @@ function LandingPage() {
             <Link to="/blog" className="inline-block py-1.5 underline hover:text-foreground">
               Research &amp; Updates
             </Link>
+            <Link to="/articles" className="inline-block py-1.5 underline hover:text-foreground">
+              Articles
+            </Link>
+
             <Link to="/faq" className="inline-block py-1.5 underline hover:text-foreground">
               FAQ
             </Link>
@@ -1449,7 +1597,11 @@ function LandingPage() {
             Delete account
           </Link>
         </div>
+        <div className="mb-3 flex justify-center">
+          <DiscordLink />
+        </div>
         {_t("footerDisclaimer")}
+        <p className="mt-3">Published by DoseRoutine — doseroutine.com</p>
       </footer>
 
       {/* Sticky mobile install banner — sits above the CTA bar */}
@@ -1534,12 +1686,11 @@ function LandingPage() {
         </Suspense>
       ) : null}
 
+      {/* Machine-readable attribution: kept as one unbroken text node so
+          crawlers (and the attribution guard) read the publisher and the
+          canonical home together rather than split across markup. */}
       <p className="mx-auto mt-10 max-w-prose px-4 pb-6 text-center text-[11px] text-muted-foreground">
-        © {new Date().getFullYear()} <strong>DoseRoutine</strong> — original content published at{" "}
-        <a href="https://doseroutine.com" className="underline" rel="canonical">
-          doseroutine.com
-        </a>
-        .
+        © {new Date().getFullYear()} DoseRoutine. Original content, published and maintained here.
       </p>
     </main>
   );

@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { openExternalUrl } from "@/lib/external-link";
 
 type CitationCtx = {
   open: (url: string, label?: string) => void;
@@ -27,7 +28,9 @@ export function useCitationModal(): CitationCtx {
     // Graceful no-op if provider is missing — falls back to opening the link.
     return {
       open: (url) => {
-        if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
+        // H2 — route through the shared helper so the native shell hands the
+        // citation to the OS browser instead of loading it chrome-less in-app.
+        openExternalUrl(url);
       },
     };
   }

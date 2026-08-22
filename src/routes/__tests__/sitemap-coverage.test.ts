@@ -31,6 +31,9 @@ const NON_INDEXABLE = new Set<string>([
   "/promo-kit",
   "/debug/index-check",
   "/debug/noindex-audit",
+  // Internal diagnostics page: noindex, never listed for crawlers.
+  "/debug/env",
+  "/debug/deep-link",
   // Private OAuth redirect target: ssr:false, robots noindex/nofollow.
   "/auth_/callback",
 ]);
@@ -43,7 +46,12 @@ const SKIP_FILES = new Set<string>([
   // Non-HTML machine endpoints: they are not pages and are discovered
   // directly (robots.txt / <link rel="alternate">), not via the sitemap.
   "feed[.]xml.ts",
+  "articles.feed[.]xml.ts",
   "llms-full[.]txt.ts",
+  // Agent/OAuth machine endpoints: JSON transports and a consent screen for
+  // connected agents, not crawlable pages.
+  "mcp.ts",
+  "[.]lovable.oauth.consent.tsx",
 ]);
 
 function filenameToPath(file: string): string {

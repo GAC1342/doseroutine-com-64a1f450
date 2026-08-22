@@ -35,6 +35,9 @@ const SKIP_FILES = new Set<string>([
   "library.tsx",
   "sitemap[.]xml.ts",
   "robots[.]txt.ts",
+  "debug.att.tsx",
+  "debug.deep-link.tsx",
+  "debug.env.tsx", // internal noindex env diagnostics page
   "debug.index-check.tsx",
   "debug.noindex-audit.tsx",
   "auth_.callback.tsx",
@@ -98,7 +101,6 @@ async function loadHead(file: string): Promise<HeadResult | null> {
     return null;
   }
 }
-
 
 /** Returns every issue with a description string, or [] when it's clean. */
 export function lintDescription(
@@ -232,9 +234,7 @@ describe("SEO meta lint — public routes", () => {
 });
 
 describe("SEO meta lint — loader-backed marketing routes are never silently skipped", () => {
-  const LOADER_BACKED = FILES.filter(
-    (f) => f.startsWith("best-") || f.startsWith("for."),
-  );
+  const LOADER_BACKED = FILES.filter((f) => f.startsWith("best-") || f.startsWith("for."));
 
   it("finds the roundup and use-case route files", () => {
     expect(LOADER_BACKED.length).toBeGreaterThanOrEqual(12);
@@ -244,9 +244,11 @@ describe("SEO meta lint — loader-backed marketing routes are never silently sk
     it(`${filenameToPath(file)} resolves a real description and canonical`, async () => {
       const head = await loadHead(file);
       expect(head, `${file}: head could not be resolved`).toBeTruthy();
-      expect(metaValues(head?.meta, "name", "description")[0], `${file}: no description`).toBeTruthy();
+      expect(
+        metaValues(head?.meta, "name", "description")[0],
+        `${file}: no description`,
+      ).toBeTruthy();
       expect(canonicalHrefs(head?.links)[0], `${file}: no canonical`).toMatch(/^https:\/\//);
     });
   }
 });
-

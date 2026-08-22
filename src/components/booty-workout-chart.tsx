@@ -150,23 +150,32 @@ export function BootyWorkoutChart({
   status = "success",
   onRetry,
   scheduleTo = "/fitness",
+  scheduleSearch,
+  scheduleLabel = "Schedule a day",
 }: {
   progress: BootyWorkoutProgress;
   status?: ChartDataStatus;
   onRetry?: () => void;
   scheduleTo?: string;
+  /** Extra search params (used to carry a post-sign-up redirect for guests). */
+  scheduleSearch?: Record<string, string>;
+  scheduleLabel?: string;
 }) {
   const [range, setRange] = useState<Range>("week");
 
   const data = useMemo(
-    () => (range === "week" ? weeklyCompletionSeries(progress, 8) : monthlyCompletionSeries(progress, 6)),
+    () =>
+      range === "week" ? weeklyCompletionSeries(progress, 8) : monthlyCompletionSeries(progress, 6),
     [progress, range],
   );
 
   const total = useMemo(() => data.reduce((sum, d) => sum + d.days, 0), [data]);
   const max = useMemo(() => Math.max(1, ...data.map((d) => d.days)), [data]);
 
-  const sampleData = useMemo(() => (range === "week" ? SAMPLE_WEEK_DATA : SAMPLE_MONTH_DATA), [range]);
+  const sampleData = useMemo(
+    () => (range === "week" ? SAMPLE_WEEK_DATA : SAMPLE_MONTH_DATA),
+    [range],
+  );
   const sampleMax = useMemo(() => Math.max(1, ...sampleData.map((d) => d.days)), [sampleData]);
 
   const hasCompletedDays = progress.sessions.some((s) => s.completed);
@@ -271,7 +280,13 @@ export function BootyWorkoutChart({
           <ChartContainer config={config} className="mt-3 aspect-[16/9] w-full">
             <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -20 }}>
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} minTickGap={8} />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 10 }}
+                minTickGap={8}
+              />
               <YAxis
                 allowDecimals={false}
                 domain={[0, max]}
@@ -280,9 +295,7 @@ export function BootyWorkoutChart({
                 tick={{ fontSize: 10 }}
                 width={32}
               />
-              <ChartTooltip
-                content={<ChartTooltipContent labelKey="label" nameKey="days" />}
-              />
+              <ChartTooltip content={<ChartTooltipContent labelKey="label" nameKey="days" />} />
               <Bar dataKey="days" fill="var(--color-days)" radius={[4, 4, 0, 0]} maxBarSize={38} />
             </BarChart>
           </ChartContainer>
@@ -307,9 +320,9 @@ export function BootyWorkoutChart({
           </p>
 
           <Button type="button" size="sm" className="mt-4 h-9 gap-2 px-4 text-xs" asChild>
-            <Link to={scheduleTo}>
+            <Link to={scheduleTo} search={scheduleSearch as never}>
               <CalendarPlus className="h-3.5 w-3.5" aria-hidden="true" />
-              Schedule a day
+              {scheduleLabel}
             </Link>
           </Button>
 
@@ -318,7 +331,13 @@ export function BootyWorkoutChart({
             <ChartContainer config={config} className="aspect-[16/9] w-full">
               <BarChart data={sampleData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} minTickGap={8} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 10 }}
+                  minTickGap={8}
+                />
                 <YAxis
                   allowDecimals={false}
                   domain={[0, sampleMax]}
@@ -327,7 +346,12 @@ export function BootyWorkoutChart({
                   tick={{ fontSize: 10 }}
                   width={32}
                 />
-                <Bar dataKey="days" fill="var(--color-days)" radius={[4, 4, 0, 0]} maxBarSize={24} />
+                <Bar
+                  dataKey="days"
+                  fill="var(--color-days)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={24}
+                />
               </BarChart>
             </ChartContainer>
           </div>
