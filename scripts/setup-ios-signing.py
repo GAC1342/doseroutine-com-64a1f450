@@ -27,6 +27,11 @@ from cryptography.x509.oid import NameOID
 
 API_ROOT = "https://api.appstoreconnect.apple.com/v1"
 DISTRIBUTION_TYPES = {"DISTRIBUTION", "IOS_DISTRIBUTION"}
+REQUIRED_CAPABILITIES = {
+    "ASSOCIATED_DOMAINS",
+    "HEALTHKIT",
+    "SIGN_IN_WITH_APPLE",
+}
 
 
 def api_token() -> str:
@@ -189,6 +194,35 @@ def get_bundle_id(api: AppleApi, identifier: str) -> str:
     return str(exact[0]["id"])
 
 
+def enable_required_capabilities(api: AppleApi, bundle_id: str) -> None:
+    """Enable ordinary app capabilities before creating a new profile.
+
+    HealthKit's separately approved clinical-records access is intentionally
+    not requested. DoseRoutine reads standard fitness/body data only.
+    """
+    enabled = {
+        str(item.get("attributes", {}).get("capabilityType"))
+        for item in api.list_data(
+            f"/bundleIds/{bundle_id}/bundleIdCapabilities", {"limit": "200"}
+        )
+    }
+    for capability_type in sorted(REQUIRED_CAPABILITIES):
+        if capability_type in enabled:
+            print(f"Bundle capability already enabled: {capability_type}")
+            continue
+        payload = {
+            "data": {
+                "type": "bundleIdCapabilities",
+                "attributes": {"capabilityType": capability_type},
+                "relationships": {
+                    "bundleId": {"data": {"type": "bundleIds", "id": bundle_id}}
+                },
+            }
+        }
+        api.request("POST", "/bundleIdCapabilities", data=json.dumps(payload))
+        print(f"Enabled bundle capability: {capability_type}")
+
+
 def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: str) -> bytes:
     # Apple does not accept filter[bundleId] on GET /profiles. Use the
     # bundle ID relationship endpoint, then filter profile type locally.
@@ -320,6 +354,7 @@ def main() -> int:
         certificate = create_certificate(api, key)
 
     bundle_resource_id = get_bundle_id(api, args.bundle_id)
+    enable_required_capabilities(api, bundle_resource_id)
     timestamp = dt.datetime.now(dt.UTC).strftime("%Y%m%d-%H%M%S")
     profile = replace_profile(
         api,

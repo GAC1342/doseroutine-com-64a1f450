@@ -2070,9 +2070,12 @@ workflows:
             echo "ERROR: stale build/ios/xcarchive or build/ios/ipa present before archive. Aborting to prevent caching a prior icon."
             exit 1
           fi
-          # Resolve the installed App Store profile for this bundle id so the
-          # archive is given an explicit PROVISIONING_PROFILE_SPECIFIER. Without
-          # it, manual signing archives fail with a generic "Failed to archive".
+          # Resolve the installed App Store profile for diagnostics. The earlier
+          # `xcode-project use-profiles` step writes this profile onto the App
+          # target only. Never pass PROVISIONING_PROFILE_SPECIFIER on the
+          # xcodebuild command line: command-line settings propagate to Swift
+          # Package resource targets such as RevenueCat_RevenueCat, which cannot
+          # accept provisioning profiles.
           PROFILE_NAME=""
           PROFILE_UUID=""
           TMP_PLIST=$(mktemp)
@@ -2096,7 +2099,37 @@ workflows:
             echo "ERROR: no installed App Store provisioning profile found for $BUNDLE_ID at archive time."
             exit 1
           fi
-          echo "Archiving with profile: $PROFILE_NAME ($PROFILE_UUID)"
+          PROFILE_PLIST=$(mktemp)
+          MATCHED_PROFILE=""
+          for d in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
+                   "$HOME/Library/MobileDevice/Provisioning Profiles"; do
+            candidate="$d/$PROFILE_UUID.mobileprovision"
+            if [ -f "$candidate" ]; then
+              MATCHED_PROFILE="$candidate"
+              break
+            fi
+          done
+          if [ -z "$MATCHED_PROFILE" ] || ! security cms -D -i "$MATCHED_PROFILE" > "$PROFILE_PLIST" 2>/dev/null; then
+            rm -f "$PROFILE_PLIST"
+            echo "ERROR: could not decode the selected App Store profile before archive."
+            exit 1
+          fi
+          for entitlement in com.apple.developer.healthkit com.apple.developer.applesignin com.apple.developer.associated-domains; do
+            if ! /usr/libexec/PlistBuddy -c "Print :Entitlements:$entitlement" "$PROFILE_PLIST" >/dev/null 2>&1; then
+              rm -f "$PROFILE_PLIST"
+              echo "ERROR: generated App Store profile is missing required entitlement: $entitlement"
+              echo "The signing setup must enable this App ID capability before creating the profile."
+              exit 1
+            fi
+          done
+          if /usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.healthkit.access" "$PROFILE_PLIST" >/dev/null 2>&1; then
+            rm -f "$PROFILE_PLIST"
+            echo "ERROR: generated profile unexpectedly includes clinical Health Records access."
+            exit 1
+          fi
+          rm -f "$PROFILE_PLIST"
+          echo "Profile capability preflight passed."
+          echo "App target profile: $PROFILE_NAME ($PROFILE_UUID)"
           echo "Archive configuration: Release"
           echo "Signing team: $PROFILE_TEAM"
           set +e
@@ -2107,7 +2140,7 @@ workflows:
             --no-show-build-settings \
             --disable-xcpretty \
             --verbose \
-            --archive-xcargs "COMPILER_INDEX_STORE_ENABLE=NO CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"iPhone Distribution\" DEVELOPMENT_TEAM=$PROFILE_TEAM PROVISIONING_PROFILE_SPECIFIER=\"$PROFILE_NAME\"" \
+            --archive-xcargs "COMPILER_INDEX_STORE_ENABLE=NO" \
             2>&1 | tee "$CM_BUILD_DIR/build-logs/xcodebuild.log"
 
           BUILD_STATUS=${PIPESTATUS[0]}

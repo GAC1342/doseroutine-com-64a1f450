@@ -20,7 +20,8 @@ com.apple.developer.team-identifier
 # app degrades to manual entry when the user denies access. Usage strings live
 # in ios/App/App/Info.plist.
 com.apple.developer.healthkit
-com.apple.developer.healthkit.access
+# Universal links and web credentials for doseroutine.com.
+com.apple.developer.associated-domains
 # Sign in with Apple: offered on /auth (src/routes/auth.tsx) and required by
 # guideline 4.8 because the web build also offers Google sign-in.
 com.apple.developer.applesignin
@@ -44,9 +45,11 @@ get-task-allow
 
 [forbidden]
 # DoseRoutine is a logging + planner app. None of the below should ship.
+# Clinical Health Records require separate Apple approval. DoseRoutine uses
+# ordinary HealthKit samples and must not declare this entitlement.
+com.apple.developer.healthkit.access
 com.apple.developer.homekit
 com.apple.developer.family-controls
-com.apple.developer.associated-domains
 com.apple.developer.icloud-container-identifiers
 com.apple.developer.icloud-services
 com.apple.developer.ubiquity-kvstore-identifier

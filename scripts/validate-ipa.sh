@@ -9,7 +9,7 @@
 #   2. CFBundleShortVersionString matches expected-version (if provided) and is SemVer
 #   3. CFBundleVersion (build number) is a positive integer
 #   4. Embedded entitlements match the bundle id; StoreKit/IAP may be implicit
-#   5. No unexpected entitlements (HealthKit, Location, Camera, Associated Domains)
+#   5. No unexpected restricted entitlements
 #   6. Provisioning profile team id == LTZ9X7NMQJ and not expired
 #
 # Exits non-zero on any failure so CI (Codemagic post-build) can gate the upload.
@@ -20,8 +20,7 @@ EXPECTED_BUNDLE_ID="com.doseroutine.app"
 EXPECTED_TEAM_ID="LTZ9X7NMQJ"
 IAP_HINT_ENTITLEMENTS=("com.apple.developer.storekit" "in-app-purchase")
 FORBIDDEN_ENTITLEMENTS=(
-  "com.apple.developer.healthkit"
-  "com.apple.developer.associated-domains"
+  "com.apple.developer.healthkit.access"
   "com.apple.security.personal-information.location"
   "com.apple.developer.homekit"
   "com.apple.developer.family-controls"
@@ -176,7 +175,7 @@ else
       fail "Unexpected entitlement present: $k (will cause App Review questions)"
     fi
   done
-  pass "No forbidden entitlements (HealthKit, HomeKit, Associated Domains, Location, Family Controls)"
+  pass "No forbidden entitlements (clinical records, HomeKit, Location, Family Controls)"
 fi
 
 # --- Provisioning profile ----------------------------------------------------
