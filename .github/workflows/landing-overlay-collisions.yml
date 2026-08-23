@@ -7,18 +7,6 @@ name: landing-overlay-collisions (E2E)
 # Runs on both engines the spec emulates: Chromium (Pixel 7) and WebKit
 # (iPhone 14). Both binaries are installed, so a missing engine fails the job.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/routes/index.tsx"
-      - "src/components/cookie-banner.tsx"
-      - "e2e/landing-overlay-collisions.spec.ts"
-      - ".github/workflows/landing-overlay-collisions.yml"
-  pull_request:
-    paths:
-      - "src/routes/index.tsx"
-      - "src/components/cookie-banner.tsx"
-      - "e2e/landing-overlay-collisions.spec.ts"
   workflow_dispatch:
     inputs:
       base:

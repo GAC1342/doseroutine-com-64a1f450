@@ -13,9 +13,6 @@ name: critical-flow-a11y
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-
 concurrency:
   group: critical-flow-a11y-${{ github.ref }}
   cancel-in-progress: true

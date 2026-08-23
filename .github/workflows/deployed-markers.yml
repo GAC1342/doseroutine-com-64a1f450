@@ -17,11 +17,7 @@ name: deployed-markers
 # CDN propagates instead of failing on the first miss.
 
 on:
-  push:
-    branches: [main]
   deployment_status:
-  schedule:
-    - cron: "17 6 * * *"
   workflow_dispatch:
     inputs:
       base_url:

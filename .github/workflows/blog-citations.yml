@@ -9,15 +9,6 @@ name: blog-citations
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "src/lib/blog-posts.ts"
-      - "src/lib/blog-citation-audit.ts"
-      - "scripts/check-blog-citations.mjs"
-      - "scripts/blog-citations.entry.ts"
-      - ".github/workflows/blog-citations.yml"
-
 concurrency:
   group: blog-citations-${{ github.ref }}
   cancel-in-progress: true

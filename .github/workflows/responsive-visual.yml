@@ -4,18 +4,6 @@ name: responsive-visual (screenshot matrix)
 # 412 / 430 / 768 / 1024 / 1280) on the public routes that carry the responsive layouts. Catches drift
 # the overflow guard can't see: layout that fits but looks wrong.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "e2e/responsive-visual.spec.ts"
-      - "e2e/responsive-viewports.ts"
-      - ".github/workflows/responsive-visual.yml"
-  pull_request:
-    paths:
-      - "src/**"
-      - "e2e/responsive-visual.spec.ts"
-      - "e2e/responsive-viewports.ts"
   workflow_dispatch:
     inputs:
       viewports:

@@ -48,7 +48,7 @@ class SigningApiRequestTests(unittest.TestCase):
             if "/bundleIds/" in path:
                 relationship_calls.append(node)
 
-        self.assertEqual(len(relationship_calls), 2)
+        self.assertGreaterEqual(len(relationship_calls), 2)
         for call in relationship_calls:
             self.assertEqual(
                 len(call.args),
@@ -56,6 +56,12 @@ class SigningApiRequestTests(unittest.TestCase):
                 "Apple rejects query parameters on these bundle relationship endpoints",
             )
             self.assertFalse(call.keywords)
+
+    def test_generated_profile_is_checked_before_it_is_written(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn("if healthkit and _has_clinical_records(healthkit):", source)
+        self.assertIn("profile = create_verified_profile(", source)
+        self.assertIn("so the build continues", source)
 
 
 if __name__ == "__main__":

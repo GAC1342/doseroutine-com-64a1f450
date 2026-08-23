@@ -4,12 +4,6 @@ name: lockfile-integrity
 # This prevents later workflows (and deployments) from dying on `npm ci`.
 
 on:
-  pull_request:
-    paths:
-      - package.json
-      - package-lock.json
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:

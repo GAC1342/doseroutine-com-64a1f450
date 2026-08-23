@@ -10,46 +10,6 @@ name: blog-seo-score
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "src/lib/blog-posts.ts"
-      - "src/lib/blog-posts-longtail.ts"
-      - "src/lib/blog-seo-score.ts"
-      - "src/lib/blog-seo.ts"
-      - "src/lib/blog-jsonld-validate.ts"
-      - "src/lib/__tests__/blog-jsonld.test.ts"
-      - "src/lib/blog-social-meta-validate.ts"
-      - "src/lib/__tests__/blog-social-meta.test.ts"
-      - "src/lib/aeo.ts"
-      - "src/lib/aeo-page-faqs.ts"
-      - "src/lib/faqpage-rich-results.ts"
-      - "src/lib/__tests__/faqpage-rich-results.test.ts"
-      - "src/lib/seo-score-config.ts"
-      - "src/lib/seo-score-config.load.ts"
-      - "seo-score.config.json"
-      - "src/lib/__tests__/blog-seo-score.test.ts"
-      - ".github/workflows/blog-seo-score.yml"
-  push:
-    branches: [main]
-    paths:
-      - "src/lib/blog-posts.ts"
-      - "src/lib/blog-posts-longtail.ts"
-      - "src/lib/blog-seo-score.ts"
-      - "src/lib/blog-seo.ts"
-      - "src/lib/blog-jsonld-validate.ts"
-      - "src/lib/__tests__/blog-jsonld.test.ts"
-      - "src/lib/blog-social-meta-validate.ts"
-      - "src/lib/__tests__/blog-social-meta.test.ts"
-      - "src/lib/aeo.ts"
-      - "src/lib/aeo-page-faqs.ts"
-      - "src/lib/faqpage-rich-results.ts"
-      - "src/lib/__tests__/faqpage-rich-results.test.ts"
-      - "src/lib/seo-score-config.ts"
-      - "src/lib/seo-score-config.load.ts"
-      - "seo-score.config.json"
-      - "src/lib/__tests__/blog-seo-score.test.ts"
-      - ".github/workflows/blog-seo-score.yml"
-
 concurrency:
   group: blog-seo-score-${{ github.ref }}
   cancel-in-progress: true

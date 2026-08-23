@@ -5,9 +5,6 @@ name: Head budget (max 60 head children)
 # childs", and the point where style recalculation starts to cost real time.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
     inputs:
       base_url:

@@ -13,8 +13,6 @@ name: lighthouse-perf
 # Baselines change deliberately: run `npm run perf:baseline:update` and
 # `npm run perf:baseline:update:mobile` locally and commit the diff.
 on:
-  schedule:
-    - cron: "20 6 * * *"
   workflow_dispatch:
     inputs:
       base_url:

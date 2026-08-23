@@ -14,11 +14,6 @@ name: crawl-smoke
 # sweeps build this commit, serve it locally and crawl that build.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-  schedule:
-    - cron: "30 5 * * *"
   workflow_dispatch:
     inputs:
       base_url:

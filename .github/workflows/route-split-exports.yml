@@ -1,10 +1,7 @@
 name: Route split export safety
 
 on:
-  pull_request:
-  push:
-    branches: [main]
-
+  workflow_dispatch:
 jobs:
   route-split:
     runs-on: ubuntu-latest

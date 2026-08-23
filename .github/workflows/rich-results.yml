@@ -22,25 +22,6 @@ on:
         description: "How many sitemap URLs to sample"
         required: false
         default: "60"
-  pull_request:
-    branches: [main]
-    paths:
-      - "src/lib/article-schema.ts"
-      - "src/lib/software-app-schema.ts"
-      - "src/lib/breadcrumb-schema.ts"
-      - "src/lib/blog-seo.ts"
-      - "src/lib/home-jsonld.ts"
-      - "src/lib/authority-sources.ts"
-      - "src/components/womens-hub-page.tsx"
-      - "src/components/womens-compound-article.tsx"
-      - "src/routes/**"
-      - "scripts/validate-rich-results.py"
-      - "scripts/rich-results-waivers.json"
-      - ".github/workflows/rich-results.yml"
-  schedule:
-    # Weekly drift check against production.
-    - cron: "17 6 * * 1"
-
 concurrency:
   group: rich-results-${{ github.ref }}
   cancel-in-progress: true

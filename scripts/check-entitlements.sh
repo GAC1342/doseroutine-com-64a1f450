@@ -110,6 +110,16 @@ while IFS= read -r k; do
   fi
 done <<<"$FORBIDDEN"
 
+# Value-aware exception: Apple may include healthkit.access as an empty array
+# for ordinary HealthKit. A non-empty value means separately approved clinical
+# Health Records access and must still fail the submission audit.
+if python3 scripts/check-healthkit-access.py "$ENT_FILE"; then
+  echo "  ✅ forbidden clinical Health Records access is not enabled"
+else
+  echo "  ❌ FORBIDDEN clinical Health Records access is enabled" >&2
+  FAIL=1
+fi
+
 # Undeclared keys (present but not in required/optional/forbidden)
 DECLARED="$(printf '%s\n%s\n%s\n' "$REQUIRED" "$OPTIONAL" "$FORBIDDEN" | sort -u)"
 while IFS= read -r k; do

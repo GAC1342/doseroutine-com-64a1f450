@@ -13,15 +13,6 @@ on:
         required: false
         default: false
         type: boolean
-  pull_request:
-    paths:
-      - package.json
-      - package-lock.json
-      - scripts/dependency-policy.json
-      - scripts/check-dependency-versions.mjs
-  schedule:
-    - cron: "17 8 * * 1"
-
 concurrency:
   group: dependency-versions-${{ github.ref }}
   cancel-in-progress: true

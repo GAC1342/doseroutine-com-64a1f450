@@ -5,22 +5,6 @@ name: mobile-overflow (E2E)
 # Tests run at 360/390/430px phones and 768/1024px tablets to catch
 # device-specific layout issues.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/components/ui/sheet.tsx"
-      - "src/components/workout-log-sheet.tsx"
-      - "src/components/muscle-group-picker.tsx"
-      - "src/styles.css"
-      - "e2e/mobile-horizontal-overflow.spec.ts"
-      - ".github/workflows/mobile-overflow.yml"
-  pull_request:
-    paths:
-      - "src/components/ui/sheet.tsx"
-      - "src/components/workout-log-sheet.tsx"
-      - "src/components/muscle-group-picker.tsx"
-      - "src/styles.css"
-      - "e2e/mobile-horizontal-overflow.spec.ts"
   workflow_dispatch:
     inputs:
       base:

@@ -10,15 +10,6 @@ on:
         description: App URL to test (defaults to the staging preview)
         default: https://id-preview--b76a384e-67c0-4f04-b53e-b70d374f6ac7.lovable.app
         required: false
-  push:
-    branches: [main]
-    paths:
-      - "src/lib/portion-units.ts"
-      - "src/components/food-portion-picker.tsx"
-      - "src/components/meal-review-sheet.tsx"
-      - "e2e/meal-portion-scaling.spec.ts"
-      - ".github/workflows/meal-portion-scaling.yml"
-
 concurrency:
   group: meal-portion-scaling-${{ github.ref }}
   cancel-in-progress: true

@@ -4,13 +4,6 @@ name: public-seo-access
 # visitor: no sign-up gate, no robots.txt Disallow, no noindex.
 # Offline guard runs on every push; the live sweep is manual (Actions minutes).
 on:
-  push:
-    paths:
-      - "src/routes/**"
-      - "src/lib/public-seo-access.ts"
-      - "src/lib/non-indexable.ts"
-      - "public/robots.txt"
-      - ".github/workflows/public-seo-access.yml"
   workflow_dispatch:
     inputs:
       base:

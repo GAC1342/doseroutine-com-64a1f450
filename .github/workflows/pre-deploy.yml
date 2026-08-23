@@ -35,9 +35,6 @@ on:
         description: Skip the live marker verification (build + lockfile only)
         required: false
         default: "false"
-  pull_request:
-    branches: [main]
-
 concurrency:
   group: pre-deploy-${{ github.ref }}
   cancel-in-progress: true

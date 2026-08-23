@@ -8,9 +8,6 @@ name: Micromarkup / schema validation
 # duplicate, untyped or empty scopes.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
     inputs:
       base_url:

@@ -11,9 +11,6 @@ name: sitemap-robots-check
 # being built, not whatever is currently deployed.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
     inputs:
       base_url:

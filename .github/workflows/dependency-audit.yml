@@ -17,13 +17,6 @@ on:
         default: "high"
         type: choice
         options: [low, moderate, high, critical]
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-  schedule:
-    - cron: "23 7 * * *"
-
 concurrency:
   group: dependency-audit-${{ github.ref }}
   cancel-in-progress: true

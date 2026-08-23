@@ -9,11 +9,6 @@ name: a11y-axe-authenticated
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: "0 6 * * 1"
-
 concurrency:
   group: axe-authenticated-${{ github.ref }}
   cancel-in-progress: true

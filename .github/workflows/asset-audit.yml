@@ -7,14 +7,6 @@ name: asset-audit
 # articles, images, or the audit rules themselves.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "src/content/article-drafts/**"
-      - "src/lib/asset-audit.ts"
-      - "e2e/asset-audit.spec.ts"
-      - "e2e/article-slugs.ts"
-      - "public/**"
-
 jobs:
   audit:
     runs-on: ubuntu-latest

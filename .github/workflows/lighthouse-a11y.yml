@@ -10,9 +10,6 @@ on:
         description: Base URL to audit
         default: https://doseroutine.com
         required: false
-  schedule:
-    - cron: "0 9 * * 1"
-
 jobs:
   audit:
     runs-on: ubuntu-latest

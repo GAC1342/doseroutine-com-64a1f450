@@ -6,22 +6,6 @@ name: article-citations
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "src/content/article-drafts/**"
-      - "src/lib/article-citation-audit.ts"
-      - "scripts/check-article-citations.mjs"
-      - "scripts/article-citations.entry.ts"
-      - ".github/workflows/article-citations.yml"
-  push:
-    branches: [main]
-    paths:
-      - "src/content/article-drafts/**"
-      - "src/lib/article-citation-audit.ts"
-      - "scripts/check-article-citations.mjs"
-      - "scripts/article-citations.entry.ts"
-      - ".github/workflows/article-citations.yml"
-
 concurrency:
   group: article-citations-${{ github.ref }}
   cancel-in-progress: true

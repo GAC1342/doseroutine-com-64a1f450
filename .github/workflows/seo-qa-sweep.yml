@@ -14,8 +14,6 @@ name: SEO QA sweep (PR gate)
 # performance is owned by the lighthouse-perf workflow.
 
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:

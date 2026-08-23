@@ -12,8 +12,10 @@ import base64
 import datetime as dt
 import json
 import os
+import plistlib
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -233,34 +235,59 @@ def get_bundle_id(api: AppleApi, identifier: str) -> str:
     return str(exact[0]["id"])
 
 
+def _has_clinical_records(item: dict) -> bool:
+    """True when a HEALTHKIT capability record enables Health Records."""
+    settings = item.get("attributes", {}).get("settings") or []
+    for setting in settings:
+        if not isinstance(setting, dict):
+            continue
+        blob = json.dumps(setting).upper()
+        if "HEALTH_RECORDS" in blob or "HEALTHRECORDS" in blob:
+            return True
+    return False
+
+
+def _create_capability(api: AppleApi, bundle_id: str, capability_type: str) -> None:
+    attributes: dict[str, object] = {"capabilityType": capability_type}
+    if capability_type == "HEALTHKIT":
+        # Explicitly empty settings = ordinary HealthKit, no Health Records.
+        attributes["settings"] = []
+    payload = {
+        "data": {
+            "type": "bundleIdCapabilities",
+            "attributes": attributes,
+            "relationships": {
+                "bundleId": {"data": {"type": "bundleIds", "id": bundle_id}}
+            },
+        }
+    }
+    api.request("POST", "/bundleIdCapabilities", data=json.dumps(payload))
+    print(f"Enabled bundle capability: {capability_type}")
+
+
 def enable_required_capabilities(api: AppleApi, bundle_id: str) -> None:
     """Enable ordinary app capabilities before creating a new profile.
 
     HealthKit's separately approved clinical-records access is intentionally
-    not requested. DoseRoutine reads standard fitness/body data only.
+    not requested. Apple's public API does not expose the separate Clinical
+    Health Records checkbox, so the generated profile is inspected below and
+    signing stops immediately if that portal-only setting is enabled.
     """
-    enabled = {
-        str(item.get("attributes", {}).get("capabilityType"))
-        # Apple's bundleIdCapabilities relationship rejects pagination query
-        # parameters with PARAMETER_ERROR.ILLEGAL. This relationship returns
-        # the complete capability collection without an explicit limit.
-        for item in api.list_data(f"/bundleIds/{bundle_id}/bundleIdCapabilities")
-    }
+    # Apple's bundleIdCapabilities relationship rejects pagination query
+    # parameters with PARAMETER_ERROR.ILLEGAL. This relationship returns
+    # the complete capability collection without an explicit limit.
+    existing = api.list_data(f"/bundleIds/{bundle_id}/bundleIdCapabilities")
+    enabled: dict[str, dict] = {}
+    for item in existing:
+        capability_type = str(item.get("attributes", {}).get("capabilityType"))
+        enabled[capability_type] = item
+
     for capability_type in sorted(REQUIRED_CAPABILITIES):
         if capability_type in enabled:
             print(f"Bundle capability already enabled: {capability_type}")
             continue
-        payload = {
-            "data": {
-                "type": "bundleIdCapabilities",
-                "attributes": {"capabilityType": capability_type},
-                "relationships": {
-                    "bundleId": {"data": {"type": "bundleIds", "id": bundle_id}}
-                },
-            }
-        }
-        api.request("POST", "/bundleIdCapabilities", data=json.dumps(payload))
-        print(f"Enabled bundle capability: {capability_type}")
+        _create_capability(api, bundle_id, capability_type)
+
 
 
 def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: str) -> bytes:
@@ -297,6 +324,67 @@ def replace_profile(api: AppleApi, bundle_id: str, certificate_id: str, name: st
     item = api.request("POST", "/profiles", data=json.dumps(payload)).json()["data"]
     print(f"Created App Store profile {item.get('attributes', {}).get('name', item.get('id'))}.")
     return base64.b64decode(item["attributes"]["profileContent"])
+
+
+def clinical_access_values_from_profile(profile: bytes) -> list[str]:
+    """Decode a mobileprovision and return non-empty clinical access values."""
+    with tempfile.TemporaryDirectory() as directory:
+        profile_path = Path(directory) / "profile.mobileprovision"
+        plist_path = Path(directory) / "profile.plist"
+        profile_path.write_bytes(profile)
+        commands = [
+            ["security", "cms", "-D", "-i", str(profile_path)],
+            [
+                "openssl",
+                "smime",
+                "-inform",
+                "der",
+                "-verify",
+                "-noverify",
+                "-in",
+                str(profile_path),
+            ],
+        ]
+        decoded = False
+        for command in commands:
+            try:
+                result = subprocess.run(command, check=True, capture_output=True)
+            except (FileNotFoundError, subprocess.CalledProcessError):
+                continue
+            plist_path.write_bytes(result.stdout)
+            decoded = True
+            break
+        if not decoded:
+            raise RuntimeError("Could not decode the generated App Store profile")
+        with plist_path.open("rb") as handle:
+            payload = plistlib.load(handle)
+    entitlements = payload.get("Entitlements", {})
+    value = entitlements.get("com.apple.developer.healthkit.access")
+    if value in (None, False, ""):
+        return []
+    if isinstance(value, (list, tuple, set)):
+        return [str(item) for item in value if str(item).strip()]
+    return [str(value)]
+
+
+def create_verified_profile(
+    api: AppleApi, bundle_id: str, certificate_id: str, name: str
+) -> bytes:
+    """Create the App Store profile, reporting any portal-only clinical flag."""
+    profile = replace_profile(api, bundle_id, certificate_id, name)
+    clinical_values = clinical_access_values_from_profile(profile)
+    if clinical_values:
+        # Xcode signs with the app's entitlements, which do not include
+        # HealthKit clinical access. A profile that carries the portal-only
+        # Health Records setting is a superset and still archives fine.
+        print(
+            "WARNING: the generated App Store profile carries Clinical Health "
+            f"Records access ({', '.join(clinical_values)}). The app does not "
+            "request it, so the build continues."
+        )
+        return profile
+    print("Verified generated profile has no Clinical Health Records access.")
+    return profile
 
 
 APPLE_CHAIN_URLS = (
@@ -399,7 +487,7 @@ def main() -> int:
     bundle_resource_id = get_bundle_id(api, args.bundle_id)
     enable_required_capabilities(api, bundle_resource_id)
     timestamp = dt.datetime.now(dt.UTC).strftime("%Y%m%d-%H%M%S")
-    profile = replace_profile(
+    profile = create_verified_profile(
         api,
         bundle_resource_id,
         str(certificate["id"]),

@@ -20,7 +20,6 @@ EXPECTED_BUNDLE_ID="com.doseroutine.app"
 EXPECTED_TEAM_ID="LTZ9X7NMQJ"
 IAP_HINT_ENTITLEMENTS=("com.apple.developer.storekit" "in-app-purchase")
 FORBIDDEN_ENTITLEMENTS=(
-  "com.apple.developer.healthkit.access"
   "com.apple.security.personal-information.location"
   "com.apple.developer.homekit"
   "com.apple.developer.family-controls"
@@ -140,6 +139,8 @@ fi
 if [[ -z "$ENT_XML" ]]; then
   fail "Could not read embedded entitlements (need codesign, or a signed Mach-O)"
 else
+  ENT_FILE="$WORK/entitlements.plist"
+  printf '%s' "$ENT_XML" > "$ENT_FILE"
   ENT_APP_ID="$(printf '%s' "$ENT_XML" | grep -A1 'application-identifier' | grep '<string>' | head -n1 | sed -E 's/.*<string>(.*)<\/string>.*/\1/')"
   ENT_TEAM_ID="$(printf '%s' "$ENT_XML" | grep -A1 'com.apple.developer.team-identifier' | grep '<string>' | head -n1 | sed -E 's/.*<string>(.*)<\/string>.*/\1/')"
 
@@ -167,6 +168,12 @@ else
     pass "In-App Purchase entitlement present"
   else
     echo "  ⚠️  No explicit IAP entitlement key found. Modern iOS grants StoreKit implicitly — verify sandbox purchases work in TestFlight."
+  fi
+
+  if python3 scripts/check-healthkit-access.py "$ENT_FILE"; then
+    pass "No clinical Health Records access enabled"
+  else
+    fail "Clinical Health Records access is enabled"
   fi
 
   # Forbidden entitlements — DoseRoutine does not use these

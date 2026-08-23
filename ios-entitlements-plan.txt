@@ -27,6 +27,10 @@ com.apple.developer.associated-domains
 com.apple.developer.applesignin
 
 [optional]
+# Apple may include this key as an empty array when ordinary HealthKit is
+# enabled. The value-aware build checks reject non-empty clinical-records
+# values; key presence alone is not clinical access.
+com.apple.developer.healthkit.access
 # StoreKit / IAP does NOT require an explicit entitlement — Apple grants it
 # implicitly when the app has active in-app products. RevenueCat uses StoreKit
 # under the hood, so no entitlement key is needed. `com.apple.developer.in-app-payments`
@@ -46,8 +50,8 @@ get-task-allow
 [forbidden]
 # DoseRoutine is a logging + planner app. None of the below should ship.
 # Clinical Health Records require separate Apple approval. DoseRoutine uses
-# ordinary HealthKit samples and must not declare this entitlement.
-com.apple.developer.healthkit.access
+# ordinary HealthKit samples; non-empty healthkit.access values are rejected by
+# scripts/check-healthkit-access.py rather than this key-only plan checker.
 com.apple.developer.homekit
 com.apple.developer.family-controls
 com.apple.developer.icloud-container-identifiers

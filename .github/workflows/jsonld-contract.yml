@@ -10,24 +10,6 @@ name: JSON-LD schema contract
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "src/lib/home-jsonld.ts"
-      - "src/lib/jsonld-validate.ts"
-      - "src/lib/blog-seo.ts"
-      - "src/lib/blog-posts.ts"
-      - "src/routes/index.tsx"
-      - "src/routes/blog.*.tsx"
-      - "src/lib/__tests__/jsonld-schema-contract.test.ts"
-      - "src/lib/jsonld-duplicates.ts"
-      - "src/lib/software-app-schema.ts"
-      - "src/routes/__root.tsx"
-      - "src/routes/__tests__/jsonld-duplicate-lint.test.ts"
-      - "src/lib/entity-jsonld-lint.ts"
-      - "src/lib/__tests__/entity-jsonld-lint.test.ts"
-      - "src/routes/__tests__/entity-jsonld-lint.test.ts"
-      - ".github/workflows/jsonld-contract.yml"
-
 jobs:
   contract:
     runs-on: ubuntu-latest

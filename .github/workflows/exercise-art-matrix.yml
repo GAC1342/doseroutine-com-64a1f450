@@ -12,26 +12,6 @@ name: exercise-art visual matrix (E2E)
 #                      iOS-style rendering (WebKit + iPhone UA, touch and DPR)
 #   gate            - merges every ledger and fails on cross-browser or cross-density drift
 on:
-  pull_request:
-    paths:
-      - "src/components/exercise-art-lightbox.tsx"
-      - "src/components/exercise-search-grid.tsx"
-      - "src/components/workout-log-sheet.tsx"
-      - "src/components/muscle-group-picker.tsx"
-      - "src/lib/exercise-art.ts"
-      - "src/styles.css"
-      - "e2e/exercise-art-*.ts"
-      - "scripts/check-exercise-art-*.mjs"
-      - "scripts/merge-exercise-art-geometry.mjs"
-      - "scripts/exercise-art-matrix.ts"
-      - ".github/workflows/exercise-art-matrix.yml"
-  push:
-    branches: [main]
-    paths:
-      - "src/components/exercise-art-lightbox.tsx"
-      - "src/lib/exercise-art.ts"
-      - "e2e/exercise-art-*.ts"
-      - ".github/workflows/exercise-art-matrix.yml"
   workflow_dispatch:
     inputs:
       base:
