@@ -112,7 +112,7 @@ jobs:
 
       - name: Upload marker report + diff
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deployed-markers-report
           path: marker-report/
@@ -139,7 +139,7 @@ jobs:
           '
       - name: Upload debug artifact
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deployed-markers-html
           path: marker-debug/

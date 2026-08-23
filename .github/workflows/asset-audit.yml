@@ -26,7 +26,7 @@ jobs:
         run: cat test-results/asset-audit/report.md >> "$GITHUB_STEP_SUMMARY" || true
       - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: asset-audit-report
           path: test-results/asset-audit/
