@@ -52,16 +52,19 @@ export function prewarmAuth(): void {
   }
 
   try {
-    // Tiny, unauthenticated endpoint: completes the DNS/TLS handshake without
-    // blocking rendering or sending credentials.
+    // Tiny endpoint used purely to complete the DNS/TLS handshake. It needs
+    // the publishable key or the backend answers 401, which shows up as a
+    // console error at launch; the key is public and no session is sent.
+    const apikey = import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
     void fetch(`${origin}/auth/v1/health`, {
-      mode: "no-cors",
       credentials: "omit",
       cache: "no-store",
+      headers: apikey ? { apikey } : undefined,
     }).catch(() => {});
   } catch {
     // Network blocked (offline, extension) — sign-in still works, just colder.
   }
+
 }
 
 /** Test-only: forget that the page already warmed the connection. */
