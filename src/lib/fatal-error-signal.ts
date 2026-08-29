@@ -44,7 +44,13 @@ const IGNORED = [
   // most visibly right after the native route guard redirects to /today.
   /React was able to recover/i,
   /error while hydrating/i,
+  // React re-renders the subtree on the client after a hydration mismatch, so
+  // the user still sees correct UI. Dev builds report it through this wording
+  // (e.g. the lucide `xmlns` attribute); prod uses the minified codes below.
+  /Hydration failed because the server rendered/i,
+  /Text content does not match server-rendered HTML/i,
   /Minified React error #(418|421|423|425)\b/i,
+
   /Failed to fetch dynamically imported module/i,
   /error loading dynamically imported module/i,
   /Importing a module script failed/i,
