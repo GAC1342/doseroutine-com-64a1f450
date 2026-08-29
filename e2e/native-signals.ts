@@ -28,6 +28,9 @@ export const IGNORED_CONSOLE_PATTERNS: RegExp[] = [
   // (`frame-ancestors` ignored, missing `report-to`). Enforcement-mode CSP is
   // served in production; these are dev-only diagnostics, not app errors.
   /Content Security Policy/i,
+  // The emulated native shell has no native Sentry client; the SDK logs this
+  // once and falls back to the JS transport. Real devices ship the native SDK.
+  /Native Sentry SDK failed to initialize/i,
 ];
 
 // Benign browser-level noise, mirroring src/lib/fatal-error-signal.ts: these
@@ -49,6 +52,9 @@ export const IGNORED_ERROR_PATTERNS: RegExp[] = [
   // the user still sees the correct UI. Mirrors src/lib/fatal-error-signal.ts.
   /React was able to recover/i,
   /error while hydrating/i,
+  // React recovers from a hydration mismatch by re-rendering on the client.
+  /Hydration failed because the server rendered/i,
+  /Text content does not match server-rendered HTML/i,
   // Chromium advisory from the embedded Stripe iframe; not an app error.
   /Potential permissions policy violation/i,
   // Asset 404s from a marketing page that the guard redirects away from
@@ -132,7 +138,9 @@ export async function launchViaDeepLink(page: Page, path: string): Promise<void>
  * `test.use()` inside a describe group when it would force a new worker.
  * The engine comes from the project (mobile-safari = WebKit, chromium).
  */
-export function deviceShape(name: "iPhone 13" | "Pixel 7") {
+export type DeviceName = "iPhone 13" | "Pixel 7" | "iPad (gen 7)" | "iPad (gen 7) landscape";
+
+export function deviceShape(name: DeviceName) {
   const { defaultBrowserType: _engine, ...rest } = devices[name];
   return rest;
 }
