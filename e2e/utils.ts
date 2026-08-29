@@ -82,9 +82,18 @@ export async function dismissPaywall(page: Page, waitMs = 2_000): Promise<Paywal
 /**
  * Signs in via the /auth email form. Assumes the account already exists.
  * Waits for redirect to /today (post-auth landing).
+ *
+ * Skips the calling test when no credentials are configured: without them the
+ * form submits empty fields and every authenticated spec fails with an
+ * identical 20s navigation timeout, which buries real defects in noise.
  */
 export async function signIn(page: Page): Promise<void> {
+  base.skip(
+    !AUTH_AVAILABLE,
+    "Set TEST_USER_EMAIL and TEST_USER_PASSWORD to run authenticated E2E tests",
+  );
   await page.goto("/auth", { waitUntil: "domcontentloaded" });
+
   await dismissFirstRunOverlays(page);
   await page.reload({ waitUntil: "domcontentloaded" });
 
