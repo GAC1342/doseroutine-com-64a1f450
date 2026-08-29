@@ -63,6 +63,9 @@ export const IGNORED_ERROR_PATTERNS: RegExp[] = [
   // A redirect (e.g. the native route guard) cancelled an in-flight query.
   // The app classifies these as cancellations and shows a pending state.
   /CancelledError/i,
+  // Router-internal preload race: a link's preloaded match is discarded when
+  // the guard redirects away before it resolves. Never user-visible.
+  /_nonReactive/,
 ];
 
 export function isBenignError(text: string): boolean {
