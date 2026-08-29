@@ -55,6 +55,8 @@ const IGNORED = [
   /error loading dynamically imported module/i,
   /Importing a module script failed/i,
   /ChunkLoadError/i,
+  // Router-internal preload race (a preloaded match discarded by a redirect).
+  /_nonReactive/,
   /ResizeObserver loop/i,
   /\bAbortError\b/i,
   /The operation was aborted/i,
