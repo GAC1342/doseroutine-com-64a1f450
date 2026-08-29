@@ -15,16 +15,21 @@ import { nativeRedirectFor } from "@/lib/native-route-policy";
 export function NativeRouteGuard() {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Navigating while the current route is still loading tears down a match
+  // that router-core is mid-way through resolving, which surfaces as an
+  // unhandled `_nonReactive` TypeError in the console during launch.
+  const idle = useRouterState({ select: (s) => s.status === "idle" && !s.isLoading });
   const native = isNative();
   const target = native ? nativeRedirectFor(pathname) : null;
   const redirecting = Boolean(target) && target !== pathname;
 
   useEffect(() => {
-    if (!redirecting || !target) return;
+    if (!redirecting || !target || !idle) return;
     void router.navigate({ to: target, replace: true }).catch(() => {
       /* navigation races are non-fatal */
     });
-  }, [router, target, redirecting]);
+  }, [router, target, redirecting, idle]);
+
 
   if (!redirecting) return null;
 
