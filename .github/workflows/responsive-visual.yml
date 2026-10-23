@@ -38,7 +38,7 @@ jobs:
         run: node scripts/collect-visual-artifacts.mjs --out visual-artifacts-${{ matrix.project }} || true
       - name: Upload visual artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: responsive-visual-${{ matrix.project }}-${{ github.run_attempt }}
           path: |
